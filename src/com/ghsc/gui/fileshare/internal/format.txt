@@ -1,0 +1,15 @@
+<p n="my package" d="This is a description of 'my package'. Quotes are not allowed." c="00/00/00 00:00 AM" ua="1234" a="t" p="t" v="u:192.0.39.93,192.0.39.94" u="blah">
+		<d n="userfolder">
+			<d name="bradley">
+				etc etc
+			</d>
+			<f n="bigfile" s="5375438701"></f>
+		</d>
+		<d n="userfolder">
+			<d name="bradley">
+				etc etc
+			</d>
+			<f n="bigfile" s="5375438701"></f>
+		</d>
+	</c>
+</p>

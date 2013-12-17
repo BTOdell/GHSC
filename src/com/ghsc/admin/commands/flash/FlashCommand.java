@@ -1,0 +1,77 @@
+package com.ghsc.admin.commands.flash;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import com.ghsc.admin.AdminControl;
+import com.ghsc.admin.commands.AdminCommand;
+import com.ghsc.event.message.MessageEvent;
+import com.ghsc.gui.Application;
+import com.ghsc.gui.components.users.User;
+import com.ghsc.util.Tag;
+import com.ghsc.util.Utilities;
+
+public class FlashCommand extends AdminCommand {
+	
+	public static final String TAG = "flash", ATT_STATE = "st", ATT_ENABLE = "e";
+	
+	private FlashFrame frame;
+	
+	public FlashCommand(AdminControl control) {
+		super(control);
+	}
+
+	@Override
+	public Tag execute(final User user, final MessageEvent me) {
+		if (Utilities.resolveToBoolean(me.getAttribute(ATT_RESPONSE))) {
+			final boolean success = Utilities.resolveToBoolean(me.getAttribute(ATT_SUCCESS));
+			final String message = me.getAttribute(ATT_MESSAGE);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					JOptionPane.showMessageDialog(Application.getApplication().getMainFrame(), message, "Command result", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+				}
+			});
+			return null;
+		} else if (Utilities.resolveToBoolean(me.getAttribute(ATT_UPDATE))) {
+			user.setCommandState(TAG, Utilities.resolveToBoolean(me.getAttribute(ATT_STATE))); // state
+			return null;
+		} else {
+			final boolean enable = Utilities.resolveToBoolean(me.getAttribute(ATT_ENABLE)); // enable
+			if (enable) {
+				if (frame == null) {
+					frame = new FlashFrame();
+					frame.setVisible(true);
+					new Thread(new Runnable() {
+						public void run() {
+							user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(true)), User.ALL);
+						}
+					}).start();
+					return AdminCommand.composeResponse(TAG, true, true, getName() + ": enabled");
+				}
+			} else {
+				if (frame != null) {
+					frame.dispose();
+					frame = null;
+					new Thread(new Runnable() {
+						public void run() {
+							user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(false)), User.ALL);
+						}
+					}).start();
+					return AdminCommand.composeResponse(TAG, true, true, getName() + ": disabled");
+				}
+			}
+			return AdminCommand.composeResponse(TAG, true, false, getName() + ": Bad command state.");
+		}
+	}
+	
+	@Override
+	public String getName() {
+		return "Flash";
+	}
+	
+	@Override
+	public String getTag() {
+		return TAG;
+	}
+
+}

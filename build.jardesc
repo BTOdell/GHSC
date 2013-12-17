@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="GHSChat/out/GHSChat.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/GHSChat/build.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=GHSChat/src&lt;com.ghsc{Boot.java[Boot" manifestLocation="/GHSChat/Manifest" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="true">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.users"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.chat.input"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/group.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.util"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.status"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{LocalPackage.java"/>
+        <file path="/GHSChat/.project"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/find.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.admin.commands.kick"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.sockets"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.chat.channels"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/page_delete.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/package_add.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/key.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.autocomplete.workarounds"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{FilePackage.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.event"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.update"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/pencil.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.chat"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/ghsicon.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.sockets.multicast"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{RemoteFileNode.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/world.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.encryption"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/ghslarge.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.button"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/package.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_online_away.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.sockets.filetransfer"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.popup"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.sockets.input"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.event.message"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{LocalFileNodeChildren.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{RemotePackage.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/page_go.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.components"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.impl"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.event.global"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.files{Settings.java"/>
+        <file path="/GHSChat/.classpath"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/page_add.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.antispam"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{FileNodeChildren.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/bullet_arrow_down.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/add_dark.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.net.sockets.user"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/package_delete.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.common"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.files{FileStorage.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/package_large.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.autocomplete"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.admin.commands.flash"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/delete.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.admin{PasswordWizard.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{LocalFileNode.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{FileNode.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare.internal{RemoteFileNodeChildren.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_online_busy.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_offline_busy.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_offline_away.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_online.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/X.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.util"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/cog.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.fileshare"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.components.input"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/status_offline.png"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/check.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.admin.commands"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/eye.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.files{Profile.java"/>
+        <file path="/GHSChat/src/com/ghsc/resources/images/ghs16icon.png"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.admin{AdminControl.java"/>
+        <javaElement handleIdentifier="=GHSChat/src&lt;com.ghsc.gui.tray"/>
+    </selectedElements>
+</jardesc>

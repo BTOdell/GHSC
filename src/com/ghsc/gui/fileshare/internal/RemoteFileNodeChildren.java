@@ -1,0 +1,63 @@
+package com.ghsc.gui.fileshare.internal;
+
+import com.ghsc.impl.EndTaggable;
+import com.ghsc.impl.Taggable;
+import com.ghsc.util.Tag;
+
+public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
+	
+	private static final long serialVersionUID = 1L;
+	
+	private final String endTag;
+	
+	public RemoteFileNodeChildren(final RemoteFileNode parent) {
+		super(parent);
+		this.endTag = new StringBuilder("</").append(getTagName()).append(">").toString();
+	}
+
+	@Override
+	public String getTagName() {
+		return TAGNAME;
+	}
+	
+	@Override
+	public String getEndTag() {
+		return endTag;
+	}
+	
+	@Override
+	public void receive(Object o) {
+		if (o instanceof Taggable) {
+			Taggable t = (Taggable) o;
+			switch (t.getTagName()) {
+				case FileNode.TAGNAME_FILE:
+				case FileNode.TAGNAME_DIR:
+					add((RemoteFileNode) t);
+					break;
+			}
+		}
+	}
+
+	@Override
+	public EndTaggable createForTag(Tag tag) {
+		final String tagName = tag.getName();
+		switch (tagName) {
+			case FileNode.TAGNAME_FILE:
+			case FileNode.TAGNAME_DIR:
+				final String name = tag.getAttribute(FileNode.ATT_NAME);
+				if (name == null)
+					break;
+				final String path = RemoteFileNode.tracePath(getParent(), name);
+				if (tagName.equals(FileNode.TAGNAME_FILE)) {
+					final String size = tag.getAttribute(FileNode.ATT_SIZE);
+					if (size != null) {
+						return new RemoteFileNode(this, name, path, Long.parseLong(size));
+					}
+				} else {
+					return new RemoteFileNode(this, name, path);
+				}
+		}
+		return null;
+	}
+	
+}
