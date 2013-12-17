@@ -55,6 +55,22 @@ public abstract class FilePackage {
 		private Object data;
 		private boolean privateDiscovered = false;
 		
+		public Visibility(Object raw) {
+			if (raw != null) {
+				String rawStr = raw.toString();
+				if (rawStr != null) {
+					final int vIndex = rawStr.indexOf(':');
+					if (vIndex >= 0) {
+						this.data = rawStr.substring(vIndex + 1, rawStr.length());
+						rawStr = rawStr.substring(0, vIndex);
+					}
+					this.type = Visibility.Type.match(rawStr);
+					return;
+				}
+			}
+			throw new IllegalArgumentException("Raw object data cannot be null!");
+		}
+		
 		public Visibility(Type type, Object data) {
 			this.type = type;
 			this.data = data;

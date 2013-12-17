@@ -229,14 +229,11 @@ public class LocalPackage extends FilePackage {
 		if (pTag == null)
 			return null;
 		String name = null, uuid = null, vA = null, cD = null;
-		if (!pTag.getName().equals(TAGNAME) || (name = pTag.getAttribute(ATT_NAME)) == null || 
+		if ((!pTag.getName().equals(TAGNAME)) || (name = pTag.getAttribute(ATT_NAME)) == null || 
 			(uuid = pTag.getAttribute(ATT_UUID)) == null || (vA = pTag.getAttribute(ATT_VISIBILITY)) == null ||
 			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null)
 			return null;
-		final int vIndex = vA.indexOf(':');
-		final String[] vD = new String[] { vA.substring(0, vIndex), vA.substring(vIndex + 1, vA.length()) };
-		final LocalPackage lp = new LocalPackage(name, pTag.getAttribute(ATT_DESCRIPTION), cD, 
-				new Visibility(Visibility.Type.match(vD[0]), vD.length > 1 ? vD[1] : null), uuid, 
+		final LocalPackage lp = new LocalPackage(name, pTag.getAttribute(ATT_DESCRIPTION), cD, new Visibility(vA), uuid, 
 				pTag.getAttribute(ATT_PRIVATEKEY), pTag.getAttribute(ATT_PASSWORDPROTECTED), pTag.getAttribute(ATT_ACTIVE) != null);
 		lp.setDownloadCount(Long.parseLong(pTag.getAttribute(ATT_DOWNLOADCOUNT)));
 		

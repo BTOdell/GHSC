@@ -47,9 +47,9 @@ import com.ghsc.gui.fileshare.internal.FilePackage.Visibility;
 import com.ghsc.gui.fileshare.internal.LocalPackage;
 import com.ghsc.gui.fileshare.internal.RemotePackage;
 import com.ghsc.impl.ObjectProcessor;
-import com.ghsc.util.WindowUtils.SnapAdapter;
-import com.ghsc.util.WindowUtils.SnapAdapter.Magnet;
-import com.ghsc.util.WindowUtils.SnapAdapter.Side;
+import com.ghsc.util.SnapAdapter;
+import com.ghsc.util.SnapAdapter.Magnet;
+import com.ghsc.util.SnapAdapter.Side;
 
 public class FileShareFrame extends JDialog {
 	

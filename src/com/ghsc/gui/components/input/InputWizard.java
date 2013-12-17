@@ -25,7 +25,6 @@ import javax.swing.border.Border;
 import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
 import com.ghsc.gui.MainFrame;
-import com.ghsc.util.WindowUtils;
 
 /**
  * Provides an interactive dialog wizard, with a single text field as well as a text validator.
@@ -127,7 +126,7 @@ public class InputWizard extends JDialog {
 		setResizable(false);
 		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		setSize(273, 130);
-		WindowUtils.center(this, frame);
+		setLocationRelativeTo(frame);
 		
 		getContentPane().setLayout(null);
 		getContentPane().add(getChannelNameLabel());
