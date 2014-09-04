@@ -31,25 +31,22 @@ public class LocalFileNodeChildren extends FileNodeChildren<LocalFileNode> {
 	public void receive(Object o) {
 		if (o instanceof Taggable) {
 			Taggable t = (Taggable) o;
-			switch (t.getTagName()) {
-				case FileNode.TAGNAME_FILE:
-				case FileNode.TAGNAME_DIR:
-					add((LocalFileNode) t);
-					break;
+			String tName = t.getTagName();
+			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
+				add((LocalFileNode) t);
 			}
 		}
 	}
 
 	@Override
 	public EndTaggable createForTag(Tag tag) {
-		switch (tag.getName()) {
-			case FileNode.TAGNAME_FILE:
-			case FileNode.TAGNAME_DIR:
-				final String path = tag.getAttribute(FileNode.ATT_PATH);
-				if (path != null) {
-					final File file = new File(path);
-					return new LocalFileNode(this, file.exists() ? file : null);
-				}
+		String tName = tag.getName();
+		if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
+			final String path = tag.getAttribute(FileNode.ATT_PATH);
+			if (path != null) {
+				final File file = new File(path);
+				return new LocalFileNode(this, file.exists() ? file : null);
+			}
 		}
 		return null;
 	}

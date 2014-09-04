@@ -2,6 +2,7 @@ package com.ghsc.gui.fileshare.components;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -67,19 +68,17 @@ public class PackagePanel extends JPanel {
 	 */
 	private final EventProviderListener eventProviderListener = new EventProviderListener() {
 		public void providerAdded(EventProvider<?>.Context context) {
-			switch (context.getName()) {
-				case Application.NICK_EVENTPROVIDER:
-					if (pack != null && pack instanceof LocalPackage) {
-						context.subscribe(usernameListener);
-					}
-					break;
+			String cName = context.getName();
+			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
+				if (pack != null && pack instanceof LocalPackage) {
+					context.subscribe(usernameListener);
+				}
 			}
 		}
 		public void providerRemoved(EventProvider<?>.Context context) {
-			switch (context.getName()) {
-				case Application.NICK_EVENTPROVIDER:
-					context.unsubscribe(usernameListener);
-					break;
+			String cName = context.getName();
+			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
+				context.unsubscribe(usernameListener);
 			}
 		}
 	};
@@ -247,7 +246,9 @@ public class PackagePanel extends JPanel {
 	
 	public void setExpanded(boolean expanded) {
 		this.expanded = expanded;
-		this.getParent().revalidate();
+		final Container c = this.getParent();
+		c.invalidate();
+		c.validate();
 	}
 	
 	@Override

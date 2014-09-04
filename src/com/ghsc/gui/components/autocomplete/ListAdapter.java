@@ -6,15 +6,15 @@ import javax.swing.text.JTextComponent;
 
 public class ListAdapter extends ACAdapter implements ListSelectionListener {
 	
-	JList<?> list;
+	JList list;
 	JTextComponent textComponent;
 	ObjectToStringConverter stringConverter;
 
-	public ListAdapter(JList<?> list, JTextComponent textComponent) {
+	public ListAdapter(JList list, JTextComponent textComponent) {
 		this(list, textComponent, ObjectToStringConverter.DEFAULT);
 	}
 
-	public ListAdapter(JList<?> list, JTextComponent textComponent, ObjectToStringConverter stringConverter) {
+	public ListAdapter(JList list, JTextComponent textComponent, ObjectToStringConverter stringConverter) {
 		this.list = list;
 		this.textComponent = textComponent;
 		this.stringConverter = stringConverter;

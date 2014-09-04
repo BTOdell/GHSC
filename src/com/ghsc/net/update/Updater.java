@@ -2,6 +2,7 @@ package com.ghsc.net.update;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
@@ -55,16 +56,35 @@ public class Updater {
 		// begin updating...
 		try {
 			String currentRunningPath = Application.currentRunningPath();
-			//stream latest version to file system
-			FileOutputStream out = new FileOutputStream(new File(currentRunningPath), false);
-			InputStream iStream = new URL(getLatestJarPath()).openStream();
-			application.getMainFrame().setStatus("Update found. Downloading...");
-			byte[] buf = new byte[DOWNLOAD_BUFFER_SIZE];
-			int read;
-			while ((read = iStream.read(buf)) >= 0) {
-				out.write(buf, 0, read);
+			FileOutputStream out = null;
+			InputStream in = null;
+			try {
+				//stream latest version to file system
+				out = new FileOutputStream(new File(currentRunningPath), false);
+				in = new URL(getLatestJarPath()).openStream();
+				application.getMainFrame().setStatus("Update found. Downloading...");
+				byte[] buf = new byte[DOWNLOAD_BUFFER_SIZE];
+				int read;
+				while ((read = in.read(buf)) >= 0) {
+					out.write(buf, 0, read);
+				}
+			} finally {
+				if (out != null) {
+					try {
+						out.flush();
+						out.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				if (in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-			out.flush();
 			// restart application
 			application.getMainFrame().setStatus("Restarting...");
 			Application.restart();

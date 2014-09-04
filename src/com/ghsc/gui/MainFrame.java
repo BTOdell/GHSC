@@ -91,23 +91,23 @@ public class MainFrame extends JFrame {
 	 */
 	private final EventProviderListener eventProviderListener = new EventProviderListener() {
 		public void providerAdded(EventProvider<?>.Context context) {
-			switch (context.getName()) {
-				case Application.NICK_EVENTPROVIDER:
+			String cName = context.getName();
+			if (cName != null) {
+				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
 					context.subscribe(nickListener);
-					break;
-				case ChatInput.SENDMESSAGE_EVENTPROVIDER:
+				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
 					context.subscribe(sendMessageListener);
-					break;
+				}
 			}
 		}
 		public void providerRemoved(EventProvider<?>.Context context) {
-			switch (context.getName()) {
-				case Application.NICK_EVENTPROVIDER:
+			String cName = context.getName();
+			if (cName != null) {
+				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
 					context.unsubscribe(nickListener);
-					break;
-				case ChatInput.SENDMESSAGE_EVENTPROVIDER:
+				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
 					context.unsubscribe(sendMessageListener);
-					break;
+				}
 			}
 		}
 	};

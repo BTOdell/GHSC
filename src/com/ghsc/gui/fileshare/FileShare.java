@@ -367,120 +367,116 @@ public class FileShare {
 					final String type = msg.getAttribute(ATT_TYPE);
 					if (type == null)
 						return;
-					switch (type) {
-						case TYPE_ENCRYPTION: // set encryption key
-							byte[] post = msg.getPost().getBytes(Application.CHARSET);
-							if (post.length == 16)
-								messageThread.setEncryption(new AES(post));
-							messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToString(post.length == 16)));
-							break;
-						case TYPE_UUID:
-							uuid = msg.getAttribute(ATT_UUID);
-							final FilePackage tempPackage = packages.get(uuid);
-							boolean lpValid = tempPackage != null && tempPackage instanceof LocalPackage;
-							if (lpValid) {
-								lPackage = (LocalPackage) tempPackage;
-								final UserContainer users = application.getMainFrame().getUsers();
-								final String ipString = socket.getInetAddress().getHostAddress();
-								User user;
-								if ((user = users.getUser(ipString)) != null) {
-									final Visibility.Type vType = lPackage.getVisibility().getType();
-									if (vType == Type.CHANNEL || vType == Type.USER) {
-										final String vData = lPackage.getVisibility().getData().toString();
-										final String[] vDataSplit = vData.split(Pattern.quote(","));
-										switch (vType) { // check visibility
-											case CHANNEL:
-												boolean inChannel = false;
-												for (final String channel : vDataSplit) {
-													if (channel == null)
-														continue;
-													if (user.inChannel(channel)) {
-														inChannel |= true;
-														break;
-													}
+					if (type.equals(TYPE_ENCRYPTION)) {
+						byte[] post = msg.getPost().getBytes(Application.CHARSET);
+						if (post.length == 16) {
+							messageThread.setEncryption(new AES(post));
+						}
+						messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToString(post.length == 16)));
+					} else if (type.equals(TYPE_UUID)) {
+						uuid = msg.getAttribute(ATT_UUID);
+						final FilePackage tempPackage = packages.get(uuid);
+						boolean lpValid = tempPackage != null && tempPackage instanceof LocalPackage;
+						if (lpValid) {
+							lPackage = (LocalPackage) tempPackage;
+							final UserContainer users = application.getMainFrame().getUsers();
+							final String ipString = socket.getInetAddress().getHostAddress();
+							User user;
+							if ((user = users.getUser(ipString)) != null) {
+								final Visibility.Type vType = lPackage.getVisibility().getType();
+								if (vType == Type.CHANNEL || vType == Type.USER) {
+									final String vData = lPackage.getVisibility().getData().toString();
+									final String[] vDataSplit = vData.split(Pattern.quote(","));
+									switch (vType) { // check visibility
+										case CHANNEL:
+											boolean inChannel = false;
+											for (final String channel : vDataSplit) {
+												if (channel == null)
+													continue;
+												if (user.inChannel(channel)) {
+													inChannel |= true;
+													break;
 												}
-												if (!inChannel) {
-													messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, "a")); // access error
-													return;
+											}
+											if (!inChannel) {
+												messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, "a")); // access error
+												return;
+											}
+											break;
+										case USER:
+											final String userIDString = user.getID().toString();
+											boolean found = false;
+											for (int i = 0; i < vDataSplit.length; i++) {
+												final String str = vDataSplit[i];
+												final int index = str.indexOf('|');
+												if (index >= 0 && userIDString.equals(str.substring(index + 1, str.length()))) {
+													found = true;
+													break;
 												}
-												break;
-											case USER:
-												final String userIDString = user.getID().toString();
-												boolean found = false;
-												for (int i = 0; i < vDataSplit.length; i++) {
-													final String str = vDataSplit[i];
-													final int index = str.indexOf('|');
-													if (index >= 0 && userIDString.equals(str.substring(index + 1, str.length()))) {
-														found = true;
-														break;
-													}
-												}
-												if (!found) {
-													messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, "a")); // access error
-													return;
-												}
-												break;
-										}
+											}
+											if (!found) {
+												messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, "a")); // access error
+												return;
+											}
+											break;
+										default:
 									}
-									authenticated = !lPackage.isPasswordProtected();
-								} else {
-									close();
-									return;
 								}
+								authenticated = !lPackage.isPasswordProtected();
 							} else {
-								authenticated = false;
+								close();
+								return;
 							}
-							messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToBoolean(lpValid)));
-							break;
-						case TYPE_PASSWORD:
-							if (!authenticated) {
+						} else {
+							authenticated = false;
+						}
+						messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToBoolean(lpValid)));
+					} else if (type.equals(TYPE_PASSWORD)) {
+						if (!authenticated) {
+							if (lPackage != null) {
+								String password = msg.getPost();
+								authenticated |= lPackage.verifyPassword(password);
+							}
+						}
+						messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToBoolean(authenticated)));
+					} else {
+						if (authenticated) {
+							if (type.equals(TYPE_REQUEST)) {
 								if (lPackage != null) {
-									String password = msg.getPost();
-									authenticated |= lPackage.verifyPassword(password);
-								}
-							}
-							messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, Utilities.resolveToBoolean(authenticated)));
-							break;
-						default:
-							if (authenticated) {
-								switch (type) {
-									case TYPE_REQUEST:
-										if (lPackage != null) {
-											String path = msg.getAttribute(ATT_PATH);
-											LocalFileNode lFile = lPackage.getFile(path);
-											if (lFile != null) {
-												// found file
-												InputStream is = null;
+									String path = msg.getAttribute(ATT_PATH);
+									LocalFileNode lFile = lPackage.getFile(path);
+									if (lFile != null) {
+										// found file
+										InputStream is = null;
+										try {
+											is = lFile.openInputStream();
+											byte[] buf = new byte[TRANSFER_BUFFER_SIZE];
+											int read;
+											while (running && (read = is.read(buf)) >= 0) {
+												messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, Utilities.resolveToBoolean(true), new String(buf, 0, read, Application.CHARSET)));
+											}
+										} catch (IOException e) {
+											e.printStackTrace();
+											messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, "ex"));
+										} finally {
+											if (is != null) {
 												try {
-													is = lFile.openInputStream();
-													byte[] buf = new byte[TRANSFER_BUFFER_SIZE];
-													int read;
-													while (running && (read = is.read(buf)) >= 0) {
-														messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, Utilities.resolveToBoolean(true), new String(buf, 0, read, Application.CHARSET)));
-													}
+													is.close();
 												} catch (IOException e) {
 													e.printStackTrace();
-													messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, "ex"));
-												} finally {
-													if (is != null) {
-														try {
-															is.close();
-														} catch (IOException e) {
-															e.printStackTrace();
-														}
-													}
-													messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, running ? "d" : "c")); // done or cancelled
 												}
-											} else {
-												// file not found
-												messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, "er"));
 											}
+											messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, running ? "d" : "c")); // done or cancelled
 										}
-										break;
+									} else {
+										// file not found
+										messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, type, ATT_PATH, path, ATT_STATUS, "er"));
+									}
 								}
-							} else {
-								messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, TYPE_PASSWORD)); // remind password protected
 							}
+						} else {
+							messageThread.send(MessageEvent.construct(MessageEvent.Type.FILE_SHARE, ATT_TYPE, TYPE_PASSWORD)); // remind password protected
+						}
 					}
 				}
 			}, new Runnable() {

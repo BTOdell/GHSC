@@ -29,11 +29,9 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	public void receive(Object o) {
 		if (o instanceof Taggable) {
 			Taggable t = (Taggable) o;
-			switch (t.getTagName()) {
-				case FileNode.TAGNAME_FILE:
-				case FileNode.TAGNAME_DIR:
-					add((RemoteFileNode) t);
-					break;
+			String tName = t.getTagName();
+			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
+				add((RemoteFileNode) t);
 			}
 		}
 	}
@@ -41,21 +39,19 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	@Override
 	public EndTaggable createForTag(Tag tag) {
 		final String tagName = tag.getName();
-		switch (tagName) {
-			case FileNode.TAGNAME_FILE:
-			case FileNode.TAGNAME_DIR:
-				final String name = tag.getAttribute(FileNode.ATT_NAME);
-				if (name == null)
-					break;
-				final String path = RemoteFileNode.tracePath(getParent(), name);
-				if (tagName.equals(FileNode.TAGNAME_FILE)) {
-					final String size = tag.getAttribute(FileNode.ATT_SIZE);
-					if (size != null) {
-						return new RemoteFileNode(this, name, path, Long.parseLong(size));
-					}
-				} else {
-					return new RemoteFileNode(this, name, path);
+		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
+			final String name = tag.getAttribute(FileNode.ATT_NAME);
+			if (name == null)
+				return null;
+			final String path = RemoteFileNode.tracePath(getParent(), name);
+			if (tagName.equals(FileNode.TAGNAME_FILE)) {
+				final String size = tag.getAttribute(FileNode.ATT_SIZE);
+				if (size != null) {
+					return new RemoteFileNode(this, name, path, Long.parseLong(size));
 				}
+			} else {
+				return new RemoteFileNode(this, name, path);
+			}
 		}
 		return null;
 	}

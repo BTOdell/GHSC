@@ -124,12 +124,12 @@ public class RemoteFileNode extends FileNode {
 	public void receive(Object o) {
 		if (o instanceof Taggable) {
 			Taggable t = (Taggable) o;
-			switch (t.getTagName()) {
-				case FileNode.TAGNAME_FILE:
-				case FileNode.TAGNAME_DIR:
-					if (children == null)
-						setChildren(new RemoteFileNodeChildren(this));
-					getChildren().add((RemoteFileNode) t);
+			String tName = t.getTagName();
+			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
+				if (children == null) {
+					setChildren(new RemoteFileNodeChildren(this));
+				}
+				getChildren().add((RemoteFileNode) t);
 			}
 		}
 	}
@@ -137,25 +137,23 @@ public class RemoteFileNode extends FileNode {
 	@Override
 	public EndTaggable createForTag(Tag tag) {
 		final String tagName = tag.getName();
-		switch (tag.getName()) {
-			case FileNode.TAGNAME_FILE:
-			case FileNode.TAGNAME_DIR:
-				final String name = tag.getAttribute(FileNode.ATT_NAME);
-				if (name == null)
-					break;
-				final String path = tracePath(name);
-				if (tagName.equals(FileNode.TAGNAME_FILE)) {
-					final String size = tag.getAttribute(FileNode.ATT_SIZE);
-					if (size != null) {
-						if (children == null)
-							setChildren(new RemoteFileNodeChildren(this));
-						return new RemoteFileNode(getChildren(), name, path, Long.parseLong(size));
-					}
-				} else {
+		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
+			final String name = tag.getAttribute(FileNode.ATT_NAME);
+			if (name == null)
+				return null;
+			final String path = tracePath(name);
+			if (tagName.equals(FileNode.TAGNAME_FILE)) {
+				final String size = tag.getAttribute(FileNode.ATT_SIZE);
+				if (size != null) {
 					if (children == null)
 						setChildren(new RemoteFileNodeChildren(this));
-					return new RemoteFileNode(getChildren(), name, path);
+					return new RemoteFileNode(getChildren(), name, path, Long.parseLong(size));
 				}
+			} else {
+				if (children == null)
+					setChildren(new RemoteFileNodeChildren(this));
+				return new RemoteFileNode(getChildren(), name, path);
+			}
 		}
 		return null;
 	}

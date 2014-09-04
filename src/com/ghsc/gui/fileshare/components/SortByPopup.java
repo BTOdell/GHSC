@@ -83,32 +83,29 @@ public class SortByPopup extends JPopupMenu {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
 				if (prop == null)
 					return;
-				switch (prop) {
-					case "active":
-						boolean active = (boolean) obj;
-						synchronized (panelLock) {
-							if (active) {
-								nonActivePanels.remove(source);
-								activePanels.add(source);
-							} else {
-								activePanels.remove(source);
-								nonActivePanels.add(source);
-							}
-							applyPanelsI();
+				if (prop.equals("active")) {
+					boolean active = (boolean)(Boolean) obj;
+					synchronized (panelLock) {
+						if (active) {
+							nonActivePanels.remove(source);
+							activePanels.add(source);
+						} else {
+							activePanels.remove(source);
+							nonActivePanels.add(source);
 						}
-						break;
-					case "order":
-						boolean up = (boolean) obj;
-						synchronized (panelLock) {
-							int index = activePanels.indexOf(source);
-							if ((up && index <= 0) || (!up && index >= activePanels.size() - 1))
-								return;
-							activePanels.remove(index);
-							activePanels.add(index + (up ? -1 : 1), source);
-							applyPanelsI();
-						}
-						revalidate();
-						break;
+						applyPanelsI();
+					}
+				} else if (prop.equals("order")) {
+					boolean up = (boolean)(Boolean) obj;
+					synchronized (panelLock) {
+						int index = activePanels.indexOf(source);
+						if ((up && index <= 0) || (!up && index >= activePanels.size() - 1))
+							return;
+						activePanels.remove(index);
+						activePanels.add(index + (up ? -1 : 1), source);
+						applyPanelsI();
+					}
+					revalidate();
 				}
 			}
 		};
@@ -125,7 +122,7 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		ownerAZ.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
 					if (ownerZA.isActive())
 						ownerZA.setActive(false);
 				}
@@ -143,7 +140,7 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		ownerZA.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
 					if (ownerAZ.isActive())
 						ownerAZ.setActive(false);
 				}
@@ -161,7 +158,7 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		newest.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
 					if (oldest.isActive())
 						oldest.setActive(false);
 				}
@@ -179,7 +176,7 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		oldest.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
 					if (newest.isActive())
 						newest.setActive(false);
 				}
@@ -197,7 +194,7 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		mPop.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
 					if (lPop.isActive())
 						lPop.setActive(false);
 				}
@@ -215,9 +212,10 @@ public class SortByPopup extends JPopupMenu {
 		}, pCall);
 		lPop.addPropertyCallback(new SortByPanel.PropertyCallback() {
 			public void propertyChanged(SortByPanel source, String prop, Object obj) {
-				if ("active".equals(prop) && (boolean) obj) {
-					if (mPop.isActive())
+				if ("active".equals(prop) && (boolean)(Boolean) obj) {
+					if (mPop.isActive()) {
 						mPop.setActive(false);
+					}
 				}
 			}
 		});

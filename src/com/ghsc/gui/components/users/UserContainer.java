@@ -36,12 +36,12 @@ import com.ghsc.util.Tag;
  * It also sorts users by their status and names. Friends at the top, ignored users at the bottom.
  * @author Odell
  */
-public class UserContainer extends JList<Object> {
+public class UserContainer extends JList {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private MainFrame frame;
-	private DefaultListModel<Object> model;
+	private DefaultListModel model;
 	private HashMap<String, User> users;
 	private ArrayList<String> pending;
 	private ArrayList<UUID> friends, ignored;
@@ -58,7 +58,7 @@ public class UserContainer extends JList<Object> {
 	 * @param frame - the main frame that this UserContainer is visible from.
 	 * @param model - a model which can be used to provide easy access to the visual contents of the UserContainer.
 	 */
-	private UserContainer(MainFrame frame, DefaultListModel<Object> model) {
+	private UserContainer(MainFrame frame, DefaultListModel model) {
 		super(model);
 		this.frame = frame;
 		this.model = model;
@@ -71,7 +71,7 @@ public class UserContainer extends JList<Object> {
 	 * @param allI - the ignored list that was retrieved from an earlier save.
 	 */
 	public UserContainer(MainFrame frame, String[] allF, String[] allI) {
-		this(frame, new DefaultListModel<Object>());
+		this(frame, new DefaultListModel());
 		if (frame.getApplication() != null) {
 			users = new HashMap<String, User>();
 			pending = new ArrayList<String>();
@@ -441,7 +441,7 @@ public class UserContainer extends JList<Object> {
 		}
 		
 		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object o, int index, boolean selected, boolean hasFocus) {
+		public Component getListCellRendererComponent(JList list, Object o, int index, boolean selected, boolean hasFocus) {
 			JLabel label = (JLabel) super.getListCellRendererComponent(list, o, index, selected, hasFocus);
 			if (o instanceof User) {
 				User user = (User) o;
@@ -498,7 +498,7 @@ public class UserContainer extends JList<Object> {
 
 		public void exportDone(JComponent c, Transferable t, int action) {
 			if (c != null && c instanceof UserContainer) {
-				((UserContainer) c).clearSelection();	
+				((UserContainer) c).clearSelection();
 			}
 		}
 		

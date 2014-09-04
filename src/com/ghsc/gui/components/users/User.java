@@ -178,25 +178,22 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 							String type = msg.getAttribute(FileShare.ATT_TYPE);
 							if (type == null)
 								break;
-							switch (type) {
-								case FileShare.TYPE_NEW:
-									final RemotePackage rp = RemotePackage.parse(User.this, msg.getPost());
-									if (rp == null)
-										break;
-									fs.addPackages(rp);
+							if (type.equals(FileShare.TYPE_NEW)) {
+								final RemotePackage rp = RemotePackage.parse(User.this, msg.getPost());
+								if (rp == null) {
 									break;
-								case FileShare.TYPE_EDIT: // TODO: implement
-									
-									break;
-								case FileShare.TYPE_UPDATE: // TODO: implement
-									
-									break;
-								case FileShare.TYPE_REMOVE: // TODO: implement
-									
-									break;
+								}
+								fs.addPackages(rp);
+							} else if (type.equals(FileShare.TYPE_EDIT)) {
+								
+							} else if (type.equals(FileShare.TYPE_UPDATE)) {
+								
+							} else if (type.equals(FileShare.TYPE_REMOVE)) {
+								
 							}
 						}
 						break;
+					default: break; // other cases (not normal)
 				}
 			}
 		}, new Runnable() {
