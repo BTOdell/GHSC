@@ -287,8 +287,10 @@ public class Tag {
 		build.append('>');
 		buildE.append('>');
 		final String tagString = build.toString(), tagEString = buildE.toString();
-		if (odd)
+		if (odd) {
 			build.append(attributes[aLength]);
+			buildE.append(attributes[aLength]);
+		}
 		return new Tag(build.toString(), buildE.toString(), name.toString(), odd ? attributes[aLength].toString() : null, 
 				tagString, tagEString, att, tagString.length(), tagEString.length());
 	}

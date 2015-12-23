@@ -372,9 +372,12 @@ public class Application implements ComplexIdentifiable {
 		System.out.println("Latest version: " + versionController.refresh(true));
 		//System.out.println("Compatible: " + versionController.isCompatible(versionController.getLatest()));
 		updater = new Updater();
+
+		// for some reason, it freezes inside isJar()...
 		if (Application.isJar()) {
 			updater.updateCheck(false, true);
 		}
+		
 		versionController.start();
 		setVersion(VERSION);
 		
@@ -464,7 +467,8 @@ public class Application implements ComplexIdentifiable {
 	 * @return <tt>true</tt> if application is running from a JAR file, otherwise <tt>false</tt>.
 	 */
 	public static boolean isJar() {
-		return currentRunningPath().toLowerCase().endsWith(".jar");
+		final String runningPath = currentRunningPath();
+		return runningPath.toLowerCase().endsWith(".jar");
 	}
 	
 	/**

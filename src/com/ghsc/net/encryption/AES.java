@@ -3,6 +3,7 @@ package com.ghsc.net.encryption;
 import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.ghsc.gui.Application;
@@ -13,8 +14,11 @@ import com.ghsc.gui.Application;
  */
 public class AES {
 	
+	private static final String CIPHER_TYPE = "AES/CBC/PKCS5Padding";
+	private static final String KEY_TYPE = "AES";
+	private static final byte[] IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	
 	public static final AES DEFAULT = new AES(new byte[] { -101, -105, 53, -123, -17, -27, -32, 49, -48, -84, 60, -10, 47, 65, -62, -111 });
-	private static final String type = "AES";
 	
 	private final byte[] key;
 	private final Cipher e, d;
@@ -27,8 +31,8 @@ public class AES {
 	
 	private Cipher create(final byte[] key, final int mode) {
 		try {
-			Cipher c = Cipher.getInstance(type);
-			c.init(mode, new SecretKeySpec(key, type));
+			Cipher c = Cipher.getInstance(CIPHER_TYPE);
+			c.init(mode, new SecretKeySpec(key, KEY_TYPE), new IvParameterSpec(IV));
 			return c;
 		} catch (Exception e) {
 			e.printStackTrace();

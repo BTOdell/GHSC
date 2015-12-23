@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 
 import com.ghsc.common.Debug;
 import com.ghsc.event.EventListener;
@@ -92,7 +93,7 @@ public class MulticastSocketController implements ISocketController {
 				while (running) {
 					socket.receive(pack);
 					final int length = pack.getLength();
-					final byte[] buffer = buf.clone();
+					final byte[] buffer = Arrays.copyOf(buf, length);
 					new Thread(new Runnable() {
 						public void run() {
 							final byte[] data = AES.DEFAULT.decrypt(buffer, 0, length);
@@ -110,6 +111,7 @@ public class MulticastSocketController implements ISocketController {
 			}
 		}
 	};
+	
 	private Runnable send = new Runnable() {
 		public void run() {
 			try {
