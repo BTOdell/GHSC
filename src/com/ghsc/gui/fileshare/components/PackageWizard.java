@@ -88,7 +88,7 @@ public class PackageWizard extends JDialog {
 	private JTree fileTree;
 	private FileNodeTreeModel<LocalFileNode> fileTreeModel;
 	private JPanel visibilityPanel;
-	private JComboBox visibilityComboBox;
+	private JComboBox<Visibility.Type> visibilityComboBox;
 	private JButton visibilityEditButton;
 	private JPanel passwordPanel;
 	private JCheckBox passwordProtect;
@@ -358,9 +358,9 @@ public class PackageWizard extends JDialog {
 		return visibilityPanel;
 	}
 	
-	public JComboBox getVisibilityComboBox() {
+	public JComboBox<Visibility.Type> getVisibilityComboBox() {
 		if (visibilityComboBox == null) {
-			visibilityComboBox = new JComboBox();
+			visibilityComboBox = new JComboBox<Visibility.Type>();
 			visibilityComboBox.setFont(Fonts.GLOBAL);
 			visibilityComboBox.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ie) {
@@ -376,7 +376,7 @@ public class PackageWizard extends JDialog {
 				}
 			});
 			visibilityComboBox.setFocusable(false);
-			visibilityComboBox.setModel(new DefaultComboBoxModel(Visibility.Type.values()));
+			visibilityComboBox.setModel(new DefaultComboBoxModel<Visibility.Type>(Visibility.Type.values()));
 			if (lPackage != null) {
 				visibilityComboBox.setSelectedItem(lPackage.getVisibility().getType());
 			}

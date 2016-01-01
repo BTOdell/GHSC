@@ -25,6 +25,11 @@ public class MessageEvent extends Tag {
 		
 		// user sockets
 		/**
+		 * e u="..."
+		 * endpoint userport="..."
+		 */
+		ENDPOINT ("e"),
+		/**
 		 * i h="..." n="..."
 		 * identify hostname="..." nick="..."
 		 */

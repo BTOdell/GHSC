@@ -54,6 +54,12 @@ public class SnapAdapter extends ComponentAdapter {
 					case BOTTOM:
 						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y + compRect.height);
 						return snapped = true;
+					case LEFT:
+						break;
+					case RIGHT:
+						break;
+					default:
+						break;
 				}
 				return snapped = false;
 			case RIGHT: // finished!
@@ -64,6 +70,12 @@ public class SnapAdapter extends ComponentAdapter {
 					case RIGHT:
 						win.setLocation((parentRect.x + parentRect.width) - compRect.width, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
 						return snapped = true;
+					case BOTTOM:
+						break;
+					case TOP:
+						break;
+					default:
+						break;
 				}
 				return snapped = false;
 			case BOTTOM: // finished!
@@ -74,6 +86,12 @@ public class SnapAdapter extends ComponentAdapter {
 					case BOTTOM:
 						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, (parentRect.y + parentRect.height) - compRect.height);
 						return snapped = true;
+					case LEFT:
+						break;
+					case RIGHT:
+						break;
+					default:
+						break;
 				}
 				return snapped = false;
 			case LEFT: // finished!
@@ -84,6 +102,12 @@ public class SnapAdapter extends ComponentAdapter {
 					case RIGHT:
 						win.setLocation(parentRect.x - compRect.width, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
 						return snapped = true;
+					case BOTTOM:
+						break;
+					case TOP:
+						break;
+					default:
+						break;
 				}
 				return snapped = false;
 		}
@@ -278,6 +302,12 @@ public class SnapAdapter extends ComponentAdapter {
 					return parentRect.x + ((parentRect.width / 2) - (compRect.width / 2));
 				case RIGHT:
 					return (parentRect.x + parentRect.width) - compRect.width;
+				case DOWN:
+					break;
+				case UP:
+					break;
+				default:
+					break;
 			}
 			return compRect.x;
 		}
@@ -290,6 +320,12 @@ public class SnapAdapter extends ComponentAdapter {
 					return parentRect.y + ((parentRect.height / 2) - (compRect.height / 2));
 				case DOWN:
 					return (parentRect.y + parentRect.height) - compRect.height;
+				case LEFT:
+					break;
+				case RIGHT:
+					break;
+				default:
+					break;
 			}
 			return compRect.y;
 		}

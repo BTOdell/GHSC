@@ -8,7 +8,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +35,7 @@ import com.ghsc.util.TimeStamp;
 
 /**
  * Describes a connected user.
+ * 
  * @author Odell
  */
 public class User implements ComplexIdentifiable, IEventProvider<User>, Transferable, Comparable<User> {
@@ -48,9 +48,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	public enum Status {
 		
-		AVAILABLE,
-		AWAY,
-		BUSY;
+		AVAILABLE, AWAY, BUSY;
 		
 		public static Image getImage(Status status, boolean in) {
 			switch (status) {
@@ -67,27 +65,30 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 		
 	}
 	
-	public static final String ATT_HOSTNAME = "h", ATT_NICK = "n", ATT_ID = "i", ATT_CHANNEL = "c";
+	public static final String ATT_USERPORT = "u", ATT_HOSTNAME = "h", ATT_NICK = "n", ATT_ID = "i", ATT_CHANNEL = "c";
 	
 	private UserContainer container;
 	
+	private static final int PAIRING_DURATION = 4000;
+	private static final int PAIRING_DELAY = 100;
+
 	private EventProvider<User> userProvider = new EventProvider<User>();
 	
 	private Socket socket = null;
 	private MessageThread messageThread;
 	
 	/**
-	 * Admin command states
-	 * HashMap of (TAG, STATE)
+	 * Admin command states HashMap of (TAG, STATE)
 	 */
 	private HashMap<String, Object> commandStates = new HashMap<String, Object>();
 	
-	private String hostname = null, nick = null;
+	private String hostname = null;
+	private String nick = null;
 	private UUID userID = null;
 	private ArrayList<String> channels;
 	Object channelLock = new Object();
-	private InetAddress ip;
-	private String ipString;
+	private IpPort pair;
+	private int selfPort;
 	private Status status = Status.AVAILABLE;
 	boolean isIgnored = false, isFriend = false;
 	
@@ -98,12 +99,17 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Initializes a new User by providing a Socket which will be used to dynamically populate the contents of this object.
-	 * @param c the container which this User object exists.
-	 * @param s the socket to populate this object.
+	 * 
+	 * @param c
+	 *            the container which this User object exists.
+	 * @param s
+	 *            the socket to populate this object.
 	 */
-	public User(UserContainer c, Socket s) {
+	public User(UserContainer c, IpPort pair, Socket s, int selfPort) {
 		this(c);
+		this.pair = new IpPort(pair.ip(), pair.port());
 		this.socket = s;
+		this.selfPort = selfPort;
 		this.messageThread = new MessageThread(new MessageThread.IOWrapper() {
 			public InputStream getInputStream() throws IOException {
 				return socket.getInputStream();
@@ -127,6 +133,62 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 						setIgnored(container.isIgnored(User.this));
 						container.getMainFrame().getChatContainer().refreshUser(User.this);
 						container.refresh();
+						break;
+					case ENDPOINT:
+						String msgPort;
+						if ((msgPort = msg.getAttribute(ATT_USERPORT)) != null) {
+							final int userPort = Integer.valueOf(msgPort);
+							final User currUser = User.this;
+							
+							// These names are from the UserB perspective:
+							IpPort pairAA = new IpPort(currUser.pair.ip(), userPort);
+							IpPort pairBB = new IpPort(currUser.socket.getLocalAddress().getHostAddress(), selfPort);
+
+							// Find Pending UserAA...
+							User userAA = null;
+							long endTime = System.currentTimeMillis() + PAIRING_DURATION;
+							while (System.currentTimeMillis() < endTime) {
+								if (container.containsUserPending(pairAA)) {
+									userAA = container.getUserPending(pairAA);
+									container.removeUserPending(pairAA);
+									break;
+								}
+								try {
+									Thread.sleep(PAIRING_DELAY);
+								} catch (InterruptedException e) {
+									break;
+								}
+							}
+
+							if (pairAA.toLong() < pairBB.toLong()) {
+								// This User object is going to be disconnected, and the multicast-created User will be promoted.
+								if (!container.containsUserPending(currUser.pair())) {
+									break;
+								}
+								container.removeUserPending(currUser.pair());
+								// currUser.disconnect();
+								
+							} else {
+								// This User object is going to be promoted.
+								if (!container.containsUserPending(currUser.pair())) {
+									break;
+								}
+								container.removeUserPending(currUser.pair());
+								currUser.pair = pairAA;
+								userAA = currUser;
+							}
+							
+							if ((userAA == null) || !container.addUser(pairAA, userAA)) {
+								System.err.println("Unable to add pending user to the UserContainer.  User object lost.");
+							} else {
+								container.removeMulticaster(pairAA);
+								userAA.sendIntro();
+								setFriend(container.isFriend(userAA));
+								setIgnored(container.isIgnored(userAA));
+								container.getMainFrame().getChatContainer().refreshUser(userAA);
+								container.refresh();
+							}
+						}
 						break;
 					case JOIN:
 						final String jchannels = msg.getAttribute(ATT_CHANNEL);
@@ -185,30 +247,41 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 								}
 								fs.addPackages(rp);
 							} else if (type.equals(FileShare.TYPE_EDIT)) {
-								
+							
 							} else if (type.equals(FileShare.TYPE_UPDATE)) {
-								
+							
 							} else if (type.equals(FileShare.TYPE_REMOVE)) {
-								
+							
 							}
 						}
 						break;
-					default: break; // other cases (not normal)
+					default:
+						break; // other cases (not normal)
 				}
 			}
 		}, new Runnable() {
 			public void run() {
 				System.out.println("We have lost connection with " + User.this.getPreferredName());
-				container.removeUser(User.this);
+				container.removeUser(User.this.pair());
 			}
 		});
+	}
+	
+	public void start() {
+		// this is protected from multiple starts...
+		this.messageThread.start();
+	}
+	
+	public void sendEndpoint() {
+		send(MessageEvent.construct(Type.ENDPOINT, ATT_USERPORT, this.selfPort));
+	}
+	
+	public void sendIntro() {
 		send(MessageEvent.construct(Type.IDENTIFY, ATT_HOSTNAME, Application.getApplication().getHostname(), ATT_NICK, Application.getApplication().getPreferredName(), ATT_ID, Application.getApplication().getID()));
 		final String channels = container.getMainFrame().getChatContainer().printChannels();
 		if (channels != null && !channels.isEmpty()) {
 			send(MessageEvent.construct(Type.JOIN, ATT_CHANNEL, channels));
 		}
-		this.ip = socket.getInetAddress();
-		this.ipString = ip.getHostAddress();
 	}
 	
 	public UserContainer getContainer() {
@@ -224,17 +297,17 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
 	}
-
+	
 	@Override
 	public String getNick() {
 		return nick;
 	}
-
+	
 	@Override
 	public void setNick(String nick) {
 		this.nick = nick;
 	}
-
+	
 	@Override
 	public String getPreferredName() {
 		final String temp = getNick();
@@ -242,29 +315,29 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 			return temp;
 		return getHostname();
 	}
-
+	
 	@Override
 	public UUID getID() {
 		return userID;
 	}
-
+	
 	@Override
 	public void setID(UUID uuid) {
 		this.userID = uuid;
 	}
-
+	
 	@Override
 	public void setID(String uuid) {
 		try {
 			setID(UUID.fromString(uuid));
 		} catch (IllegalArgumentException iae) {}
 	}
-
+	
 	@Override
 	public boolean subscribe(EventListener<User> listener) {
 		return userProvider.subscribe(listener);
 	}
-
+	
 	@Override
 	public boolean unsubscribe(EventListener<User> listener) {
 		return userProvider.unsubscribe(listener);
@@ -278,7 +351,6 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	}
 	
 	/**
-	 * 
 	 * @param status
 	 */
 	public void setStatus(Status status) {
@@ -294,11 +366,15 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Changes the ignore status of this user.
-	 * @param ignored - whether the user should be ignored or not.
+	 * 
+	 * @param ignored
+	 *            - whether the user should be ignored or not.
 	 */
 	public void setIgnored(boolean ignored) {
-		if (isIgnored = ignored) container.addIgnored(this);
-		else container.removeIgnored(this);
+		if (isIgnored = ignored)
+			container.addIgnored(this);
+		else
+			container.removeIgnored(this);
 		container.refresh();
 	}
 	
@@ -311,32 +387,30 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Changes the friend status of this user.
-	 * @param friend - whether the user should be marked as a friend or not.
+	 * 
+	 * @param friend
+	 *            - whether the user should be marked as a friend or not.
 	 */
 	public void setFriend(boolean friend) {
 		if (isFriend = friend)
 			container.addFriend(this);
-		else container.removeFriend(this);
+		else
+			container.removeFriend(this);
 		container.refresh();
 	}
 	
 	/**
-	 * @return the ip of this user.
+	 * @return the user's ip:port pair.
 	 */
-	public InetAddress getIP() {
-		return ip;
-	}
-	
-	/**
-	 * @return the String representation of the user's ip.
-	 */
-	public String getIPString() {
-		return ipString;
+	public IpPort pair() {
+		return pair;
 	}
 	
 	/**
 	 * Checks if the user is in the given channel.
-	 * @param chan - the channel to check if the user is in.
+	 * 
+	 * @param chan
+	 *            - the channel to check if the user is in.
 	 * @return whether the user is in the given channel.
 	 */
 	public boolean inChannel(String chan) {
@@ -345,7 +419,9 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Removes the given channel from the user's active channel list.
-	 * @param chan - the channel to remove.
+	 * 
+	 * @param chan
+	 *            - the channel to remove.
 	 */
 	public void removeChannel(String chan) {
 		synchronized (channelLock) {
@@ -356,7 +432,9 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Adds all the provided channels to the user's active channel list.
-	 * @param chans - all the channels to add.
+	 * 
+	 * @param chans
+	 *            - all the channels to add.
 	 */
 	public void addChannels(String... chans) {
 		synchronized (channelLock) {
@@ -385,7 +463,9 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	/**
 	 * Sends the given data to the user (by using it's MessageWrapper).
-	 * @param data - the data to send.
+	 * 
+	 * @param data
+	 *            - the data to send.
 	 */
 	public void send(Tag tag) {
 		if (messageThread != null)
@@ -426,7 +506,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	@Override
 	public String toString() {
-		return new StringBuilder().append(getPreferredName()).append(" - ").append(getIPString()).toString();
+		return new StringBuilder().append(getPreferredName()).append(" - ").append(pair()).toString();
 	}
 	
 	@Override
@@ -449,7 +529,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 		int diff = (u.isIgnored ? -1 : (u.isFriend ? 1 : 0)) - (isIgnored ? -1 : (isFriend ? 1 : 0));
 		return diff == 0 ? toString().compareToIgnoreCase(u.toString()) : diff;
 	}
-
+	
 	@Override
 	public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
 		if (flavor.equals(DataFlavor.stringFlavor)) {
@@ -458,12 +538,12 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 			throw new UnsupportedFlavorException(flavor);
 		}
 	}
-
+	
 	@Override
 	public DataFlavor[] getTransferDataFlavors() {
 		return new DataFlavor[] { DataFlavor.stringFlavor };
 	}
-
+	
 	@Override
 	public boolean isDataFlavorSupported(DataFlavor arg0) {
 		return DataFlavor.stringFlavor.equals(arg0);

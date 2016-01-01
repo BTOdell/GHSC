@@ -7,9 +7,9 @@ import java.util.Set;
 
 /**
  * A custom made XML-like markup tag.<br>
- * Features Base64 encoding for the values.
- * Format: {@code <name key="value[base64]" key="value[base64]">post }
- * @author Odell
+ * Features Base64 encoding for the values.<br>
+ * <br>
+ * Format:<br>{@code <name key="value[base64]" key="value[base64]">post }
  */
 public class Tag {
 	

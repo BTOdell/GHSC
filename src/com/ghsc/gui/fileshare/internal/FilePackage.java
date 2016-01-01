@@ -124,6 +124,11 @@ public abstract class FilePackage {
 							if (chat instanceof Channel && Utilities.contains(((Channel) chat).getName(), dataStr))
 								return true;
 						}
+						
+						// TODO: Is this fall through intentional !
+						// adding break until this question is resolved.
+						break;
+						
 					case USER: // handles user packages
 						final ArrayList<String> uuids = new ArrayList<String>();
 						for (int i = 0; i < dataStr.length; i++) {
@@ -134,6 +139,14 @@ public abstract class FilePackage {
 							}
 						}
 						return Utilities.contains(Application.getApplication().getID().toString(), uuids.toArray(new String[uuids.size()]));
+					case PRIVATE:
+						// TODO: Not done yet.
+						break;
+					case PUBLIC:
+						// TODO: Not done yet.
+						break;
+					default:
+						break;
 				}
 			}
 			return false;

@@ -2,10 +2,7 @@ package com.ghsc.gui;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.BindException;
-import java.net.InetAddress;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -33,6 +30,7 @@ import com.ghsc.gui.components.util.FrameTitleManager;
 import com.ghsc.gui.fileshare.FileShare;
 import com.ghsc.gui.tray.TrayManager;
 import com.ghsc.impl.ComplexIdentifiable;
+import com.ghsc.net.sockets.NicManager;
 import com.ghsc.net.sockets.SocketManager;
 import com.ghsc.net.update.Updater;
 import com.ghsc.net.update.Version;
@@ -60,6 +58,7 @@ public class Application implements ComplexIdentifiable {
 	public static Charset CHARSET = Charset.forName("UTF-8");
 	public static Version VERSION = Version.create("0.4.0", "Indev");
 	public static File LAST_DIRECTORY = null;
+	private final String PROGRAM_NAME = "GHSC";
 	
 	private MainFrame frame = null;
 	private FrameTitleManager titleManager = null;
@@ -75,6 +74,9 @@ public class Application implements ComplexIdentifiable {
 	
 	// Networking
 	private SocketManager socketManager = null;
+	public String networkIP = null;
+	public int networkPort = 0;
+	private static NicManager networkInterfaces = null;
 	
 	// Events
 	public static final String NICK_EVENTPROVIDER = "nick";
@@ -82,21 +84,18 @@ public class Application implements ComplexIdentifiable {
 	
 	private String hostname = null, nick = null;
 	private UUID userID = null;
-	private static InetAddress address = null;
 	
 	/**
 	 * @return the current local ip address that this application is running on.
 	 */
-	public static InetAddress getLocalAddress() {
-		if (address == null) {
-			try {
-				address = InetAddress.getLocalHost();
-			} catch (UnknownHostException e) {
-				System.err.println("Error: Unable to resolve local host.");
-				address = null;
+	public String getLocalAddress() {
+		if (networkIP == null) {
+			if (networkInterfaces == null) {
+				networkInterfaces = new NicManager();	
 			}
+			networkIP = networkInterfaces.getIP();
 		}
-		return address;
+		return networkIP;
 	}
 	
 	@Override
@@ -313,12 +312,24 @@ public class Application implements ComplexIdentifiable {
 			}
 		}));
 		
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		if (getLocalAddress() == null) { // cache local address
-			JOptionPane.showMessageDialog(null, "Error: Unable to resolve local host.", "Local host error", JOptionPane.ERROR_MESSAGE);
-			System.exit(0);
-			return;
+		boolean duplicateInstance = false;
+		socketManager = new SocketManager(getLocalAddress());
+		if (!socketManager.instanceCheck()) {
+			duplicateInstance = true;
+			if (JOptionPane.showConfirmDialog(frame, PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+				System.exit(0);
+			}
 		}
+		try {
+			networkPort = socketManager.initControllers();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			JOptionPane.showMessageDialog(frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
+			System.exit(0);
+		}
+
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
 		// userid
 		Profile.getProfile().addHook(new Hook() {
 			public Node onSave() {
@@ -356,7 +367,7 @@ public class Application implements ComplexIdentifiable {
 				}
 			}
 		});
-		titleManager = new FrameTitleManager(frame, "GHSC v" + Application.VERSION.getDetailed()) {
+		titleManager = new FrameTitleManager(frame, PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
 			public void onTitleChanged(String title) {
 				if (tray != null)
 					tray.updateTooltip(title);
@@ -396,17 +407,7 @@ public class Application implements ComplexIdentifiable {
 		setHostname(System.getProperty("user.name"));
 		
 		frame.setStatus("Starting network interface");
-		try {
-			socketManager = new SocketManager();
-			socketManager.start();
-		} catch (BindException be) {
-			JOptionPane.showMessageDialog(frame, "Another instance of this application is already running.", "Application error", JOptionPane.ERROR_MESSAGE);
-			System.exit(0);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			JOptionPane.showMessageDialog(frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
-			System.exit(0);
-		}
+		socketManager.start();
 		
 		frame.setStatus("Loading channels");
 		ChatContainer chatContainer = frame.getChatContainer();
@@ -441,8 +442,10 @@ public class Application implements ComplexIdentifiable {
 		frame.toggleInput(true);
 		frame.setStatus("Finalizing startup...", 1000);
 		
-		Profile.getProfile().setSavable(true);
-		Settings.getSettings().setSavable(true);
+		if (!duplicateInstance) {
+			Profile.getProfile().setSavable(true);
+			Settings.getSettings().setSavable(true);
+		}
 	}
 	
 	/**

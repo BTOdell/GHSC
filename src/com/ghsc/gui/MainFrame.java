@@ -10,8 +10,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
 import javax.swing.Box;
@@ -512,10 +510,7 @@ public class MainFrame extends JFrame {
 	
 	public JLabel getUserIPLabel() {
 		if (userIPLabel == null) {
-			try {
-				userIPLabel = new JLabel("@ " + (application != null ? Application.getLocalAddress().getHostAddress() : InetAddress.getLocalHost().getHostAddress()));
-			} catch (UnknownHostException e) {}
-			userIPLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD, 10));
+			userIPLabel = new JLabel("@ " + (application != null ? (application.networkIP + ":" + application.networkPort) : "unknown"));
 		}
 		return userIPLabel;
 	}

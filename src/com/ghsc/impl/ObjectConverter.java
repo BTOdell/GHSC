@@ -38,6 +38,7 @@ public abstract class ObjectConverter<E> implements IObjectConverter<E> {
 		return convert(obj);
 	}
 	
+	@SafeVarargs
 	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, E... data) {
 		return wrap(converter, Arrays.asList(data));
 	}

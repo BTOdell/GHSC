@@ -14,10 +14,11 @@ import com.ghsc.event.EventListener;
 import com.ghsc.event.message.MessageEvent;
 import com.ghsc.event.message.MessageEvent.Type;
 import com.ghsc.gui.Application;
+import com.ghsc.gui.components.users.IpPort;
+import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.net.encryption.AES;
 import com.ghsc.net.sockets.ISocketController;
-import com.ghsc.net.sockets.user.UserSocketListener;
 import com.ghsc.net.update.Version;
 import com.ghsc.util.Tag;
 
@@ -30,16 +31,21 @@ import com.ghsc.util.Tag;
  */
 public class MulticastSocketController implements ISocketController {
 	
-	public static final String ATT_IP = "i", ATT_VERSION = "v", ATT_USERNAME = "u";
-	public static final int PORT = 5688;
+	public static final String ATT_IP = "i", ATT_PORT = "p", ATT_USERPORT = "u", ATT_VERSION = "v", ATT_USERNAME = "n";
+	public static final int MULTICAST_PORT = 5688;
 	private static final String MULTICAST_ADDRESS = "224.0.0.115";
 	
-	private int RECEIVE_BUFFER = 8192, SEND_DELAY = 500;
+	private int RECEIVE_BUFFER = 8192, SEND_DELAY = 500, CONNECT_DELAY = 2000;
 	
 	private Application application;
 	private MulticastSocket socket;
+	private MulticastSocket sendsocket;
 	private InetAddress address;
-	private String localString;
+
+	private String selfIP = null;
+	private int selfPort = 0;
+	private int localUserPort = 0;
+	private volatile boolean isConnecting = false;
 	
 	private final EventListener<MessageEvent> messageEventListener = new EventListener<MessageEvent>() {
 		public void eventReceived(MessageEvent msg) {
@@ -49,37 +55,56 @@ public class MulticastSocketController implements ISocketController {
 				return;
 			// we see somebody available and we try to connect to them
 			final String ip = msg.getAttribute(ATT_IP);
-			if (ip == null)
+			final String port = msg.getAttribute(ATT_PORT);
+			if ((ip == null) || (port == null))
 				return;
-			if (localString.equals(ip))
+			if (selfIP.equals(ip) && (selfPort == Integer.valueOf(port))) {
 				return; // make sure it's not ourself
+			}
+			final String msgPort = msg.getAttribute(ATT_USERPORT);
+			final int remoteUserPort = Integer.valueOf(msgPort);
+			
 			if (!application.getVersionController().isCompatible(Version.parse(msg.getAttribute(ATT_VERSION))))
 				return;
 			final UserContainer users = application.getMainFrame().getUsers();
-			if (users.containsUser(ip) || users.isPending(ip))
+			
+			IpPort pair = new IpPort(ip, remoteUserPort);
+			if (!users.addMulticaster(pair))
 				return;
 			try {
-				users.addPending(ip);
+				{
+					// Note:  this isn't thread reliable, but will work because of the 500 ms delay.
+					if (isConnecting)
+						return;
+					isConnecting = true;
+				}
+				System.out.println("Received " + pair + " from MULTICASTER " + port);
+				
 				application.getMainFrame().setStatus("Connecting to " + msg.getAttribute(ATT_USERNAME), 0);
-				System.out.println("Connecting to " + msg.getAttribute(ATT_USERNAME));
+
 				Socket socket = new Socket();
-				socket.connect(new InetSocketAddress(ip, UserSocketListener.PORT), 2000);
-				if (!users.addUser(socket)) {
+				socket.connect(new InetSocketAddress(ip, remoteUserPort), CONNECT_DELAY);
+
+				final User user = new User(users, pair, socket, localUserPort);
+				if (!users.addUserPending(pair, user)) {
 					socket.close();
 					System.out.println("User is already known.");
 				} else {
-					System.out.println("Connected to " + ip + " - " + msg.getAttribute(ATT_USERNAME));
+					System.out.println("Completed OUTGOING socket connection.  User is pending.");
+					System.out.println("Connected to " + pair + " - " + msg.getAttribute(ATT_USERNAME));
 					application.getMainFrame().setStatus("Connected to " + msg.getAttribute(ATT_USERNAME), 1000);
+					user.sendEndpoint();
+					user.start();
 				}
 			} catch (IOException e) {
 				if (e instanceof SocketTimeoutException) {
-					System.out.println("Socket timed out trying to connect to " + ip + ". Maybe next time?");
+					System.out.println("Socket timed out trying to connect to " + pair + ". Maybe next time?");
 				} else {
-					System.out.println("Unable to connect to " + ip + ". Maybe next time?");
+					System.out.println("Unable to connect to " + pair + ". Maybe next time?");
 				}
 				application.getMainFrame().setStatus("Failed to connect", 750);
 			} finally {
-				users.removePending(ip);
+				isConnecting = false;
 			}
 		}
 	};
@@ -94,16 +119,15 @@ public class MulticastSocketController implements ISocketController {
 					socket.receive(pack);
 					final int length = pack.getLength();
 					final byte[] buffer = Arrays.copyOf(buf, length);
-					new Thread(new Runnable() {
-						public void run() {
+//					new Thread(new Runnable() {
+//						public void run() {
 							final byte[] data = AES.DEFAULT.decrypt(buffer, 0, length);
 							if (data != null) {
 								messageEventListener.eventReceived(MessageEvent.parse(new String(data, Application.CHARSET)));
 							} else {
 								System.out.println("Decrypted data is null!");
 							}
-						}
-					}).start();
+//					}}).start();
 					pack.setLength(buf.length);
 				}
 			} catch (IOException e) {
@@ -116,10 +140,10 @@ public class MulticastSocketController implements ISocketController {
 		public void run() {
 			try {
 				while (running) {
-					final Tag dEvent = Tag.construct(Type.PING, ATT_VERSION, Application.VERSION, ATT_IP, localString, ATT_USERNAME, application.getPreferredName());
+					final Tag dEvent = Tag.construct(Type.PING, ATT_VERSION, Application.VERSION, ATT_IP, selfIP, ATT_PORT, selfPort, ATT_USERPORT, localUserPort, ATT_USERNAME, application.getPreferredName());
 					final byte[] data = AES.DEFAULT.encrypt(dEvent.getEncodedString());
 					if (data != null) {
-						socket.send(new DatagramPacket(data, data.length, address, PORT));
+						sendsocket.send(new DatagramPacket(data, data.length, address, MULTICAST_PORT));
 					}
 					Thread.sleep(SEND_DELAY);
 				}
@@ -138,13 +162,21 @@ public class MulticastSocketController implements ISocketController {
 	 * @param event - a message callback which gets called this MulticastManager receives a packet and successfully parses it to a MessageEvent.
 	 * @throws IOException
 	 */
-	public MulticastSocketController(Application application) throws IOException {
+	
+	
+	public MulticastSocketController(Application application, int localUserPort) throws IOException {
 		this.application = application;
-		this.localString = Application.getLocalAddress().getHostAddress();
+		this.localUserPort = localUserPort;
+		
 		address = InetAddress.getByName(MULTICAST_ADDRESS);
-		socket = new MulticastSocket(new InetSocketAddress(Application.getLocalAddress(), PORT));
+		socket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), MULTICAST_PORT));
 		socket.setTimeToLive(255);
 		socket.joinGroup(address);
+		
+		sendsocket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), 0));
+		this.selfIP = sendsocket.getLocalAddress().getHostAddress();
+		this.selfPort = sendsocket.getLocalPort();
+		
 		receiveWorker = new Thread(receive);
 		receiveWorker.setName("MulticastSocketController|Receive");
 		sendWorker = new Thread(send);

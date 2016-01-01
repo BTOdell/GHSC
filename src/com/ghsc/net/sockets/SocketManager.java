@@ -1,10 +1,12 @@
 package com.ghsc.net.sockets;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 
 import com.ghsc.gui.Application;
-import com.ghsc.net.sockets.filetransfer.FileTransferListener;
+//import com.ghsc.net.sockets.filetransfer.FileTransferListener;
 import com.ghsc.net.sockets.multicast.MulticastSocketController;
 import com.ghsc.net.sockets.user.UserSocketListener;
 
@@ -16,28 +18,62 @@ public class SocketManager implements ISocketController {
 	
 	private Application application;
 	private ArrayList<ISocketController> controllers = null;
+	private ServerSocket instanceChecker = null;
+	private final String networkIP;
 	
 	/**
 	 * Initializes a new SocketManager.
 	 * @param application - the main application.
 	 * @throws IOException
 	 */
-	public SocketManager() throws IOException {
+	public SocketManager(String networkIP) {
 		this.application = Application.getApplication();
-		
-		initControllers();
+		this.networkIP = networkIP;
 	}
 	
 	/**
 	 * Initializes all the socket controllers that are being managed by this SocketManager.
+	 * returns the User Port.
 	 * @throws IOException
 	 */
-	private void initControllers() throws IOException {
-		if (controllers == null)
+	private int userPort = 0;
+	
+	public int initControllers() throws IOException {
+		if (controllers == null) {
 			controllers = new ArrayList<ISocketController>();
-		controllers.add(new FileTransferListener(application));
-		controllers.add(new UserSocketListener(application));
-		controllers.add(new MulticastSocketController(application));
+			
+			int filePort = 9999;
+			//FileTransferListener fileListener = new FileTransferListener(application);
+			//int filePort = fileListener.getPort();
+			//controllers.add(fileListener);
+			
+			UserSocketListener userListener = new UserSocketListener(application, filePort);
+			userPort = userListener.getPort();
+			controllers.add(userListener);
+			
+			controllers.add(new MulticastSocketController(application, userPort));
+		}
+		return userPort;
+	}
+	
+	public boolean instanceCheck() {
+		if (instanceChecker == null) {
+			try {
+				instanceChecker = new ServerSocket(5690, 10, Inet4Address.getByName(networkIP));
+			} catch (IOException e) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private void instanceCheckClose() {
+		if (instanceChecker != null) {
+			try {
+				instanceChecker.close();
+			} catch (IOException e) {}
+			instanceChecker = null;
+		}
 	}
 	
 	/**
@@ -45,10 +81,13 @@ public class SocketManager implements ISocketController {
 	 */
 	@Override
 	public void start() {
-		for (int i = 0; i < controllers.size(); i++) {
-			ISocketController controller = controllers.get(i);
-			if (controller != null)
-				controller.start();
+		if (controllers != null) {
+			instanceCheck();
+			for (int i = 0; i < controllers.size(); i++) {
+				ISocketController controller = controllers.get(i);
+				if (controller != null)
+					controller.start();
+			}
 		}
 	}
 	
@@ -57,13 +96,16 @@ public class SocketManager implements ISocketController {
 	 */
 	@Override
 	public void close() {
-		for (int i = controllers.size() - 1; i >= 0; i--) {
-			ISocketController controller = controllers.get(i);
-			if (controller != null) {
-				try {
-					controller.close();
-				} catch (IOException e) {}
+		if (controllers != null) {
+			for (int i = controllers.size() - 1; i >= 0; i--) {
+				ISocketController controller = controllers.get(i);
+				if (controller != null) {
+					try {
+						controller.close();
+					} catch (IOException e) {}
+				}
 			}
+			instanceCheckClose();
 		}
 	}
 	

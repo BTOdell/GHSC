@@ -44,10 +44,10 @@ public class VisibilityDialog<E> extends JDialog {
 	
 	private JPanel canvas;
 	private ACComboBox entryBox;
-	private DefaultComboBoxModel comboModel;
+	private DefaultComboBoxModel<E> comboModel;
 	private JScrollPane scrollPane;
-	private JList list;
-	private DefaultListModel listModel;
+	private JList<E> list;
+	private DefaultListModel<E> listModel;
 	private JButton cancelButton;
 	private JButton okButton;
 
@@ -131,9 +131,9 @@ public class VisibilityDialog<E> extends JDialog {
 		return entryBox;
 	}
 	
-	public DefaultComboBoxModel getComboModel() {
+	public DefaultComboBoxModel<E> getComboModel() {
 		if (comboModel == null) {
-			comboModel = new DefaultComboBoxModel();
+			comboModel = new DefaultComboBoxModel<E>();
 		}
 		return comboModel;
 	}
@@ -146,13 +146,13 @@ public class VisibilityDialog<E> extends JDialog {
 		return scrollPane;
 	}
 	
-	public JList getList() {
+	public JList<E> getList() {
 		if (list == null) {
-			list = new JList(getListModel());
+			list = new JList<E>(getListModel());
 			list.addKeyListener(new KeyAdapter() {
 				public void keyPressed(KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-						@SuppressWarnings("unchecked")
+						//@SuppressWarnings("unchecked")
 						final E selected = (E) getList().getSelectedValue();
 						if (selected != null) {
 							if (getListModel().removeElement(selected) &&
@@ -167,9 +167,9 @@ public class VisibilityDialog<E> extends JDialog {
 		return list;
 	}
 	
-	public DefaultListModel getListModel() {
+	public DefaultListModel<E> getListModel() {
 		if (listModel == null) {
-			listModel = new DefaultListModel();
+			listModel = new DefaultListModel<E>();
 		}
 		return listModel;
 	}
@@ -178,7 +178,7 @@ public class VisibilityDialog<E> extends JDialog {
 		if (okButton == null) {
 			okButton = new JButton("OK");
 			okButton.addActionListener(new ActionListener() {
-				@SuppressWarnings("unchecked")
+				//@SuppressWarnings("unchecked")
 				public void actionPerformed(ActionEvent e) {
 					final int size = getListModel().size();
 					final ArrayList<E> a = new ArrayList<E>(size);
@@ -206,11 +206,11 @@ public class VisibilityDialog<E> extends JDialog {
 		return cancelButton;
 	}
 	
-	public class ACComboBox extends JComboBox {
+	public class ACComboBox extends JComboBox<E> {
 		
 		private static final long serialVersionUID = 1L;
 		
-		private ACComboBox(ComboBoxModel model) {
+		private ACComboBox(ComboBoxModel<E> model) {
 			super(model);
 			initComponents();
 			AutoComplete.enable(this, converter, strict);
@@ -238,7 +238,7 @@ public class VisibilityDialog<E> extends JDialog {
 		}
 		
 		@Override
-		public void setModel(ComboBoxModel model) {
+		public void setModel(ComboBoxModel<E> model) {
 			super.setModel(model);
 			if (!strict) {
 				setSelectedIndex(-1);

@@ -21,6 +21,7 @@ import com.ghsc.files.FileStorage.Hook;
 import com.ghsc.files.FileStorage.Node;
 import com.ghsc.files.Settings;
 import com.ghsc.gui.Application;
+import com.ghsc.gui.components.users.IpPort;
 import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.gui.fileshare.components.PackagePanel;
@@ -229,7 +230,7 @@ public class FileShare {
 	public Socket connect(User user, int timeout) {
 		Socket socket = new Socket();
 		try {
-			socket.connect(new InetSocketAddress(user.getIP(), FileTransferListener.PORT), timeout);
+			socket.connect(new InetSocketAddress(user.pair().ip(), FileTransferListener.PORT), timeout);
 		} catch (IOException e) {
 			return null;
 		}
@@ -243,7 +244,10 @@ public class FileShare {
 	public void process(final Socket s) {
 		if (s == null)
 			return;
-		if (!application.getMainFrame().getUsers().containsUser(s.getInetAddress().getHostAddress())) {
+		
+		// TODO:  The port might not be the port we are looking for.
+		final IpPort pair = new IpPort(s.getInetAddress().getHostAddress(), s.getPort());
+		if (!application.getMainFrame().getUsers().containsUser(pair)) {
 			try {
 				s.close();
 			} catch (IOException e) {
@@ -380,9 +384,11 @@ public class FileShare {
 						if (lpValid) {
 							lPackage = (LocalPackage) tempPackage;
 							final UserContainer users = application.getMainFrame().getUsers();
-							final String ipString = socket.getInetAddress().getHostAddress();
+							
+							// TODO:  The port might not be the port we are looking for.
+							final IpPort pair = new IpPort(socket.getInetAddress().getHostAddress(), socket.getPort());
 							User user;
-							if ((user = users.getUser(ipString)) != null) {
+							if ((user = users.getUser(pair)) != null) {
 								final Visibility.Type vType = lPackage.getVisibility().getType();
 								if (vType == Type.CHANNEL || vType == Type.USER) {
 									final String vData = lPackage.getVisibility().getData().toString();
@@ -485,6 +491,7 @@ public class FileShare {
 					
 				}
 			});
+			this.messageThread.start();
 		}
 		
 		public boolean isRunning() {

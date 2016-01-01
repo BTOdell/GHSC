@@ -1,6 +1,7 @@
 package com.ghsc.net.sockets.filetransfer;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.SocketException;
 
@@ -18,6 +19,7 @@ public class FileTransferListener implements ISocketController {
 	
 	private FileShare fileShare;
 	private ServerSocket socket;
+	private final int selfPort;
 	
 	private Thread listener;
 	private final Runnable runnable = new Runnable() {
@@ -46,7 +48,9 @@ public class FileTransferListener implements ISocketController {
 	 */
 	public FileTransferListener(Application application) throws IOException {
 		this.fileShare = application.getFileShare();
-		socket = new ServerSocket(PORT, 10, Application.getLocalAddress());
+		//socket = new ServerSocket(PORT, 10, Application.getLocalAddress());
+		socket = new ServerSocket(0, 10, Inet4Address.getByName(application.getLocalAddress()));
+		selfPort = socket.getLocalPort();
 		listener = new Thread(runnable);
 		listener.setName("FileTransferListener");
 	}
@@ -57,6 +61,10 @@ public class FileTransferListener implements ISocketController {
 	@Override
 	public void start() {
 		listener.start();
+	}
+	
+	public int getPort() {
+		return selfPort;
 	}
 	
 	/**

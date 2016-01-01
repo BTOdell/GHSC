@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 
 public class Utilities {
 	
+	@SafeVarargs
 	public static <E> E[] merge(E[] array, E... es) {
 		@SuppressWarnings("unchecked")
 		final E[] alloc = (E[]) Array.newInstance(array.getClass().getComponentType(), array.length + es.length);
@@ -18,6 +19,7 @@ public class Utilities {
 	 * @param elements - the elements to search through.
 	 * @return <code>true</code>, if the element was found, otherwise <code>false</code>.
 	 */
+	@SafeVarargs
 	public static <E> boolean contains(E element, E... elements) {
 		for (E e : elements)
 			if (element == null ? e == null : element.equals(e))

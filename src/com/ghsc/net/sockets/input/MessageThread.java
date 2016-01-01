@@ -23,6 +23,7 @@ public class MessageThread {
 	private Thread workThread;
 	private MessageDecoder decoder;
 	private Runnable endOfStream;
+	private boolean started = false;
 	
 	public MessageThread(IOWrapper io, EventListener<MessageEvent> callback, Runnable endOfStream) {
 		this.io = io;
@@ -30,7 +31,13 @@ public class MessageThread {
 		this.decoder = new MessageDecoder(callback);
 		this.workThread = new Thread(workRunnable);
 		this.workThread.setName("MessageThread");
-		this.workThread.start();
+	}
+	
+	public void start() {
+		if (!started) {
+			started = true;
+			this.workThread.start();
+		}
 	}
 	
 	public void setEncryption(AES cipher) {
