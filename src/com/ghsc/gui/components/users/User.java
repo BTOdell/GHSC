@@ -166,7 +166,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 									break;
 								}
 								container.removeUserPending(currUser.pair());
-								// currUser.disconnect();
+								currUser.disconnect();
 								
 							} else {
 								// This User object is going to be promoted.
@@ -179,7 +179,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 							}
 							
 							if ((userAA == null) || !container.addUser(pairAA, userAA)) {
-								System.err.println("Unable to add pending user to the UserContainer.  User object lost.");
+								System.err.println("Unable to add " + pairAA + " to the users Hashmap.");
 							} else {
 								container.removeMulticaster(pairAA);
 								userAA.sendIntro();

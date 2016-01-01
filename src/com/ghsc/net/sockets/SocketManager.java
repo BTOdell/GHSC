@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 
 import com.ghsc.gui.Application;
-//import com.ghsc.net.sockets.filetransfer.FileTransferListener;
+import com.ghsc.net.sockets.filetransfer.FileTransferListener;
 import com.ghsc.net.sockets.multicast.MulticastSocketController;
 import com.ghsc.net.sockets.user.UserSocketListener;
 
@@ -42,10 +42,9 @@ public class SocketManager implements ISocketController {
 		if (controllers == null) {
 			controllers = new ArrayList<ISocketController>();
 			
-			int filePort = 9999;
-			//FileTransferListener fileListener = new FileTransferListener(application);
-			//int filePort = fileListener.getPort();
-			//controllers.add(fileListener);
+			FileTransferListener fileListener = new FileTransferListener(application);
+			int filePort = fileListener.getPort();
+			controllers.add(fileListener);
 			
 			UserSocketListener userListener = new UserSocketListener(application, filePort);
 			userPort = userListener.getPort();
