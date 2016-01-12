@@ -34,8 +34,6 @@ public class UserSocketListener implements ISocketController {
 					// somebody tries connecting to us
 					Socket newSocket = socket.accept();
 					
-					// TODO: This port is sending port, not listening port (as it needs to be).
-					// TODO: Identify msg will send over the listening port a bit later.
 					IpPort pair = new IpPort(newSocket.getInetAddress().getHostAddress(), newSocket.getPort());
 					try {
 						System.out.println("Accepted socket connection from " + pair);

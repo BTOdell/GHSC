@@ -69,8 +69,8 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	private UserContainer container;
 	
-	private static final int PAIRING_DURATION = 4000;
-	private static final int PAIRING_DELAY = 100;
+//	private static final int PAIRING_DURATION = 4000;
+//	private static final int PAIRING_DELAY = 100;
 
 	private EventProvider<User> userProvider = new EventProvider<User>();
 	
@@ -142,33 +142,34 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 							
 							// These names are from the UserB perspective:
 							IpPort pairAA = new IpPort(currUser.pair.ip(), userPort);
-							IpPort pairBB = new IpPort(currUser.socket.getLocalAddress().getHostAddress(), selfPort);
-
-							// Find Pending UserAA...
+//							IpPort pairBB = new IpPort(currUser.socket.getLocalAddress().getHostAddress(), selfPort);
+//
+//							// Find Pending UserAA...
 							User userAA = null;
-							long endTime = System.currentTimeMillis() + PAIRING_DURATION;
-							while (System.currentTimeMillis() < endTime) {
-								if (container.containsUserPending(pairAA)) {
-									userAA = container.getUserPending(pairAA);
-									container.removeUserPending(pairAA);
-									break;
-								}
-								try {
-									Thread.sleep(PAIRING_DELAY);
-								} catch (InterruptedException e) {
-									break;
-								}
-							}
-
-							if (pairAA.toLong() < pairBB.toLong()) {
-								// This User object is going to be disconnected, and the multicast-created User will be promoted.
-								if (!container.containsUserPending(currUser.pair())) {
-									break;
-								}
-								container.removeUserPending(currUser.pair());
-								currUser.disconnect();
-								
-							} else {
+//							long endTime = System.currentTimeMillis() + PAIRING_DURATION;
+//							while (System.currentTimeMillis() < endTime) {
+//								if (container.containsUserPending(pairAA)) {
+//									userAA = container.getUserPending(pairAA);
+//									container.removeUserPending(pairAA);
+//									break;
+//								}
+//								try {
+//									Thread.sleep(PAIRING_DELAY);
+//								} catch (InterruptedException e) {
+//									break;
+//								}
+//							}
+//
+//							// if remote < self
+//							if (pairAA.toLong() < pairBB.toLong()) {
+//								// This User object is going to be disconnected, and the multicast-created User will be promoted.
+//								if (!container.containsUserPending(currUser.pair())) {
+//									break;
+//								}
+//								container.removeUserPending(currUser.pair());
+//								currUser.disconnect();
+//								
+//							} else {
 								// This User object is going to be promoted.
 								if (!container.containsUserPending(currUser.pair())) {
 									break;
@@ -176,7 +177,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 								container.removeUserPending(currUser.pair());
 								currUser.pair = pairAA;
 								userAA = currUser;
-							}
+//							}
 							
 							if ((userAA == null) || !container.addUser(pairAA, userAA)) {
 								System.err.println("Unable to add " + pairAA + " to the users Hashmap.");
