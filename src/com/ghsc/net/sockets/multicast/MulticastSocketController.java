@@ -36,10 +36,10 @@ public class MulticastSocketController implements ISocketController {
 	
 	private int RECEIVE_BUFFER = 8192, SEND_DELAY = 500, CONNECT_DELAY = 2000;
 	
-	private Application application;
-	private MulticastSocket socket;
-	private MulticastSocket sendsocket;
-	private InetAddress address;
+	private final Application application;
+	private final MulticastSocket socket;
+	private final MulticastSocket sendsocket;
+	private final InetAddress address;
 	
 	private String selfMulticastIP = null;
 	private int selfMulticastPort = 0;
@@ -136,7 +136,9 @@ public class MulticastSocketController implements ISocketController {
 					// public void run() {
 					final byte[] data = AES.DEFAULT.decrypt(buffer, 0, length);
 					if (data != null) {
-						messageEventListener.eventReceived(MessageEvent.parse(new String(data, Application.CHARSET)));
+						final MessageEvent parsedMessageEvent = MessageEvent.parse(new String(data, Application.CHARSET));
+						System.out.println(parsedMessageEvent);
+						messageEventListener.eventReceived(parsedMessageEvent);
 					} else {
 						System.out.println("Decrypted data is null!");
 					}
@@ -183,19 +185,21 @@ public class MulticastSocketController implements ISocketController {
 		this.application = application;
 		this.selfTCPPort = localUserPort;
 		
-		address = InetAddress.getByName(MULTICAST_ADDRESS);
-		socket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), MULTICAST_PORT));
-		socket.setTimeToLive(255);
-		socket.joinGroup(address);
+		this.address = InetAddress.getByName(MULTICAST_ADDRESS);
 		
-		sendsocket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), 0));
+		// Note: Do not bind to the local address, just use the port!
+		this.socket = new MulticastSocket(MulticastSocketController.MULTICAST_PORT);
+		this.socket.setTimeToLive(255);
+		this.socket.joinGroup(this.address);
+		
+		this.sendsocket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), 0));
 		this.selfMulticastIP = sendsocket.getLocalAddress().getHostAddress();
 		this.selfMulticastPort = sendsocket.getLocalPort();
 		
-		receiveWorker = new Thread(receive);
-		receiveWorker.setName("MulticastSocketController|Receive");
-		sendWorker = new Thread(send);
-		sendWorker.setName("MulticastSocketController|Send");
+		this.receiveWorker = new Thread(receive);
+		this.receiveWorker.setName("MulticastSocketController|Receive");
+		this.sendWorker = new Thread(send);
+		this.sendWorker.setName("MulticastSocketController|Send");
 	}
 	
 	/**
