@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.net.encryption.AES;
 import com.ghsc.net.sockets.ISocketController;
+import com.ghsc.net.sockets.NicManager;
 import com.ghsc.net.update.Version;
 import com.ghsc.util.Tag;
 
@@ -190,9 +192,13 @@ public class MulticastSocketController implements ISocketController {
 		// Note: Do not bind to the local address, just use the port!
 		this.socket = new MulticastSocket(MulticastSocketController.MULTICAST_PORT);
 		this.socket.setTimeToLive(255);
-		this.socket.joinGroup(this.address);
+		// Note: Must joinGroup with network interface!
+		final NetworkInterface iface = Application.NETWORK.getDefaultInterface();
+		this.socket.joinGroup(new InetSocketAddress(this.address, MulticastSocketController.MULTICAST_PORT), iface);
+		System.out.println("NETWORK INTERFACE:");
+		NicManager.printNetworkInterface(iface);
 		
-		this.sendsocket = new MulticastSocket(new InetSocketAddress(application.getLocalAddress(), 0));
+		this.sendsocket = new MulticastSocket(new InetSocketAddress(Application.NETWORK.getIP(), 0));
 		this.selfMulticastIP = sendsocket.getLocalAddress().getHostAddress();
 		this.selfMulticastPort = sendsocket.getLocalPort();
 		

@@ -68,7 +68,7 @@ public class UserSocketListener implements ISocketController {
 		this.application = application;
 		this.filePort = filePort;
 		
-		socket = new ServerSocket(0, 10, Inet4Address.getByName(application.getLocalAddress()));
+		socket = new ServerSocket(0, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
 		// socket = new ServerSocket(PORT, 10, application.getLocalAddress());
 		selfPort = socket.getLocalPort();
 		listener = new Thread(runnable);
