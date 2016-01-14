@@ -76,7 +76,7 @@ public class Application implements ComplexIdentifiable {
 	private SocketManager socketManager = null;
 	public String networkIP = null;
 	public int networkPort = 0;
-	private static NicManager networkInterfaces = null;
+	public static NicManager NETWORK = new NicManager();
 	
 	// Events
 	public static final String NICK_EVENTPROVIDER = "nick";
@@ -84,19 +84,6 @@ public class Application implements ComplexIdentifiable {
 	
 	private String hostname = null, nick = null;
 	private UUID userID = null;
-	
-	/**
-	 * @return the current local ip address that this application is running on.
-	 */
-	public String getLocalAddress() {
-		if (networkIP == null) {
-			if (networkInterfaces == null) {
-				networkInterfaces = new NicManager();	
-			}
-			networkIP = networkInterfaces.getIP();
-		}
-		return networkIP;
-	}
 	
 	@Override
 	public String getHostname() {
@@ -313,7 +300,8 @@ public class Application implements ComplexIdentifiable {
 		}));
 		
 		boolean duplicateInstance = false;
-		socketManager = new SocketManager(getLocalAddress());
+		networkIP = NETWORK.getIP();
+		socketManager = new SocketManager(networkIP);
 		if (!socketManager.instanceCheck()) {
 			duplicateInstance = true;
 			if (JOptionPane.showConfirmDialog(frame, PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {

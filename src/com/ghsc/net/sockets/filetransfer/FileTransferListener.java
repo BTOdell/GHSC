@@ -49,7 +49,7 @@ public class FileTransferListener implements ISocketController {
 	public FileTransferListener(Application application) throws IOException {
 		this.fileShare = application.getFileShare();
 		//socket = new ServerSocket(PORT, 10, Application.getLocalAddress());
-		socket = new ServerSocket(0, 10, Inet4Address.getByName(application.getLocalAddress()));
+		socket = new ServerSocket(0, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
 		selfPort = socket.getLocalPort();
 		listener = new Thread(runnable);
 		listener.setName("FileTransferListener");
