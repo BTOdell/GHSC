@@ -1,137 +1,98 @@
 package com.ghsc.net.sockets;
 
-import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
 public class NicManager {
+	private LinkedHashMap<String, String> currentInterfaces = null;
 	
-	private final LinkedHashMap<String, InterfaceProperties> interfaces = new LinkedHashMap<String, InterfaceProperties>();
-	private NetworkInterface defaultNetworkInterface = null;
-	private String defaultName = null;
-
 	public NicManager() {
-		System.out.println("NicManager");
+		currentInterfaces = enumInterfaces();
+	}
+	
+	public Set<String> getInterfaces() {
+		if (currentInterfaces == null) {
+			currentInterfaces = enumInterfaces();
+		}
+		return currentInterfaces.keySet();
+	}
+	
+	private LinkedHashMap<String, String> enumInterfaces() {
+		final LinkedHashMap<String, String> newInterfaces = new LinkedHashMap<String, String>();
+		Enumeration<NetworkInterface> interfaces = null;
 		try {
-			for (NetworkInterface xface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+			interfaces = NetworkInterface.getNetworkInterfaces();
+		} catch (SocketException e) {
+			System.err.println(e + ":  " + e.getMessage());
+			return null;
+		}
+		for (NetworkInterface xface : Collections.list(interfaces)) {
+			boolean isUp = false;
+			try {
+				isUp = xface.isUp();
+			} catch (SocketException e) {
+				System.err.println(e + ":  " + e.getMessage());
+			}
+			if (isUp) {
 				printNetworkInterface(xface);
 				for (InterfaceAddress interfaceAddress : xface.getInterfaceAddresses()) {
 					InetAddress inetAddress = interfaceAddress.getAddress();
-					InetAddress broadcast = interfaceAddress.getBroadcast();
-					System.out.println("Address: " + inetAddress + "[" + (inetAddress != null ? inetAddress.getClass() : null) + "]");
-					System.out.println("Broadcast Address: " + broadcast + "[" + (broadcast != null ? broadcast.getClass() : null) + "]");
-					if ((inetAddress instanceof Inet4Address) && inetAddress.isSiteLocalAddress() && inetAddress.isReachable(3000)) {
-						InterfaceProperties parms = new InterfaceProperties(new String(inetAddress.getHostAddress()), new String(broadcast.getHostAddress()), interfaceAddress.getNetworkPrefixLength(), new String(xface.getDisplayName()));
-						interfaces.put(xface.getName(),  parms);
-						//if ((defaultName == null) || !defaultName.startsWith("eth")) {
-						if ((defaultName == null) || !defaultName.startsWith("vir")) {
-							defaultNetworkInterface = xface;
-							defaultName = new String(xface.getName());
-						}
+					boolean isReachable = true;
+//					boolean isReachable = false;
+//					try {
+//						isReachable = inetAddress.isReachable(3000);
+//					} catch (IOException e) {
+//						System.err.println(e + ":  " + e.getMessage());
+//					}
+					if ((inetAddress instanceof Inet4Address) && inetAddress.isSiteLocalAddress() && isReachable) {
+						newInterfaces.put(xface.getName(), inetAddress.getHostAddress());
+						break;
 					}
 				}
 			}
-		} catch (IOException e) {}
+		}
+		return newInterfaces;
 	}
 	
-	public String getIP() {
-		InterfaceProperties parms = null;
-		if ((defaultName == null) || (parms = interfaces.get(defaultName)) == null) {
+	public Set<String> updateInterfaces() {
+		LinkedHashMap<String, String> newInterfaces = enumInterfaces();
+		if (currentInterfaces.keySet().equals(newInterfaces.keySet())) {
 			return null;
 		}
-		return parms.localIP;
+		currentInterfaces = newInterfaces;
+		return newInterfaces.keySet();
 	}
 	
-	public String getBroadcast() {
-		InterfaceProperties parms = null;
-		if ((defaultName == null) || (parms = interfaces.get(defaultName)) == null) {
-			return null;
+	public String getIp(String interfaceName) {
+		if (interfaceName != null) {
+			return currentInterfaces.get(interfaceName);
 		}
-		return parms.broadcastIP;
+		return null;
 	}
 	
-	public int getPrefixLength() {
-		InterfaceProperties parms = null;
-		if ((defaultName == null) || (parms = interfaces.get(defaultName)) == null) {
-			return 0;
-		}
-		return parms.prefixLength;
-	}
-	
-	public String getDescription() {
-		InterfaceProperties parms = null;
-		if ((defaultName == null) || (parms = interfaces.get(defaultName)) == null) {
-			return null;
-		}
-		return parms.description;
-	}
-	
-	public String getDefault() {
-		if (defaultName == null) {
-			return null;
-		}
-		return new String(defaultName);
-	}
-	
-	public NetworkInterface getDefaultInterface() {
-		return this.defaultNetworkInterface;
-	}
-	
-	public HashSet<String> getNics() {
-		return new HashSet<String>(interfaces.keySet());
-	}
-	
-	public InterfaceProperties getProperties(String interfaceName) {
-		InterfaceProperties parms = null;
-		if ((interfaceName == null) || (parms = interfaces.get(interfaceName)) == null) {
-			return null;
-		}
-		return parms;
-	}
-	
-	public int size() {
-		return interfaces.size();
-	}
-	
-	public void setDefault(String interfaceName) {
-		if (interfaceName == null) {
+	public static void printNetworkInterface(final NetworkInterface networkInterface) {
+		boolean isUp;
+		boolean supportsMulticast;
+		
+		try {
+			isUp = networkInterface.isUp();
+			supportsMulticast = networkInterface.supportsMulticast();
+		} catch (SocketException e) {
+			System.err.println(e + ":  " + e.getMessage());
 			return;
 		}
-		final Set<String> keysetCopy = new HashSet<String>(interfaces.keySet());
-		for (String name : keysetCopy) {
-			if (name.equalsIgnoreCase(interfaceName)) {
-				defaultName = name;
-			}
-		}
-	}
-	
-	public static void printNetworkInterface(final NetworkInterface networkInterface) throws SocketException {
+		
 		System.out.println("Name: " + networkInterface.getName());
 		System.out.println("Display name: " + networkInterface.getDisplayName());
-		System.out.println("Up: " + networkInterface.isUp());
+		System.out.println("Up: " + isUp);
 		System.out.println("Virtual: " + networkInterface.isVirtual());
-		System.out.println("Multicast: " + networkInterface.supportsMulticast());
-	}
-	
-	public class InterfaceProperties {
-		
-		public final String localIP;
-		public final String broadcastIP;
-		public final short prefixLength;
-		public final String description;
-		
-		public InterfaceProperties(String localIP, String broadcastIP, short prefixLength, String description) {
-			this.localIP = localIP;
-			this.broadcastIP = broadcastIP;
-			this.prefixLength = prefixLength;
-			this.description = description;
-		}
+		System.out.println("Multicast: " + supportsMulticast);
 	}
 }

@@ -1,7 +1,6 @@
 package com.ghsc.net.sockets.user;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -68,8 +67,8 @@ public class UserSocketListener implements ISocketController {
 		this.application = application;
 		this.filePort = filePort;
 		
-		socket = new ServerSocket(0, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
-		// socket = new ServerSocket(PORT, 10, application.getLocalAddress());
+		//socket = new ServerSocket(PORT, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
+		socket = new ServerSocket(0, 10, null);
 		selfPort = socket.getLocalPort();
 		listener = new Thread(runnable);
 		listener.setName("UserSocketListener");

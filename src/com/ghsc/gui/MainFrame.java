@@ -510,7 +510,7 @@ public class MainFrame extends JFrame {
 	
 	public JLabel getUserIPLabel() {
 		if (userIPLabel == null) {
-			userIPLabel = new JLabel("@ " + (application != null ? (application.networkIP + ":" + application.networkPort) : "unknown"));
+			userIPLabel = new JLabel("@ " + (application != null ? (Application.defaultIP + ":" + application.networkPort) : "unknown"));
 		}
 		return userIPLabel;
 	}

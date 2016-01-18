@@ -9,6 +9,7 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.Set;
 
 import com.ghsc.common.Debug;
 import com.ghsc.event.EventListener;
@@ -20,7 +21,6 @@ import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.net.encryption.AES;
 import com.ghsc.net.sockets.ISocketController;
-import com.ghsc.net.sockets.NicManager;
 import com.ghsc.net.update.Version;
 import com.ghsc.util.Tag;
 
@@ -36,12 +36,17 @@ public class MulticastSocketController implements ISocketController {
 	public static final int MULTICAST_PORT = 5688;
 	private static final String MULTICAST_ADDRESS = "224.0.0.115";
 	
-	private int RECEIVE_BUFFER = 8192, SEND_DELAY = 500, CONNECT_DELAY = 2000;
+	private int RECEIVE_BUFFER = 8192;
+	private int SEND_DELAY = 500;
+	private int CONNECT_DELAY = 2000;
+	private int INTERFACE_UPDATE_DELAY = 10000;
+	
+	private Set<String> interfaceNames = null;
 	
 	private final Application application;
-	private final MulticastSocket socket;
-	private final MulticastSocket sendsocket;
-	private final InetAddress address;
+	private final MulticastSocket listenSocket;
+	private final MulticastSocket sendSocket;
+	private final InetAddress multicastInetAddress;
 	
 	private String selfMulticastIP = null;
 	private int selfMulticastPort = 0;
@@ -97,15 +102,15 @@ public class MulticastSocketController implements ISocketController {
 						System.out.println("Completed OUTGOING socket connection.  User is pending.");
 						System.out.println("Connected to " + remotePair + " - " + msg.getAttribute(ATT_USERNAME));
 						application.getMainFrame().setStatus("Connected to " + msg.getAttribute(ATT_USERNAME), 1000);
-
-						user.sendEndpoint();     // send identifying port info.
-						user.sendIntro();        // send identifying user info.
-						user.start();            // starts up the receive thread.
-						user.setFriend(users.isFriend(user));   // updates various user list status...
+						
+						user.sendEndpoint(); // send identifying port info.
+						user.sendIntro(); // send identifying user info.
+						user.start(); // starts up the receive thread.
+						user.setFriend(users.isFriend(user)); // updates various user list status...
 						user.setIgnored(users.isIgnored(user));
 						users.getMainFrame().getChatContainer().refreshUser(user);
 						users.refresh();
-						users.removeMulticaster(remotePair);  // no longer need to block multicasters.
+						users.removeMulticaster(remotePair); // no longer need to block multicasters.
 					}
 					
 				} catch (IOException e) {
@@ -131,7 +136,7 @@ public class MulticastSocketController implements ISocketController {
 				final byte[] buf = new byte[RECEIVE_BUFFER];
 				final DatagramPacket pack = new DatagramPacket(buf, buf.length);
 				while (running) {
-					socket.receive(pack);
+					listenSocket.receive(pack);
 					final int length = pack.getLength();
 					final byte[] buffer = Arrays.copyOf(buf, length);
 					// new Thread(new Runnable() {
@@ -156,13 +161,41 @@ public class MulticastSocketController implements ISocketController {
 	private Runnable send = new Runnable() {
 		public void run() {
 			try {
+				long updateTime = System.currentTimeMillis() + INTERFACE_UPDATE_DELAY;
 				while (running) {
 					final Tag dEvent = Tag.construct(Type.PING, ATT_VERSION, Application.VERSION, ATT_IP, selfMulticastIP, ATT_PORT, selfMulticastPort, ATT_USERPORT, selfTCPPort, ATT_USERNAME, application.getPreferredName());
 					final byte[] data = AES.DEFAULT.encrypt(dEvent.getEncodedString());
 					if (data != null) {
-						sendsocket.send(new DatagramPacket(data, data.length, address, MULTICAST_PORT));
+						sendSocket.send(new DatagramPacket(data, data.length, multicastInetAddress, MULTICAST_PORT));
 					}
 					Thread.sleep(SEND_DELAY);
+					if (System.currentTimeMillis() > updateTime) {
+						updateTime = System.currentTimeMillis() + INTERFACE_UPDATE_DELAY;
+						Set<String> newInterfaceNames = Application.NETWORK.updateInterfaces();
+						if (newInterfaceNames != null) {
+							// Changes have occurred to the active interfaces.
+							// First, unjoin interfaces no longer in the list...
+							for (String name : interfaceNames) {
+								if (!newInterfaceNames.contains(name)) {
+									NetworkInterface xface = NetworkInterface.getByName(name);
+									if (xface != null) {
+										listenSocket.leaveGroup(new InetSocketAddress(multicastInetAddress, MulticastSocketController.MULTICAST_PORT), xface);
+									}
+								}
+							}
+							// Second, join new interfaces in the list...
+							for (String name : newInterfaceNames) {
+								if (!interfaceNames.contains(name)) {
+									NetworkInterface xface = NetworkInterface.getByName(name);
+									if (xface != null) {
+										listenSocket.joinGroup(new InetSocketAddress(multicastInetAddress, MulticastSocketController.MULTICAST_PORT), xface);
+									}
+								}
+							}
+							// Establish the new list...
+							interfaceNames = newInterfaceNames;
+						}
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -187,20 +220,29 @@ public class MulticastSocketController implements ISocketController {
 		this.application = application;
 		this.selfTCPPort = localUserPort;
 		
-		this.address = InetAddress.getByName(MULTICAST_ADDRESS);
+		multicastInetAddress = InetAddress.getByName(MULTICAST_ADDRESS);
 		
 		// Note: Do not bind to the local address, just use the port!
-		this.socket = new MulticastSocket(MulticastSocketController.MULTICAST_PORT);
-		this.socket.setTimeToLive(255);
-		// Note: Must joinGroup with network interface!
-		final NetworkInterface iface = Application.NETWORK.getDefaultInterface();
-		this.socket.joinGroup(new InetSocketAddress(this.address, MulticastSocketController.MULTICAST_PORT), iface);
-		System.out.println("NETWORK INTERFACE:");
-		NicManager.printNetworkInterface(iface);
+		this.listenSocket = new MulticastSocket(MulticastSocketController.MULTICAST_PORT);
+		this.listenSocket.setTimeToLive(255);
 		
-		this.sendsocket = new MulticastSocket(new InetSocketAddress(Application.NETWORK.getIP(), 0));
-		this.selfMulticastIP = sendsocket.getLocalAddress().getHostAddress();
-		this.selfMulticastPort = sendsocket.getLocalPort();
+		// join the multicast Group for all the network interfaces.
+		interfaceNames = Application.NETWORK.getInterfaces();
+		if (interfaceNames != null) {
+			for (String name : interfaceNames) {
+				NetworkInterface xface = NetworkInterface.getByName(name);
+				if (xface != null) {
+					this.listenSocket.joinGroup(new InetSocketAddress(multicastInetAddress, MulticastSocketController.MULTICAST_PORT), xface);
+				}
+			}
+		}
+		
+		// TODO: Figure out a way to send a multicast message for each interface.
+		// TODO: First, test to see if we have to do this...
+		this.sendSocket = new MulticastSocket(new InetSocketAddress(Application.defaultIP, 0));
+		
+		this.selfMulticastIP = sendSocket.getLocalAddress().getHostAddress();
+		this.selfMulticastPort = sendSocket.getLocalPort();
 		
 		this.receiveWorker = new Thread(receive);
 		this.receiveWorker.setName("MulticastSocketController|Receive");
@@ -222,9 +264,9 @@ public class MulticastSocketController implements ISocketController {
 	 */
 	@Override
 	public void close() {
-		System.out.println("Multicast controller interrupted.");
 		running = false;
-		socket.close();
+		this.listenSocket.close();
+		this.sendSocket.close();
 	}
 	
 }

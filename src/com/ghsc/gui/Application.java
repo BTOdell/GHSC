@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -74,7 +75,7 @@ public class Application implements ComplexIdentifiable {
 	
 	// Networking
 	private SocketManager socketManager = null;
-	public String networkIP = null;
+	public static String defaultIP;
 	public int networkPort = 0;
 	public static NicManager NETWORK = new NicManager();
 	
@@ -299,9 +300,20 @@ public class Application implements ComplexIdentifiable {
 			}
 		}));
 		
+		// This code chooses a default interface to use for instance checking.
+		Set<String> interfaceNames = NETWORK.getInterfaces();
+		for (String name : interfaceNames) {
+			String ip = NETWORK.getIp(name);
+			if (ip != null) {
+				defaultIP = new String(ip);
+				if (ip.startsWith("eth")) {
+					break;
+				}
+			}
+		}
+		socketManager = new SocketManager(defaultIP);
+		
 		boolean duplicateInstance = false;
-		networkIP = NETWORK.getIP();
-		socketManager = new SocketManager(networkIP);
 		if (!socketManager.instanceCheck()) {
 			duplicateInstance = true;
 			if (JOptionPane.showConfirmDialog(frame, PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
