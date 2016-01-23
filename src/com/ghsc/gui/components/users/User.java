@@ -452,7 +452,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 		return new StringBuilder()
 				.append(getPreferredName())
 				.append(" - ")
-				.append(remoteAddress.getAddress()).append("@").append(remoteAddress.getPort()).toString();
+				.append(remoteAddress.getAddress().getHostAddress()).append("@").append(remoteAddress.getPort()).toString();
 	}
 	
 	@Override

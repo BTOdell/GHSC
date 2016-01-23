@@ -36,6 +36,11 @@ public class MulticastSocketController implements ISocketController {
 			ATT_ID = "id", 
 			ATT_USERNAME = "n";
 	
+	private static final int RECEIVE_BUFFER = 8192;
+	private static final int SEND_DELAY = 500;
+	private static final int CONNECT_DELAY = 2000;
+	private static final int INTERFACE_UPDATE_DELAY = 10000;
+	
 	public static final int MULTICAST_PORT = 5688;
 	public static final String MULTICAST_IP_ADDRESS = "224.0.0.115";
 	public static final InetAddress MULTICAST_ADDRESS;
@@ -52,11 +57,6 @@ public class MulticastSocketController implements ISocketController {
 		MULTICAST_ADDRESS = multicastAddress;
 		MULTICAST_SOCKET_ADDRESS = new InetSocketAddress(MULTICAST_ADDRESS, MULTICAST_PORT);
 	}
-	
-	private static final int RECEIVE_BUFFER = 8192;
-	private static final int SEND_DELAY = 500;
-	private static final int CONNECT_DELAY = 2000;
-	private static final int INTERFACE_UPDATE_DELAY = 10000;
 	
 	private Set<String> interfaceNames = null;
 	
@@ -86,8 +86,8 @@ public class MulticastSocketController implements ISocketController {
 		// join the multicast Group for all the network interfaces.
 		this.interfaceNames = Application.NETWORK.getInterfaces();
 		if (this.interfaceNames != null) {
-			for (String name : interfaceNames) {
-				NetworkInterface xface = NetworkInterface.getByName(name);
+			for (String name : this.interfaceNames) {
+				final NetworkInterface xface = NetworkInterface.getByName(name);
 				if (xface != null) {
 					this.receiveSocket.joinGroup(MULTICAST_SOCKET_ADDRESS, xface);
 				}
@@ -96,15 +96,16 @@ public class MulticastSocketController implements ISocketController {
 		
 		// Bind to wildcard (any) address.
 		// This allows multicast packets to be sent on all network interfaces.
-		this.sendSocket = new MulticastSocket(new InetSocketAddress(0));
+		this.sendSocket = new MulticastSocket();
+		this.sendSocket.setTimeToLive(255);
 		
-		this.receiveWorker = new Thread(this::multicastReceived);
+		this.receiveWorker = new Thread(this::multicastReceive);
 		this.receiveWorker.setName("MulticastSocketController|Receive");
 		this.sendWorker = new Thread(this::multicastSend);
 		this.sendWorker.setName("MulticastSocketController|Send");
 	}
 	
-	private void multicastReceived() {
+	private void multicastReceive() {
 		try {
 			final byte[] buf = new byte[RECEIVE_BUFFER];
 			final DatagramPacket pack = new DatagramPacket(buf, buf.length);
@@ -117,8 +118,10 @@ public class MulticastSocketController implements ISocketController {
 				final byte[] data = AES.DEFAULT.decrypt(buffer, 0, length);
 				final MessageEvent parsedMessageEvent = MessageEvent.parse(new String(data, Application.CHARSET));
 				if (parsedMessageEvent != null) {
-					System.out.println(parsedMessageEvent);
+					//System.out.println(parsedMessageEvent);
 					this.multicastMessageReceived(parsedMessageEvent);
+				} else {
+					System.err.println("Unable to parse multicast message!");
 				}
 				// }}).start();
 				pack.setLength(buf.length);
@@ -146,6 +149,7 @@ public class MulticastSocketController implements ISocketController {
 		if (remoteUUID.compareTo(localUUID) >= 0) {
 			return;
 		}
+		System.out.println(message);
 		// Get remove address info
 		final String remoteIP = message.getAttribute(ATT_IP);
 		final String remotePortString = message.getAttribute(ATT_PORT);
@@ -169,7 +173,7 @@ public class MulticastSocketController implements ISocketController {
 				}
 				isConnecting = true;
 			}
-			System.out.println("Received " + remoteAddress.getAddress() + " from MULTICASTER " + remotePort);
+			System.out.println("Received " + remoteAddress.getAddress().getHostAddress() + " from MULTICASTER " + remotePort);
 			
 			application.getMainFrame().setStatus("Connecting to " + message.getAttribute(ATT_USERNAME), 0);
 			
@@ -177,11 +181,11 @@ public class MulticastSocketController implements ISocketController {
 			socket.connect(remoteAddress, CONNECT_DELAY);
 			final User user = new User(users, socket);
 			if (!users.addUser(remoteAddress, user)) {
-				System.err.println("Unable to add " + remoteAddress.getAddress() + "@" + remoteAddress.getPort() + ".  User is already known.");
+				System.err.println("Unable to add " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + ".  User is already known.");
 				socket.close();
 			} else {
 				System.out.println("Completed OUTGOING socket connection.  User is pending.");
-				System.out.println("Connected to " + remoteAddress.getAddress() + "@" + remoteAddress.getPort() + " - " + message.getAttribute(ATT_USERNAME));
+				System.out.println("Connected to " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + " - " + message.getAttribute(ATT_USERNAME));
 				application.getMainFrame().setStatus("Connected to " + message.getAttribute(ATT_USERNAME), 1000);
 				
 				user.sendIntro(); // send identifying user info.
@@ -250,7 +254,7 @@ public class MulticastSocketController implements ISocketController {
 							}
 						}
 						// Establish the new list...
-						interfaceNames = newInterfaceNames;
+						this.interfaceNames = newInterfaceNames;
 					}
 				}
 			}
