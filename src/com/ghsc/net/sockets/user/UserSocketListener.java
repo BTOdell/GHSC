@@ -1,60 +1,24 @@
 package com.ghsc.net.sockets.user;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import com.ghsc.gui.Application;
-import com.ghsc.gui.components.users.IpPort;
 import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.net.sockets.ISocketController;
 
 /**
  * The task of UserSocketListener is to listen for any incoming TCP connection requests and accept them.
- * 
- * @author Odell
  */
 public class UserSocketListener implements ISocketController {
 	
-	public static final int PORT = 5689;
+	private final ServerSocket listenSocket;
 	
-	private Application application;
-	private ServerSocket socket;
-	private final int selfPort;
-	private int filePort = 0;
-	
-	private Thread listener;
-	private final Runnable runnable = new Runnable() {
-		public void run() {
-			try {
-				System.out.println("filePort is " + filePort);
-				while (true) {
-					// somebody tries connecting to us
-					Socket newSocket = socket.accept();
-					
-					IpPort pair = new IpPort(newSocket.getInetAddress().getHostAddress(), newSocket.getPort());
-					try {
-						System.out.println("Accepted socket connection from " + pair);
-						UserContainer users = application.getMainFrame().getUsers();
-						final User user = new User(users, pair, newSocket, selfPort);
-						if (users.addUserPending(pair, user)) {
-							System.out.println("Completed INCOMING socket connection.  User is pending.");
-							System.out.println("Connected to " + pair + " - unknown");
-							user.start();
-							continue;
-						} else {
-							System.out.println("Socket receive failed.");
-						}
-					} finally {
-					}
-					newSocket.close();
-				}
-			} catch (IOException e) {
-				System.out.println("User socket listener interrupted.");
-			}
-		}
-	};
+	private final Thread listener;
 	
 	/**
 	 * Initializes a new UserSocketListener.
@@ -63,15 +27,41 @@ public class UserSocketListener implements ISocketController {
 	 *            - the main application.
 	 * @throws IOException
 	 */
-	public UserSocketListener(Application application, int filePort) throws IOException {
-		this.application = application;
-		this.filePort = filePort;
-		
-		//socket = new ServerSocket(PORT, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
-		socket = new ServerSocket(0, 10, null);
-		selfPort = socket.getLocalPort();
-		listener = new Thread(runnable);
-		listener.setName("UserSocketListener");
+	public UserSocketListener() throws IOException {
+		this.listenSocket = new ServerSocket(0, 10, null);
+		this.listener = new Thread(this::listenRunnable);
+		this.listener.setName("UserSocketListener");
+	}
+	
+	public int getPort() {
+		return this.listenSocket.getLocalPort();
+	}
+	
+	private void listenRunnable() {
+		try {
+			while (true) {
+				// somebody tries connecting to us
+				final Socket acceptSocket = this.listenSocket.accept();
+				final SocketAddress remoteSocketAddress = acceptSocket.getRemoteSocketAddress();
+				if (remoteSocketAddress instanceof InetSocketAddress) {
+					final InetSocketAddress remoteAddress = (InetSocketAddress) remoteSocketAddress;
+					System.out.println("Accepted socket connection from " + remoteAddress.getAddress() + "@" + remoteAddress.getPort());
+					final UserContainer users = Application.getInstance().getMainFrame().getUsers();
+					final User user = new User(users, acceptSocket);
+					if (users.addUserPending(remoteAddress, user)) {
+						System.out.println("Completed INCOMING socket connection.  User is pending.");
+						System.out.println("Connected to " + remoteAddress.getAddress() + "@" + remoteAddress.getPort() + " - unknown");
+						user.start();
+						continue;
+					} else {
+						System.out.println("Socket receive failed.");
+					}
+				}
+				acceptSocket.close();
+			}
+		} catch (IOException e) {
+			System.out.println("User socket listener interrupted.");
+		}
 	}
 	
 	/**
@@ -79,21 +69,16 @@ public class UserSocketListener implements ISocketController {
 	 */
 	@Override
 	public void start() {
-		listener.start();
-	}
-	
-	public int getPort() {
-		return selfPort;
+		this.listener.start();
 	}
 	
 	/**
 	 * Closes the user socket listener, thus stops listening.
-	 * 
 	 * @throws IOException
 	 */
 	@Override
 	public void close() throws IOException {
-		socket.close();
+		this.listenSocket.close();
 	}
 	
 }

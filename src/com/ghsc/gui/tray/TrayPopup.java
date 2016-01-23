@@ -19,32 +19,31 @@ public class TrayPopup extends PopupMenu {
 	
 	private static final long serialVersionUID = 1L;
 	
-	Application application;
-	ArrayList<MenuItem> items;
+	private final ArrayList<MenuItem> items;
 	
 	/**
 	 * Initializes a new TrayPopup.
 	 * @param app - the main application.
 	 */
 	public TrayPopup() {
-		this.application = Application.getApplication();
 		items = new ArrayList<MenuItem>();
 		addItem("Open", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				application.getMainFrame().setVisible(true);
+				Application.getInstance().getMainFrame().setVisible(true);
 			}
 		});
 		addItem("Change nick", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				application.showNickWizard();
+				Application.getInstance().showNickWizard();
 			}
 		});
 		addItem("Clear settings", new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if (JOptionPane.showConfirmDialog(TrayPopup.this.application.getMainFrame(), "By proceeding, you acknowledge that all your settings will be permanently erased.\nYour profile will not be erased.", "Clear all settings.", JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION) {
+				final Application application = Application.getInstance();
+				if (JOptionPane.showConfirmDialog(application.getMainFrame(), "By proceeding, you acknowledge that all your settings will be permanently erased.\nYour profile will not be erased.", "Clear all settings.", JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION) {
 					Settings.getSettings().delete();
 					if (Application.isJar()) {
-						switch (JOptionPane.showOptionDialog(TrayPopup.this.application.getMainFrame(), "Settings successfully cleared.\nHowever, the live application settings haven't been modified. Would you like to restart?", "Restart", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[] { "Restart", "Exit", "Cancel" }, "Restart")) {
+						switch (JOptionPane.showOptionDialog(application.getMainFrame(), "Settings successfully cleared.\nHowever, the live application settings haven't been modified. Would you like to restart?", "Restart", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[] { "Restart", "Exit", "Cancel" }, "Restart")) {
 							case 0:
 								Application.restart();
 								break;
@@ -53,7 +52,7 @@ public class TrayPopup extends PopupMenu {
 								break;
 						}
 					} else {
-						if (JOptionPane.showConfirmDialog(TrayPopup.this.application.getMainFrame(), "Settings successfully cleared.\nWould you like to exit?", "Exit", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
+						if (JOptionPane.showConfirmDialog(application.getMainFrame(), "Settings successfully cleared.\nWould you like to exit?", "Exit", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
 							System.exit(0);
 						}
 					}
@@ -62,12 +61,13 @@ public class TrayPopup extends PopupMenu {
 		});
 		addItem("Restart", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				final Application application = Application.getInstance();
 				if (Application.isJar()) {
-					if (JOptionPane.showConfirmDialog(TrayPopup.this.application.getMainFrame(), "Are you sure that you'd like to restart?", "Restart", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
+					if (JOptionPane.showConfirmDialog(application.getMainFrame(), "Are you sure that you'd like to restart?", "Restart", JOptionPane.YES_NO_OPTION) == JOptionPane.OK_OPTION) {
 						Application.restart();
 					}
 				} else {
-					JOptionPane.showMessageDialog(TrayPopup.this.application.getMainFrame(), "This application can't restart since it's not running from a jar file.", "Error with restart!", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(application.getMainFrame(), "This application can't restart since it's not running from a jar file.", "Error with restart!", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});

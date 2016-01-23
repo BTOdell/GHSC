@@ -21,7 +21,6 @@ import com.ghsc.files.FileStorage.Hook;
 import com.ghsc.files.FileStorage.Node;
 import com.ghsc.files.Settings;
 import com.ghsc.gui.Application;
-import com.ghsc.gui.components.users.IpPort;
 import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
 import com.ghsc.gui.fileshare.components.PackagePanel;
@@ -35,6 +34,7 @@ import com.ghsc.impl.Filter;
 import com.ghsc.net.encryption.AES;
 import com.ghsc.net.sockets.filetransfer.FileTransferListener;
 import com.ghsc.net.sockets.input.MessageThread;
+import com.ghsc.util.SnapAdapter;
 import com.ghsc.util.Tag;
 import com.ghsc.util.Utilities;
 
@@ -48,7 +48,6 @@ public class FileShare {
 			TYPE_ENCRYPTION = "e", TYPE_UUID = "u", TYPE_PASSWORD = "p", TYPE_REQUEST = "r", ATT_UUID = "u", ATT_PATH = "p", ATT_STATUS = "s";
 	public static final int TRANSFER_BUFFER_SIZE = 8192;
 	
-	private final Application application;
 	private FileShareFrame frame;
 	
 	/**
@@ -66,12 +65,12 @@ public class FileShare {
 	 * @param application the main application.
 	 */
 	public FileShare() {
-		this.application = Application.getApplication();
+		final Application application = Application.getInstance();
 		this.packages = Collections.synchronizedMap(new HashMap<String, FilePackage>());
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
-					frame = new FileShareFrame(FileShare.this);
+					frame = new FileShareFrame(application.getMainFrame(), FileShare.this);
 				}
 			});
 		} catch (Exception e) {
@@ -125,13 +124,6 @@ public class FileShare {
 				application.getMainFrame().setStatus("Loading file packages.", 500);
 			}
 		}
-	}
-	
-	/**
-	 * @return the main application.
-	 */
-	public Application getApplication() {
-		return application;
 	}
 	
 	/**
@@ -204,8 +196,12 @@ public class FileShare {
 	 * 		whether to show or hide the frame.
 	 */
 	public void setVisible(boolean visible) {
-		if (visible)
-			frame.getSnapAdapter().snap(0, true);
+		if (visible) {
+			final SnapAdapter snapAdapter = frame.getSnapAdapter();
+			if (snapAdapter != null) {				
+				snapAdapter.snap(0, true);
+			}
+		}
 		frame.setVisible(visible);
 	}
 	
@@ -227,10 +223,11 @@ public class FileShare {
 	 * 		connection timeout
 	 * @return a newly created socket connected to the user, if null an error has occurred.
 	 */
-	public Socket connect(User user, int timeout) {
+	public Socket connect(final User user, final int timeout) {
 		Socket socket = new Socket();
 		try {
-			socket.connect(new InetSocketAddress(user.pair().ip(), FileTransferListener.PORT), timeout);
+			final InetSocketAddress remoteAddress = user.getRemoteSocketAddress();
+			socket.connect(new InetSocketAddress(remoteAddress.getAddress(), FileTransferListener.PORT), timeout);
 		} catch (IOException e) {
 			return null;
 		}
@@ -242,12 +239,14 @@ public class FileShare {
 	 * @param socket the socket to process.
 	 */
 	public void process(final Socket s) {
-		if (s == null)
+		if (s == null) {
 			return;
-		
-		// TODO:  The port might not be the port we are looking for.
-		final IpPort pair = new IpPort(s.getInetAddress().getHostAddress(), s.getPort());
-		if (!application.getMainFrame().getUsers().containsUser(pair)) {
+		}
+		final Application application = Application.getInstance();
+		// Check to make sure that's an actual user we have connected to
+		// TODO currently broken because the remote socket address isn't the user socket address
+		final InetSocketAddress remoteAddress = (InetSocketAddress) s.getRemoteSocketAddress();
+		if (!application.getMainFrame().getUsers().containsUser(remoteAddress)) {
 			try {
 				s.close();
 			} catch (IOException e) {
@@ -366,11 +365,13 @@ public class FileShare {
 				}
 			}, new EventListener<MessageEvent>() {
 				public void eventReceived(MessageEvent msg) {
-					if (msg.getType() != MessageEvent.Type.FILE_SHARE)
+					if (msg.getType() != MessageEvent.Type.FILE_SHARE) {
 						return;
+					}
 					final String type = msg.getAttribute(ATT_TYPE);
-					if (type == null)
+					if (type == null) {
 						return;
+					}
 					if (type.equals(TYPE_ENCRYPTION)) {
 						byte[] post = msg.getPost().getBytes(Application.CHARSET);
 						if (post.length == 16) {
@@ -383,12 +384,14 @@ public class FileShare {
 						boolean lpValid = tempPackage != null && tempPackage instanceof LocalPackage;
 						if (lpValid) {
 							lPackage = (LocalPackage) tempPackage;
+							final Application application = Application.getInstance();
 							final UserContainer users = application.getMainFrame().getUsers();
 							
-							// TODO:  The port might not be the port we are looking for.
-							final IpPort pair = new IpPort(socket.getInetAddress().getHostAddress(), socket.getPort());
+							// Check to make sure that's an actual user we have connected to
+							// TODO currently broken because the remote socket address isn't the user socket address
+							final InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 							User user;
-							if ((user = users.getUser(pair)) != null) {
+							if ((user = users.getUser(remoteAddress)) != null) {
 								final Visibility.Type vType = lPackage.getVisibility().getType();
 								if (vType == Type.CHANNEL || vType == Type.USER) {
 									final String vData = lPackage.getVisibility().getData().toString();

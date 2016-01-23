@@ -20,15 +20,12 @@ public class Updater {
 	
 	private static final int DOWNLOAD_BUFFER_SIZE = 8192;
 	
-	Application application;
-	Version version = null;
+	private Version version;
 	
 	/**
 	 * Initializes a new Updater.
-	 * @param app - the main application.
 	 */
 	public Updater() {
-		this.application = Application.getApplication();
 		this.version = Application.VERSION;
 	}
 	
@@ -52,6 +49,7 @@ public class Updater {
 	 * Downloads update (overwriting the current running version), then restarts the application to apply changes.
 	 */
 	private void update() {
+		final Application application = Application.getInstance();
 		application.getMainFrame().setStatus("Update found. Connecting...");
 		// begin updating...
 		try {
@@ -101,6 +99,7 @@ public class Updater {
 	 * @param debug - whether to print version status to the console.
 	 */
 	public void updateCheck(boolean refresh, boolean debug) {
+		final Application application = Application.getInstance();
 		Version latestVersion = refresh ? application.getVersionController().refresh(false) : application.getVersionController().getLatest();
 		if (latestVersion != null) {
 			int updateStatus = latestVersion.compareTo(version);

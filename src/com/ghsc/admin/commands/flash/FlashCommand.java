@@ -28,7 +28,7 @@ public class FlashCommand extends AdminCommand {
 			final String message = me.getAttribute(ATT_MESSAGE);
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					JOptionPane.showMessageDialog(Application.getApplication().getMainFrame(), message, "Command result", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(), message, "Command result", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
 				}
 			});
 			return null;

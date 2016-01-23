@@ -25,7 +25,6 @@ import com.ghsc.util.Utilities;
 
 public class AdminControl {
 	
-	private Application application;
 	private MainFrame frame;
 	private PasswordWizard pw;
 	private AdminCommands commands;
@@ -34,17 +33,11 @@ public class AdminControl {
 	private boolean isAdmin = false;
 	
 	public AdminControl() throws Exception {
-		this.application = Application.getApplication();
+		final Application application = Application.getInstance();
 		this.frame = application.getMainFrame();
 		this.commands = new AdminCommands(this);
 		
-		if (application != null) {
-			this.hash = retrieveHash();
-		}
-	}
-	
-	public Application getApplication() {
-		return application;
+		this.hash = retrieveHash();
 	}
 	
 	public boolean isAdmin() {
@@ -72,6 +65,7 @@ public class AdminControl {
 		if (supported != null && !Utilities.resolveToBoolean(supported)) {
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
+					final Application application = Application.getInstance();
 					JOptionPane.showMessageDialog(application.getMainFrame(), aCommand.getName() + ": not supported for " + user.getPreferredName() + "!", "Command error", JOptionPane.ERROR_MESSAGE);
 				}
 			});

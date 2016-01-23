@@ -8,9 +8,11 @@ import java.net.SocketException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
 
 public class NicManager {
+	
 	private LinkedHashMap<String, String> currentInterfaces = null;
 	
 	public NicManager() {
@@ -25,7 +27,7 @@ public class NicManager {
 	}
 	
 	private LinkedHashMap<String, String> enumInterfaces() {
-		final LinkedHashMap<String, String> newInterfaces = new LinkedHashMap<String, String>();
+		final LinkedHashMap<String, String> newInterfaces = new LinkedHashMap<>();
 		Enumeration<NetworkInterface> interfaces = null;
 		try {
 			interfaces = NetworkInterface.getNetworkInterfaces();
@@ -34,6 +36,7 @@ public class NicManager {
 			return null;
 		}
 		for (NetworkInterface xface : Collections.list(interfaces)) {
+			//printNetworkInterface(xface);
 			boolean isUp = false;
 			try {
 				isUp = xface.isUp();
@@ -44,16 +47,20 @@ public class NicManager {
 				printNetworkInterface(xface);
 				for (InterfaceAddress interfaceAddress : xface.getInterfaceAddresses()) {
 					InetAddress inetAddress = interfaceAddress.getAddress();
-					boolean isReachable = true;
-//					boolean isReachable = false;
-//					try {
-//						isReachable = inetAddress.isReachable(3000);
-//					} catch (IOException e) {
-//						System.err.println(e + ":  " + e.getMessage());
-//					}
-					if ((inetAddress instanceof Inet4Address) && inetAddress.isSiteLocalAddress() && isReachable) {
-						newInterfaces.put(xface.getName(), inetAddress.getHostAddress());
-						break;
+					if ((inetAddress instanceof Inet4Address) &&
+						(!inetAddress.isLoopbackAddress())) {
+						boolean isReachable = true;
+//						boolean isReachable = false;
+//						try {
+//							isReachable = inetAddress.isReachable(3000);
+//						} catch (IOException e) {
+//							System.err.println(e + ":  " + e.getMessage());
+//						}
+						// TODO should we restrict to only IPv4?
+						if (isReachable) {
+							newInterfaces.put(xface.getName(), inetAddress.getHostAddress());
+							break;
+						}
 					}
 				}
 			}
@@ -94,5 +101,18 @@ public class NicManager {
 		System.out.println("Up: " + isUp);
 		System.out.println("Virtual: " + networkInterface.isVirtual());
 		System.out.println("Multicast: " + supportsMulticast);
+		System.out.println("Interface Addresses:");
+		final List<InterfaceAddress> interfaceAddresses = networkInterface.getInterfaceAddresses();
+		if (interfaceAddresses.size() > 0) {
+			for (InterfaceAddress interfaceAddress : interfaceAddresses) {
+				System.out.print("\tIP: ");
+				System.out.print(interfaceAddress.getAddress());
+				System.out.print(" - Broadcast: ");
+				System.out.print(interfaceAddress.getBroadcast());
+				System.out.println();
+			}
+		} else {
+			System.out.println("\tNone");
+		}
 	}
 }

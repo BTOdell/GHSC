@@ -81,7 +81,6 @@ public class MainFrame extends JFrame {
 	/*
 	 * Custom variables
 	 */
-	private Application application;
 	private SpamControl spamControl;
 	
 	/*
@@ -111,6 +110,7 @@ public class MainFrame extends JFrame {
 	};
 	private final EventListener<String> nickListener = new EventListener<String>() {
 		public void eventReceived(String nick) {
+			final Application application = Application.getInstance();
 			setNick(nick);
 			getUsers().send(MessageEvent.construct(MessageEvent.Type.IDENTIFY, User.ATT_HOSTNAME, application.getHostname(), User.ATT_NICK, application.getPreferredName()), User.ALL);
 		}
@@ -125,7 +125,7 @@ public class MainFrame extends JFrame {
 					String currChat = chat.getName();
 					if (chat instanceof Channel) {
 						Channel chan = (Channel) chat;
-						if (!application.getAdminControl().isAdmin() && chan.getUserCount() > 0) {
+						if (!Application.getInstance().getAdminControl().isAdmin() && chan.getUserCount() > 0) {
 							switch (spamControl.filter(text, currChat)) {
 								case 1:
 									//JOptionPane.showMessageDialog(MainFrame.this, "GHSC has detected you spamming " + currChannel + ".\nIf you continue, you will be temporarily banned from the channel.", "Spam warning!", JOptionPane.WARNING_MESSAGE);
@@ -182,7 +182,6 @@ public class MainFrame extends JFrame {
 	private ChatInput chatTextInput;
 	private JButton sendMessageButton;
 	private JToolBar userToolBar;
-	private JLabel userIPLabel;
 	private JScrollPane chatTextInputScroll;
 	private JButton joinChannelButton;
 	private JToggleButton adminButton;
@@ -193,7 +192,6 @@ public class MainFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public MainFrame() {
-		this.application = Application.getApplication();
 		
 		EventManager.getEventManager().addListener(eventProviderListener);
 		
@@ -243,13 +241,6 @@ public class MainFrame extends JFrame {
 	}
 	
 	/**
-	 * @return the application supporting this frame.
-	 */
-	public Application getApplication() {
-		return application;
-	}
-	
-	/**
 	 * @return the spam controller for this frame.
 	 */
 	public SpamControl getSpamControl() {
@@ -276,8 +267,9 @@ public class MainFrame extends JFrame {
 			addWindowListener(new WindowAdapter() {
 				public void windowClosing(WindowEvent e) {
 					setVisible(false);
-					if (application.getTrayManager() != null) {
-						application.getTrayManager().onFrameClosed();
+					final TrayManager trayManager = Application.getInstance().getTrayManager();
+					if (trayManager != null) {
+						trayManager.onFrameClosed();
 					}
 				}
 			});
@@ -329,28 +321,22 @@ public class MainFrame extends JFrame {
 							.addGroup(gl_userPanel.createSequentialGroup()
 								.addComponent(getMainImageLabel())
 								.addGap(10)
-								.addGroup(gl_userPanel.createParallelGroup(Alignment.TRAILING)
-									.addGroup(gl_userPanel.createSequentialGroup()
-										.addGap(10)
-										.addComponent(getUserIPLabel(), GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-									.addComponent(getNickLabel(), GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)))))
+								.addComponent(getNickLabel(), GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE))))
 					.addComponent(getUserScrollPane(), GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
 					.addComponent(getUserToolBar(), GroupLayout.DEFAULT_SIZE, 250, Short.MAX_VALUE)
 			);
 			gl_userPanel.setVerticalGroup(
 				gl_userPanel.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_userPanel.createSequentialGroup()
-						.addGroup(gl_userPanel.createParallelGroup(Alignment.TRAILING)
+						.addGroup(gl_userPanel.createParallelGroup(Alignment.LEADING)
 							.addComponent(getMainImageLabel())
-							.addGroup(Alignment.LEADING, gl_userPanel.createSequentialGroup()
+							.addGroup(gl_userPanel.createSequentialGroup()
 								.addContainerGap()
-								.addComponent(getNickLabel())
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(getUserIPLabel())))
+								.addComponent(getNickLabel())))
 						.addGap(7)
 						.addComponent(getStatusLabel(), GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(getUserScrollPane(), GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE)
+						.addComponent(getUserScrollPane(), GroupLayout.DEFAULT_SIZE, 266, Short.MAX_VALUE)
 						.addPreferredGap(ComponentPlacement.RELATED)
 						.addComponent(getUserToolBar(), GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE))
 			);
@@ -361,7 +347,7 @@ public class MainFrame extends JFrame {
 	
 	public StatusLabel getStatusLabel() {
 		if (statusLabel == null) {
-			statusLabel = new StatusLabel(application != null);
+			statusLabel = new StatusLabel(true);
 			statusLabel.setStatus("Starting up...");
 			statusLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD, 14));
 		}
@@ -378,95 +364,92 @@ public class MainFrame extends JFrame {
 	
 	public UserContainer getUsers() {
 		if (userList == null) {
-			if (application != null) {
-				Profile.getProfile().addHook(new Hook() {
-					public Node onSave() {
-						return new Node(Tag.construct("friends"), userList.printFriends());
-					}
-				});
-				Profile.getProfile().addHook(new Hook() {
-					public Node onSave() {
-						return new Node(Tag.construct("ignored"), userList.printIgnored());
-					}
-				});
-				final Node friendsNode = Profile.getProfile().search("/friends");
-				final String[] friends = friendsNode != null && friendsNode.getData() != null ? friendsNode.getData().split(Pattern.quote(",")) : new String[0];
-				final Node ignoredNode = Profile.getProfile().search("/ignored");
-				final String[] ignored = ignoredNode != null && ignoredNode.getData() != null ? ignoredNode.getData().split(Pattern.quote(",")) : new String[0];
-				userList = new UserContainer(this, friends, ignored);
-				application.getPopupManager().submit(new PopupBuilder() {
-					public boolean build(final Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-						if (!userList.isEnabled())
-							return false;
-						int index = userList.locationToIndex(new Point(x, y));
-						if (index >= 0) {
-							userList.setSelectedIndex(index);
-							Object sV = userList.getSelectedValue();
-							if (sV instanceof User) {
-								final User u = (User) sV;
-								if (u != null) {
-									JMenuItem fi = menu.createItem(u.isFriend() ? "Unmark friend" : "Mark as friend", new ActionListener() {
-										public void actionPerformed(ActionEvent e) {
-											u.setFriend(!u.isFriend());
-										}
-									});
-									fi.setFont(Fonts.GLOBAL);
-									menu.add(fi);
-									
-									JMenuItem ii = menu.createItem(u.isIgnored() ? "Show messages" : "Ignore messages", new ActionListener() {
-										public void actionPerformed(ActionEvent e) {
-											u.setIgnored(!u.isIgnored());
-										}
-									});
-									ii.setFont(Fonts.GLOBAL);
-									menu.add(ii);
-									
-									if (application.getAdminControl().isAdmin()) {
-										menu.addSeparator();
-										
-										JMenu adminMenu = menu.createMenu("Admin");
-										{
-											// TODO: make this dynamic!
-											JMenuItem kI = menu.createItem("Kick", new ActionListener() {
-												public void actionPerformed(ActionEvent e) {
-													u.send(AdminCommand.composeCommand(KickCommand.TAG, KickCommand.ATT_CHANNEL, chatContainer.getSelectedChat().getName()));
-												}
-											});
-											kI.setFont(Fonts.GLOBAL);
-											adminMenu.add(kI);
-											
-											final boolean flashStatus = Utilities.resolveToBoolean(u.getCommandState(FlashCommand.TAG));
-											JMenuItem flI = menu.createItem(flashStatus ? "Disable flashing" : "Enable flashing", new ActionListener() {
-												public void actionPerformed(ActionEvent e) {
-													u.send(AdminCommand.composeCommand(FlashCommand.TAG, FlashCommand.ATT_ENABLE, Utilities.resolveToString(!flashStatus)));
-												}
-											});
-											flI.setFont(Fonts.GLOBAL);
-											adminMenu.add(flI);
-										}
-										adminMenu.setFont(Fonts.GLOBAL);
-										menu.add(adminMenu);
+			Profile.getProfile().addHook(new Hook() {
+				public Node onSave() {
+					return new Node(Tag.construct("friends"), userList.printFriends());
+				}
+			});
+			Profile.getProfile().addHook(new Hook() {
+				public Node onSave() {
+					return new Node(Tag.construct("ignored"), userList.printIgnored());
+				}
+			});
+			final Node friendsNode = Profile.getProfile().search("/friends");
+			final String[] friends = friendsNode != null && friendsNode.getData() != null ? friendsNode.getData().split(Pattern.quote(",")) : new String[0];
+			final Node ignoredNode = Profile.getProfile().search("/ignored");
+			final String[] ignored = ignoredNode != null && ignoredNode.getData() != null ? ignoredNode.getData().split(Pattern.quote(",")) : new String[0];
+			userList = new UserContainer(this, friends, ignored);
+			final Application application = Application.getInstance();
+			application.getPopupManager().submit(new PopupBuilder() {
+				public boolean build(final Popup menu, PopupManager popupManager, Component sender, int x, int y) {
+					if (!userList.isEnabled())
+						return false;
+					int index = userList.locationToIndex(new Point(x, y));
+					if (index >= 0) {
+						userList.setSelectedIndex(index);
+						Object sV = userList.getSelectedValue();
+						if (sV instanceof User) {
+							final User u = (User) sV;
+							if (u != null) {
+								JMenuItem fi = menu.createItem(u.isFriend() ? "Unmark friend" : "Mark as friend", new ActionListener() {
+									public void actionPerformed(ActionEvent e) {
+										u.setFriend(!u.isFriend());
 									}
-									
+								});
+								fi.setFont(Fonts.GLOBAL);
+								menu.add(fi);
+								
+								JMenuItem ii = menu.createItem(u.isIgnored() ? "Show messages" : "Ignore messages", new ActionListener() {
+									public void actionPerformed(ActionEvent e) {
+										u.setIgnored(!u.isIgnored());
+									}
+								});
+								ii.setFont(Fonts.GLOBAL);
+								menu.add(ii);
+								
+								if (application.getAdminControl().isAdmin()) {
 									menu.addSeparator();
 									
-									JMenuItem ci = menu.createItem("Cancel", new ActionListener() {
-										public void actionPerformed(ActionEvent e) {
-											menu.setVisible(false);
-										}
-									});
-									ci.setFont(Fonts.GLOBAL);
-									menu.add(ci);
-									return true;
+									JMenu adminMenu = menu.createMenu("Admin");
+									{
+										// TODO: make this dynamic!
+										JMenuItem kI = menu.createItem("Kick", new ActionListener() {
+											public void actionPerformed(ActionEvent e) {
+												u.send(AdminCommand.composeCommand(KickCommand.TAG, KickCommand.ATT_CHANNEL, chatContainer.getSelectedChat().getName()));
+											}
+										});
+										kI.setFont(Fonts.GLOBAL);
+										adminMenu.add(kI);
+										
+										final boolean flashStatus = Utilities.resolveToBoolean(u.getCommandState(FlashCommand.TAG));
+										JMenuItem flI = menu.createItem(flashStatus ? "Disable flashing" : "Enable flashing", new ActionListener() {
+											public void actionPerformed(ActionEvent e) {
+												u.send(AdminCommand.composeCommand(FlashCommand.TAG, FlashCommand.ATT_ENABLE, Utilities.resolveToString(!flashStatus)));
+											}
+										});
+										flI.setFont(Fonts.GLOBAL);
+										adminMenu.add(flI);
+									}
+									adminMenu.setFont(Fonts.GLOBAL);
+									menu.add(adminMenu);
 								}
+								
+								menu.addSeparator();
+								
+								JMenuItem ci = menu.createItem("Cancel", new ActionListener() {
+									public void actionPerformed(ActionEvent e) {
+										menu.setVisible(false);
+									}
+								});
+								ci.setFont(Fonts.GLOBAL);
+								menu.add(ci);
+								return true;
 							}
 						}
-						return false;
 					}
-				}, userList);
-			} else {
-				userList = new UserContainer();
-			}
+					return false;
+				}
+			}, userList);
 		}
 		return userList;
 	}
@@ -488,15 +471,15 @@ public class MainFrame extends JFrame {
 				public void mouseClicked(MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON1 &&
 							e.getClickCount() > 1) {
-						application.showNickWizard();
+						Application.getInstance().showNickWizard();
 					}
 				}
 			});
-			application.getPopupManager().submit(new PopupBuilder() {
+			Application.getInstance().getPopupManager().submit(new PopupBuilder() {
 				public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
 					JMenuItem cdn = menu.createItem("Change nick", new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							application.showNickWizard();
+							Application.getInstance().showNickWizard();
 						}
 					});
 					cdn.setFont(Fonts.GLOBAL);
@@ -506,13 +489,6 @@ public class MainFrame extends JFrame {
 			}, nickLabel);
 		}
 		return nickLabel;
-	}
-	
-	public JLabel getUserIPLabel() {
-		if (userIPLabel == null) {
-			userIPLabel = new JLabel("@ " + (application != null ? (Application.defaultIP + ":" + application.networkPort) : "unknown"));
-		}
-		return userIPLabel;
 	}
 	
 	public JPanel getChatPanel() {
@@ -651,7 +627,7 @@ public class MainFrame extends JFrame {
 			fileTransferButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					if (Debug.NONE.compareTo(Application.DEBUG) < 0) {
-						FileShare ft = application.getFileShare();
+						FileShare ft = Application.getInstance().getFileShare();
 						if (ft != null) {
 							ft.setVisible(true);
 						}
@@ -676,6 +652,7 @@ public class MainFrame extends JFrame {
 			adminButton.setIcon(new ImageIcon(Images.KEY));
 			adminButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
+					final Application application = Application.getInstance();
 					if (application.getAdminControl().isLoginVisible()) {
 						adminButton.setSelected(!adminButton.isSelected());
 						return;

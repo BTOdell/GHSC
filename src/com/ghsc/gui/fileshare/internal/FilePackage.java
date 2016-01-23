@@ -138,7 +138,7 @@ public abstract class FilePackage {
 								uuids.add(d.substring(dI + 1, d.length()));
 							}
 						}
-						return Utilities.contains(Application.getApplication().getID().toString(), uuids.toArray(new String[uuids.size()]));
+						return Utilities.contains(Application.getInstance().getID().toString(), uuids.toArray(new String[uuids.size()]));
 					case PRIVATE:
 						// TODO: Not done yet.
 						break;

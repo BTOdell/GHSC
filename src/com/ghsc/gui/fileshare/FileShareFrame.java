@@ -1,6 +1,7 @@
 package com.ghsc.gui.fileshare;
 
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -33,7 +34,6 @@ import javax.swing.event.PopupMenuListener;
 
 import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
-import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.input.ValidationResult;
 import com.ghsc.gui.components.input.WizardListener;
 import com.ghsc.gui.components.input.WizardValidator;
@@ -56,13 +56,12 @@ public class FileShareFrame extends JDialog {
 	private static final long serialVersionUID = 1L;
 	
 	private FileShare fileShare;
-	private MainFrame mainFrame;
 	public PackageWizard packageWizard = null;
 	private FindPackageDialog findPackageDialog = null;
 	
-	private boolean visibleBuffer = false;
+	private final SnapAdapter snapAdapter;
 	
-	private SnapAdapter snapAdapter = null;
+	private boolean visibleBuffer = false;
 	
 	private JPanel canvas;
 	private JToolBar topBar;
@@ -76,27 +75,39 @@ public class FileShareFrame extends JDialog {
 	/**
 	 * Create the frame.
 	 */
-	public FileShareFrame(final FileShare ft) {
+	public FileShareFrame(final Window owner, final FileShare ft) {
+		super(owner, ModalityType.MODELESS);
 		this.fileShare = ft;
-		this.mainFrame = ft.getApplication().getMainFrame();
-		final WindowAdapter wa = new WindowAdapter() {
-			public void windowGainedFocus(WindowEvent we) {
-				if (!FileShareFrame.this.equals(we.getOppositeWindow())) {
-					FileShareFrame.this.requestFocus(true);
-					FileShareFrame.this.mainFrame.requestFocus();
+		
+		if (owner != null) {
+			
+			final WindowAdapter wa = new WindowAdapter() {
+				public void windowGainedFocus(WindowEvent we) {
+					if (!FileShareFrame.this.equals(we.getOppositeWindow())) {
+						FileShareFrame.this.requestFocus(true);
+						owner.requestFocus();
+					}
 				}
-			}
-			public void windowClosing(WindowEvent e) {
-				setVisible(false, false);
-			}
-		};
-		this.mainFrame.addWindowFocusListener(wa);
-		this.mainFrame.addWindowListener(wa);
-		this.mainFrame.addComponentListener(new ComponentAdapter() {
-			public void componentShown(ComponentEvent arg0) {
-				applyVisible();
-			}
-		});
+				public void windowClosing(WindowEvent e) {
+					setVisible(false, false);
+				}
+			};
+			owner.addWindowFocusListener(wa);
+			owner.addWindowListener(wa);
+			owner.addComponentListener(new ComponentAdapter() {
+				public void componentShown(ComponentEvent arg0) {
+					applyVisible();
+				}
+			});
+			
+			this.snapAdapter = new SnapAdapter(owner, this, new Magnet[][] {
+				SnapAdapter.createMagnets(SnapAdapter.createSides(Side.Type.RIGHT, Side.Type.LEFT, Side.Align.UP, 8), 10)
+			});
+			this.snapAdapter.setEnabled(true);
+			
+		} else {
+			this.snapAdapter = null;
+		}
 		
 		initComponents();
 	}
@@ -118,8 +129,8 @@ public class FileShareFrame extends JDialog {
 		return fileShare;
 	}
 	
-	public MainFrame getMainFrame() {
-		return mainFrame;
+	public SnapAdapter getSnapAdapter() {
+		return this.snapAdapter;
 	}
 	
 	private void initComponents() {
@@ -128,8 +139,6 @@ public class FileShareFrame extends JDialog {
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setSize(300, 450);
 		setMinimumSize(getSize());
-		
-		getSnapAdapter().setEnabled(true);
 		
 		canvas = new JPanel();
 		canvas.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -147,15 +156,6 @@ public class FileShareFrame extends JDialog {
 					.addComponent(getPackageScrollPane(), GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE))
 		);
 		canvas.setLayout(gl_canvas);
-	}
-	
-	public SnapAdapter getSnapAdapter() {
-		if (snapAdapter == null) {
-			snapAdapter = new SnapAdapter(mainFrame, this, new Magnet[][] {
-				SnapAdapter.createMagnets(SnapAdapter.createSides(Side.Type.RIGHT, Side.Type.LEFT, Side.Align.UP, 8), 10)
-			});
-		}
-		return snapAdapter;
 	}
 	
 	public JToolBar getTopBar() {

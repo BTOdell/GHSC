@@ -48,7 +48,7 @@ public class LocalPackage extends FilePackage {
 	
 	@Override
 	public String getOwner() {
-		return Application.getApplication().getPreferredName();
+		return Application.getInstance().getPreferredName();
 	}
 	
 	public LocalFileNode getFile(String relativePath) {

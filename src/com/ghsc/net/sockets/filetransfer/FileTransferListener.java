@@ -45,13 +45,14 @@ public class FileTransferListener implements ISocketController {
 	 * @param application - the main application.
 	 * @throws IOException
 	 */
-	public FileTransferListener(Application application) throws IOException {
+	public FileTransferListener() throws IOException {
+		final Application application = Application.getInstance();
 		this.fileShare = application.getFileShare();
 		//socket = new ServerSocket(0, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
-		socket = new ServerSocket(0, 10, null);
-		selfPort = socket.getLocalPort();
-		listener = new Thread(runnable);
-		listener.setName("FileTransferListener");
+		this.socket = new ServerSocket(0, 10, null);
+		this.selfPort = socket.getLocalPort();
+		this.listener = new Thread(this.runnable);
+		this.listener.setName("FileTransferListener");
 	}
 	
 	/**

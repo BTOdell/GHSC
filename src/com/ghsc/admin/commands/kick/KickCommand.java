@@ -28,7 +28,7 @@ public class KickCommand extends AdminCommand {
 				final String message = me.getAttribute(ATT_MESSAGE);
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						JOptionPane.showMessageDialog(Application.getApplication().getMainFrame(), message, "Command not successful", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(), message, "Command not successful", JOptionPane.ERROR_MESSAGE);
 					}
 				});
 			}
@@ -38,7 +38,7 @@ public class KickCommand extends AdminCommand {
 		} else {
 			final String channel = me.getAttribute(ATT_CHANNEL);
 			if (channel != null) {
-				ChatContainer cc = Application.getApplication().getMainFrame().getChatContainer();
+				ChatContainer cc = Application.getInstance().getMainFrame().getChatContainer();
 				cc.remove(cc.getChat(channel));
 				return null;
 			}

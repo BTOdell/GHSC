@@ -46,6 +46,7 @@ import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
 import com.ghsc.event.EventListener;
 import com.ghsc.gui.Application;
+import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.autocomplete.ObjectToStringConverter;
 import com.ghsc.gui.components.input.WizardListener;
 import com.ghsc.gui.components.users.User;
@@ -67,7 +68,6 @@ public class PackageWizard extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private final FileShareFrame frame;
 	private LocalPackage lPackage = null;
 	private FileShareFileChooser fileChooser = null;
 	private SwingWorker<LocalPackage, Object> packageWorker = null;
@@ -102,14 +102,13 @@ public class PackageWizard extends JDialog {
 	/**
 	 * @wbp.parser.constructor
 	 */
-	public PackageWizard(FileShareFrame frame, WizardListener<LocalPackage> wizardListener) {
+	public PackageWizard(final FileShareFrame frame, final WizardListener<LocalPackage> wizardListener) {
 		this(frame, null, wizardListener);
 	}
 	
-	public PackageWizard(FileShareFrame frame, LocalPackage pack, WizardListener<LocalPackage> wizardListener) {
+	public PackageWizard(final FileShareFrame frame, final LocalPackage pack, final WizardListener<LocalPackage> wizardListener) {
 		super(frame);
 		this.largerFont = Fonts.GLOBAL.deriveFont(Fonts.GLOBAL.getSize() + 1.0F);
-		this.frame = frame;
 		this.lPackage = pack;
 		this.wizardListener = wizardListener;
 		
@@ -391,9 +390,10 @@ public class PackageWizard extends JDialog {
 			visibilityEditButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if (visibilityDialog == null) {
+						final MainFrame mainFrame = Application.getInstance().getMainFrame();
 						switch ((Visibility.Type) visibilityComboBox.getSelectedItem()) {
 							case CHANNEL:
-								visibilityDialog = new VisibilityDialog<String>(PackageWizard.this, Arrays.asList(frame.getMainFrame().getChatContainer().getAllAsStrings()), visibilityChannelData, 
+								visibilityDialog = new VisibilityDialog<String>(PackageWizard.this, Arrays.asList(mainFrame.getChatContainer().getAllAsStrings()), visibilityChannelData, 
 								new EventListener<ArrayList<String>>() {
 									public void eventReceived(ArrayList<String> event) {
 										if (event != null) {
@@ -442,7 +442,7 @@ public class PackageWizard extends JDialog {
 									}
 								};
 								visibilityDialog = new VisibilityDialog<ObjectConverter<Identifiable>>(PackageWizard.this, 
-										ObjectConverter.wrap(converter, new ArrayList<Identifiable>(frame.getMainFrame().getUsers().getUserCollection())), 
+										ObjectConverter.wrap(converter, new ArrayList<Identifiable>(mainFrame.getUsers().getUserCollection())), 
 										ObjectConverter.wrap(converter, visibilityUserData), 
 								new EventListener<ArrayList<ObjectConverter<Identifiable>>>() {
 									public void eventReceived(ArrayList<ObjectConverter<Identifiable>> event) {
@@ -482,7 +482,7 @@ public class PackageWizard extends JDialog {
 									break;
 								final String[] vD = new String[] { s.substring(0, index), s.substring(index + 1, s.length()) };
 								final UUID uuid = UUID.fromString(vD[1]);
-								User user = frame.getMainFrame().getUsers().findUser(uuid);
+								final User user = Application.getInstance().getMainFrame().getUsers().findUser(uuid);
 								if (user != null) {
 									/*
 									 * find some way to get the visibility data to auto-update when users change their name...

@@ -15,8 +15,6 @@ import com.ghsc.gui.Application;
  */
 public class TrayManager {
 	
-	private final Application application;
-	
 	private String tooltip = "GHSC";
 	private TrayIcon icon;
 	private TrayPopup popup;
@@ -30,14 +28,13 @@ public class TrayManager {
 	public TrayManager(String tooltip) {
 		if (!isSupported())
 			throw new UnsupportedOperationException("System tray is unavailable to this platform.");
-		this.application = Application.getApplication();
 		popup = new TrayPopup();
 		icon = new TrayIcon(Images.ICON_16, tooltip == null ? this.tooltip : (this.tooltip = tooltip), popup);
 		icon.setImageAutoSize(true);
 		icon.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() > 1) {
-					application.getMainFrame().setVisible(true);
+					Application.getInstance().getMainFrame().setVisible(true);
 				}
 			}
 		});

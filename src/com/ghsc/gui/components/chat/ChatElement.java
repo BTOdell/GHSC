@@ -139,7 +139,7 @@ public class ChatElement extends JTextPane {
 			}
 		});
 		
-		Application.getApplication().getPopupManager().submit(new PopupBuilder() {
+		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
 			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
 				final String selection = getSelectedText();
 				if (selection != null) {
@@ -177,7 +177,7 @@ public class ChatElement extends JTextPane {
 	
 	protected void refreshSender() {
 		if (me) {
-			sender_name = Application.getApplication().getPreferredName();
+			sender_name = Application.getInstance().getPreferredName();
 		} else if (sender != null) {
 			sender_name = this.sender.getPreferredName();
 		}

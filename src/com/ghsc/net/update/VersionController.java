@@ -20,7 +20,6 @@ public class VersionController {
 	
 	private int DELAY = 10000;
 	
-	private Application application;
 	private ArrayList<Version> versions;
 	private Object versionSync = new Object();
 	
@@ -36,7 +35,7 @@ public class VersionController {
 					if (lastLatest.compareTo(newLatest) > 0) {
 						new Thread(new Runnable() {
 							public void run() {
-								application.getUpdater().updateCheck(false, false);
+								Application.getInstance().getUpdater().updateCheck(false, false);
 							}
 						}).start();
 					}
@@ -51,7 +50,6 @@ public class VersionController {
 	 * Initializes a new VersionController.
 	 */
 	public VersionController() {
-		this.application = Application.getApplication();
 		versions = new ArrayList<Version>();
 	}
 	

@@ -140,7 +140,7 @@ public class PackagePanel extends JPanel {
 			}
 		});
 		
-		Application.getApplication().getPopupManager().submit(new PopupBuilder() {
+		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
 			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
 				if (pack != null && new Rectangle(0, 0, sender.getWidth(), 60).contains(x, y)) {
 					final JMenuItem detailsMenuItem = menu.createItem("Details", new ActionListener() {

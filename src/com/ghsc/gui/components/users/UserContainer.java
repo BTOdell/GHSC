@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,10 +43,11 @@ public class UserContainer extends JList<User> {
 	
 	private MainFrame frame;
 	private DefaultListModel<User> model;
-	private HashMap<IpPort, User> users;
-	private HashMap<IpPort, User> usersPending;
-	private ArrayList<IpPort> knownMulticasters;
-	private ArrayList<UUID> friends, ignored;
+	private HashMap<InetSocketAddress, User> users;
+	private HashMap<InetSocketAddress, User> usersPending;
+	private ArrayList<InetSocketAddress> knownMulticasters;
+	private ArrayList<UUID> friends;
+	private ArrayList<UUID> ignored;
 	
 	/**
 	 * Default constructor. :/
@@ -80,32 +82,30 @@ public class UserContainer extends JList<User> {
 	 */
 	public UserContainer(MainFrame frame, String[] allFriends, String[] allIgnored) {
 		this(frame, new DefaultListModel<User>());
-		if (frame.getApplication() != null) {
-			users = new HashMap<IpPort, User>();
-			usersPending = new HashMap<IpPort, User>();
-			knownMulticasters = new ArrayList<IpPort>();
-			friends = allFriends != null ? new ArrayList<UUID>(allFriends.length) : new ArrayList<UUID>();
-			ignored = allIgnored != null ? new ArrayList<UUID>(allIgnored.length) : new ArrayList<UUID>();
-			
-			for (int n = 0; n < allFriends.length; n++) {
-				final String friendItem = allFriends[n];
-				if (friendItem == null)
-					continue;
-				try {
-					friends.add(UUID.fromString(friendItem));
-				} catch (IllegalArgumentException iae) {}
-			}
-			for (int n = 0; n < allIgnored.length; n++) {
-				final String ignoreItem = allIgnored[n];
-				if (ignoreItem == null)
-					continue;
-				try {
-					ignored.add(UUID.fromString(ignoreItem));
-				} catch (IllegalArgumentException iae) {}
-			}
-			
-			setCellRenderer(new UserCellRenderer());
+		users = new HashMap<>();
+		usersPending = new HashMap<>();
+		knownMulticasters = new ArrayList<>();
+		friends = (allFriends != null) ? new ArrayList<>(allFriends.length) : new ArrayList<>();
+		ignored = (allIgnored != null) ? new ArrayList<>(allIgnored.length) : new ArrayList<>();
+		
+		for (int n = 0; n < allFriends.length; n++) {
+			final String friendItem = allFriends[n];
+			if (friendItem == null)
+				continue;
+			try {
+				friends.add(UUID.fromString(friendItem));
+			} catch (IllegalArgumentException iae) {}
 		}
+		for (int n = 0; n < allIgnored.length; n++) {
+			final String ignoreItem = allIgnored[n];
+			if (ignoreItem == null)
+				continue;
+			try {
+				ignored.add(UUID.fromString(ignoreItem));
+			} catch (IllegalArgumentException iae) {}
+		}
+		
+		setCellRenderer(new UserCellRenderer());
 		setDoubleBuffered(true);
 		setDragEnabled(true);
 		setTransferHandler(new TransferHandler());
@@ -148,28 +148,32 @@ public class UserContainer extends JList<User> {
 		}
 	}
 	
-	public boolean containsUserPending(IpPort pair) {
-		return usersPending.containsKey(pair);
+	public boolean containsUserPending(final InetSocketAddress remoteAddress) {
+		return usersPending.containsKey(remoteAddress);
 	}
-	public User getUserPending(IpPort pair) {
+	
+	public User getUserPending(final InetSocketAddress remoteAddress) {
 		synchronized (users) {
-			return usersPending.get(pair);
+			return usersPending.get(remoteAddress);
 		}
 	}
-	public boolean addUserPending(IpPort pair, User user) {
+	
+	public boolean addUserPending(final InetSocketAddress remoteAddress, final User user) {
 		synchronized (users) {
-			if (usersPending.containsKey(pair)) {
+			if (usersPending.containsKey(remoteAddress)) {
 				return false;
 			}
-			usersPending.put(pair, user);
+			usersPending.put(remoteAddress, user);
 		}
 		return true;
 	}
-	public boolean removeUserPending(IpPort pair) {
+	
+	public boolean removeUserPending(final InetSocketAddress remoteAddress) {
 		synchronized (users) {
-			if (!containsUserPending(pair))
+			if (!containsUserPending(remoteAddress)) {
 				return false;
-			usersPending.remove(pair);
+			}
+			usersPending.remove(remoteAddress);
 			refresh();
 		}
 		return true;
@@ -177,25 +181,21 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Determines whether this UserContainer contains a User with the given IP address.
-	 * 
-	 * @param ip
-	 *            - the ip to check for.
+	 * @param remoteAddress the address of the user to check.
 	 * @return whether this UserContainer contains a User.
 	 */
-	public boolean containsUser(IpPort pair) {
-		return users.containsKey(pair);
+	public boolean containsUser(final InetSocketAddress remoteAddress) {
+		return users.containsKey(remoteAddress);
 	}
 	
 	/**
 	 * Gets a User contained in this UserContainer with the given IP address.
-	 * 
-	 * @param ip
-	 *            - the ip to get the user with.
+	 * @param remoteAddress the address of the user to check.
 	 * @return a User with the given ip.
 	 */
-	public User getUser(IpPort pair) {
+	public User getUser(final InetSocketAddress remoteAddress) {
 		synchronized (users) {
-			return users.get(pair);
+			return users.get(remoteAddress);
 		}
 	}
 	
@@ -203,16 +203,16 @@ public class UserContainer extends JList<User> {
 	 * Creates a User object from the given Socket.</br>
 	 * Automatically refreshes the user list.</br>
 	 * A user will not appear instantly in the list, because the socket has to populate the user's info.
-	 * 
-	 * @param socket
-	 *            - the socket to create the user from.
+	 * @param remoteAddress the address of the user to check.
+	 * @param user
 	 * @return whether a new user was added to the list or <tt>false</tt> if a user already existed with the socket ip.
 	 */
-	public boolean addUser(IpPort pair, User u) {
+	public boolean addUser(final InetSocketAddress remoteAddress, final User user) {
 		synchronized (users) {
-			if (containsUser(pair))
+			if (containsUser(remoteAddress)) {
 				return false;
-			users.put(pair, u);
+			}
+			users.put(remoteAddress, user);
 			refresh();
 		}
 		return true;
@@ -220,16 +220,16 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Removes the given user from this container if the user exists in the container.
-	 * 
-	 * @param user
-	 *            - the user to remove.
+	 * @param remoteAddress the address of the user to check.
 	 * @return whether the user existed and removed, or didn't exist in the container.
 	 */
-	public boolean removeUser(IpPort pair) {
+	public boolean removeUser(final InetSocketAddress remoteAddress) {
 		synchronized (users) {
-			if (!containsUser(pair))
+			final User user = users.remove(remoteAddress);
+			if (user == null) {
 				return false;
-			users.remove(pair).disconnect();
+			}
+			user.disconnect();
 			refresh();
 		}
 		return true;
@@ -237,31 +237,29 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Finds a user with the given id (uuid).
-	 * 
-	 * @param id
-	 *            the user id.
+	 * @param id the user id.
 	 * @return a user with the given id.
 	 */
-	public User findUser(String id) {
+	public User findUser(final String id) {
 		return findUser(UUID.fromString(id));
 	}
 	
 	/**
 	 * Finds a user with the given id (uuid).
-	 * 
-	 * @param id
-	 *            the user id.
+	 * @param id the user id.
 	 * @return a user with the given id.
 	 */
-	public User findUser(UUID id) {
-		if (id == null)
-			return null;
-		synchronized (users) {
-			for (User u : users.values()) {
-				if (u == null)
-					continue;
-				if (id.equals(u.getID()))
-					return u;
+	public User findUser(final UUID id) {
+		if (id != null) {
+			synchronized (users) {
+				for (User u : users.values()) {
+					if (u == null) {
+						continue;
+					}
+					if (id.equals(u.getID())) {
+						return u;
+					}
+				}
 			}
 		}
 		return null;
@@ -269,11 +267,8 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Sends the given data to all users in the given channel.
-	 * 
-	 * @param data
-	 *            - the data to send to the users.
-	 * @param channel
-	 *            - the channel to test.
+	 * @param data the data to send to the users.
+	 * @param channel the channel to test.
 	 */
 	public void send(Tag tag, final String channel) {
 		send(tag, new Filter<User>() {
@@ -392,44 +387,38 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Checks if the given ip is contained in the pending list.
-	 * 
-	 * @param ip
-	 *            - the ip to check if pending.
+	 * @param ip the ip to check if pending.
 	 * @return whether the pending list contains the given ip.
 	 */
-	public boolean isMulticaster(IpPort pair) {
+	public boolean isMulticaster(final InetSocketAddress address) {
 		synchronized (users) {
-			return knownMulticasters.contains(pair);
+			return knownMulticasters.contains(address);
 		}
 	}
 	
 	/**
 	 * Notifies this UserContainer that a connection with the given IP address is taking place.</br>
 	 * {@link #removePending(String)} should be called after the connection was successful.
-	 * 
-	 * @param ip
-	 *            - the ip of the user that's in the process of being connected too.
+	 * @param ip the ip of the user that's in the process of being connected too.
 	 * @return <tt>true</tt> if the ip wasn't already pending and was added, otherwise <tt>false</tt>.
 	 */
-	public boolean addMulticaster(final IpPort pair) {
+	public boolean addMulticaster(final InetSocketAddress address) {
 		synchronized (users) {
-			if (containsUser(pair) || isMulticaster(pair)) {
+			if (containsUser(address) || isMulticaster(address)) {
 				return false;
 			}
-			return knownMulticasters.add(pair);
+			return knownMulticasters.add(address);
 		}
 	}
 	
 	/**
 	 * Removes the given ip from the pending list.</br>
-	 * 
-	 * @param ip
-	 *            - the ip to remove.
+	 * @param ip the ip to remove.
 	 * @return whether the list contained the given ip and was removed successfully.
 	 */
-	public boolean removeMulticaster(IpPort pair) {
+	public boolean removeMulticaster(final InetSocketAddress address) {
 		synchronized (users) {
-			return knownMulticasters.remove(pair);
+			return knownMulticasters.remove(address);
 		}
 	}
 	
@@ -537,7 +526,7 @@ public class UserContainer extends JList<User> {
 				label.setPreferredSize(null);
 				label.setHorizontalAlignment(JLabel.LEADING);
 				label.setFont(userFont);
-				label.setToolTipText(Application.getApplication().getAdminControl().isAdmin() ? user.getTooltip() : null);
+				label.setToolTipText(Application.getInstance().getAdminControl().isAdmin() ? user.getTooltip() : null);
 				label.setBackground(selected ? Colors.CELLRENDER_BACKGROUND : null);
 				label.setText(o.toString());
 				return label;

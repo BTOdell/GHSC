@@ -14,6 +14,7 @@ import javax.swing.event.ChangeListener;
 import com.ghsc.common.Fonts;
 import com.ghsc.event.message.MessageEvent;
 import com.ghsc.event.message.MessageEvent.Type;
+import com.ghsc.gui.Application;
 import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.chat.channels.Channel;
 import com.ghsc.gui.components.popup.Popup;
@@ -52,46 +53,44 @@ public class ChatContainer extends JTabbedPane {
 	 */
 	public ChatContainer(MainFrame frame) {
 		this();
-		if (frame.getApplication() != null) {
-			this.frame = frame;
-			addChangeListener(new ChangeListener() {
-				public void stateChanged(ChangeEvent arg0) {
-					UserContainer users = ChatContainer.this.frame.getUsers();
-					if (users != null) {
-						if (lastChat != null)
-							lastChat.setSelection(null);
-						lastChat = getSelectedChat();
-						users.refresh();
-					}
+		this.frame = frame;
+		addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				UserContainer users = ChatContainer.this.frame.getUsers();
+				if (users != null) {
+					if (lastChat != null)
+						lastChat.setSelection(null);
+					lastChat = getSelectedChat();
+					users.refresh();
 				}
-			});
-			frame.getApplication().getPopupManager().submit(new PopupBuilder() {
-				public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-					int tabIndex = indexAtLocation(x, y);
-					if (tabIndex >= 0) {
-						JMenuItem mi = menu.createItem("Leave", new ActionListener() {
-							public void actionPerformed(ActionEvent ae) {
-								remove(getSelectedChat());
+			}
+		});
+		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
+			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
+				int tabIndex = indexAtLocation(x, y);
+				if (tabIndex >= 0) {
+					JMenuItem mi = menu.createItem("Leave", new ActionListener() {
+						public void actionPerformed(ActionEvent ae) {
+							remove(getSelectedChat());
+						}
+					});
+					mi.setFont(Fonts.GLOBAL);
+					menu.add(mi);
+					JMenuItem ci = menu.createItem("Clear", new ActionListener() {
+						public void actionPerformed(ActionEvent ae) {
+							Chat chat = getSelectedChat();
+							if (chat != null) {
+								chat.getElements().clear();
 							}
-						});
-						mi.setFont(Fonts.GLOBAL);
-						menu.add(mi);
-						JMenuItem ci = menu.createItem("Clear", new ActionListener() {
-							public void actionPerformed(ActionEvent ae) {
-								Chat chat = getSelectedChat();
-								if (chat != null) {
-									chat.getElements().clear();
-								}
-							}
-						});
-						ci.setFont(Fonts.GLOBAL);
-						menu.add(ci);
-						return true;
-					}
-					return false;
+						}
+					});
+					ci.setFont(Fonts.GLOBAL);
+					menu.add(ci);
+					return true;
 				}
-			}, this);
-		}
+				return false;
+			}
+		}, this);
 	}
 	
 	/**

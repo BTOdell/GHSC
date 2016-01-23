@@ -25,11 +25,6 @@ public class MessageEvent extends Tag {
 		
 		// user sockets
 		/**
-		 * e u="..."
-		 * endpoint userport="..."
-		 */
-		ENDPOINT ("e"),
-		/**
 		 * i h="..." n="..."
 		 * identify hostname="..." nick="..."
 		 */
@@ -114,9 +109,11 @@ public class MessageEvent extends Tag {
 		final MessageEvent event = new MessageEvent(data).parse();
 		if (event != null) {
 			final Type t = Type.from(event.getName());
-			if (t != null)
+			if (t != null) {
 				event.type = t;
-			else return null;
+			} else {
+				return null;
+			}
 		}
 		return event;
 	}

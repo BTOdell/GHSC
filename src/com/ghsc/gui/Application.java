@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -46,13 +45,17 @@ import com.ghsc.util.Tag;
  */
 public class Application implements ComplexIdentifiable {
 	
-	private static Application applicationInstance = null;
+	private static Application INSTANCE = null;
 	
-	public static Application getApplication() {
-		if (applicationInstance == null) {
-			applicationInstance = new Application();
-		}
-		return applicationInstance;
+	static {
+		INSTANCE = new Application();
+	}
+	
+	/**
+	 * Gets the application instance. Cannot return null.
+	 */
+	public static Application getInstance() {
+		return INSTANCE;
 	}
 	
 	public static Debug DEBUG = Debug.MINOR;
@@ -75,8 +78,6 @@ public class Application implements ComplexIdentifiable {
 	
 	// Networking
 	private SocketManager socketManager = null;
-	public static String defaultIP;
-	public int networkPort = 0;
 	public static NicManager NETWORK = new NicManager();
 	
 	// Events
@@ -85,6 +86,8 @@ public class Application implements ComplexIdentifiable {
 	
 	private String hostname = null, nick = null;
 	private UUID userID = null;
+	
+	private Application() {}
 	
 	@Override
 	public String getHostname() {
@@ -107,8 +110,9 @@ public class Application implements ComplexIdentifiable {
 	@Override
 	public void setNick(String nick) {
 		this.nick = nick;
-		if (this.hostname == null)
+		if (this.hostname == null) {
 			this.hostname = nick;
+		}
 		nickEventProvider.fireEvent(nick);
 	}
 	
@@ -300,28 +304,17 @@ public class Application implements ComplexIdentifiable {
 			}
 		}));
 		
-		// This code chooses a default interface to use for instance checking.
-		Set<String> interfaceNames = NETWORK.getInterfaces();
-		for (String name : interfaceNames) {
-			String ip = NETWORK.getIp(name);
-			if (ip != null) {
-				defaultIP = new String(ip);
-				if (ip.startsWith("eth")) {
-					break;
-				}
-			}
-		}
-		socketManager = new SocketManager(defaultIP);
+		this.socketManager = new SocketManager();
 		
 		boolean duplicateInstance = false;
-		if (!socketManager.instanceCheck()) {
+		if (!this.socketManager.instanceCheck()) {
 			duplicateInstance = true;
 			if (JOptionPane.showConfirmDialog(frame, PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
 				System.exit(0);
 			}
 		}
 		try {
-			networkPort = socketManager.initControllers();
+			this.socketManager.initControllers();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			JOptionPane.showMessageDialog(frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);

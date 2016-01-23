@@ -5,60 +5,43 @@ import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
-import com.ghsc.gui.Application;
 import com.ghsc.net.sockets.filetransfer.FileTransferListener;
 import com.ghsc.net.sockets.multicast.MulticastSocketController;
 import com.ghsc.net.sockets.user.UserSocketListener;
 
 /**
  * SocketManager is the socket managing class for GHSC.</br>
- * @author Odell
  */
 public class SocketManager implements ISocketController {
 	
-	private Application application;
+	public static final int INSTANCE_CHECK_PORT = 5690;
+	
 	private ArrayList<ISocketController> controllers = null;
 	private ServerSocket instanceChecker = null;
-	private final String networkIP;
 	
 	/**
 	 * Initializes a new SocketManager.
-	 * @param application - the main application.
-	 * @throws IOException
 	 */
-	public SocketManager(String networkIP) {
-		this.application = Application.getApplication();
-		this.networkIP = networkIP;
-	}
+	public SocketManager() {}
 	
-	/**
-	 * Initializes all the socket controllers that are being managed by this SocketManager.
-	 * returns the User Port.
-	 * @throws IOException
-	 */
-	private int userPort = 0;
-	
-	public int initControllers() throws IOException {
+	public void initControllers() throws IOException {
 		if (controllers == null) {
-			controllers = new ArrayList<ISocketController>();
+			controllers = new ArrayList<>();
 			
-			FileTransferListener fileListener = new FileTransferListener(application);
-			int filePort = fileListener.getPort();
+			FileTransferListener fileListener = new FileTransferListener();
 			controllers.add(fileListener);
 			
-			UserSocketListener userListener = new UserSocketListener(application, filePort);
-			userPort = userListener.getPort();
+			UserSocketListener userListener = new UserSocketListener();
 			controllers.add(userListener);
 			
-			controllers.add(new MulticastSocketController(application, userPort));
+			controllers.add(new MulticastSocketController(userListener.getPort()));
 		}
-		return userPort;
 	}
 	
 	public boolean instanceCheck() {
 		if (instanceChecker == null) {
 			try {
-				instanceChecker = new ServerSocket(5690, 10, Inet4Address.getByName(networkIP));
+				instanceChecker = new ServerSocket(INSTANCE_CHECK_PORT, 10, Inet4Address.getLoopbackAddress());
 			} catch (IOException e) {
 				return false;
 			}

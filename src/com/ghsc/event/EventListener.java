@@ -1,8 +1,7 @@
 package com.ghsc.event;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * 
  */
 public interface EventListener<E> {
 	/**

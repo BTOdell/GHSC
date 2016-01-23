@@ -35,8 +35,7 @@ public class AES {
 			c.init(mode, new SecretKeySpec(key, KEY_TYPE), new IvParameterSpec(IV));
 			return c;
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -52,8 +51,7 @@ public class AES {
 		try {
 			return e.doFinal(data, offset, length);
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -65,8 +63,7 @@ public class AES {
 		try {
 			return d.doFinal(encrypted, offset, length);
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			throw new RuntimeException(e);
 		}
 	}
 	

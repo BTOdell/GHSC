@@ -6,7 +6,6 @@ import com.ghsc.gui.Application;
 
 /**
  * Boots up the application.
- * @author Odell
  */
 public class Boot {
 
@@ -15,6 +14,7 @@ public class Boot {
 	 * @param args - any parameters to pass?
 	 */
 	public static void main(String[] args) {
+		final Application application = Application.getInstance();
 		System.out.println("Starting up...");
 		try {
 			System.setSecurityManager(null);
@@ -23,7 +23,7 @@ public class Boot {
 		Settings settings = Settings.getSettings();
 		System.out.println("GHSC folder: " + settings.getStorageDirectory());
 		try {
-			Application.getApplication().initialize();
+			application.initialize();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
