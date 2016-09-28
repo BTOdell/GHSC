@@ -3,18 +3,20 @@ package com.ghsc.event.global;
 import com.ghsc.event.EventProvider;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * 
  */
 public interface EventProviderListener {
+	
 	/**
 	 * Occurs when an event provider is added to the EventManager.
-	 * @param provider the provider added.
+	 * @param context the provider context added.
 	 */
-	void providerAdded(EventProvider<?>.Context context);
+	void providerAdded(final EventProvider<?>.Context context);
+	
 	/**
 	 * Occurs when an event provider is removed from the EventManager.
-	 * @param provider the provider removed.
+	 * @param context the provider context removed.
 	 */
-	void providerRemoved(EventProvider<?>.Context context);
+	void providerRemoved(final EventProvider<?>.Context context);
+	
 }

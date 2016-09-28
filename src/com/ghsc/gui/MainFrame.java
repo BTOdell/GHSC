@@ -87,34 +87,36 @@ public class MainFrame extends JFrame {
 	 * Event variables
 	 */
 	private final EventProviderListener eventProviderListener = new EventProviderListener() {
-		public void providerAdded(EventProvider<?>.Context context) {
+		public void providerAdded(EventProvider.Context context) {
 			String cName = context.getName();
 			if (cName != null) {
 				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
+					//noinspection unchecked
 					context.subscribe(nickListener);
 				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
+					//noinspection unchecked
 					context.subscribe(sendMessageListener);
 				}
 			}
 		}
-		public void providerRemoved(EventProvider<?>.Context context) {
+		public void providerRemoved(EventProvider.Context context) {
 			String cName = context.getName();
 			if (cName != null) {
 				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
+					//noinspection unchecked
 					context.unsubscribe(nickListener);
 				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
+					//noinspection unchecked
 					context.unsubscribe(sendMessageListener);
 				}
 			}
 		}
 	};
-	private final EventListener<String> nickListener = new EventListener<String>() {
-		public void eventReceived(String nick) {
-			final Application application = Application.getInstance();
-			setNick(nick);
-			getUsers().send(MessageEvent.construct(MessageEvent.Type.IDENTIFY, User.ATT_HOSTNAME, application.getHostname(), User.ATT_NICK, application.getPreferredName()), User.ALL);
-		}
-	};
+	private final EventListener<String> nickListener = (final String nick) -> {
+        final Application application = Application.getInstance();
+        setNick(nick);
+        getUsers().send(MessageEvent.construct(MessageEvent.Type.IDENTIFY, User.ATT_HOSTNAME, application.getHostname(), User.ATT_NICK, application.getPreferredName()), User.ALL);
+    };
 	private final EventListener<String> sendMessageListener = new EventListener<String>() {
 		public void eventReceived(String text) {
 			Chat chat = chatContainer.getSelectedChat();
@@ -147,12 +149,11 @@ public class MainFrame extends JFrame {
 								case 3:
 									SpamBan sb3 = spamControl.getChannelBan(currChat);
 									if (sb3 != null) {
-										StringBuilder build3 = new StringBuilder();
-										build3.append("You are still banned. Try again in ");
-										build3.append((long)(((double) sb3.remaining()) / 1000.0D));
-										build3.append(" seconds!");
+										String build3 = "You are still banned. Try again in " +
+												(long) (((double) sb3.remaining()) / 1000.0D) +
+												" seconds!";
 										//JOptionPane.showMessageDialog(MainFrame.this, build3.toString(), "You are banned!", JOptionPane.ERROR_MESSAGE);	
-										chan.addElement(new ChannelElement(chan.getElements(), TimeStamp.newInstance(), chan.getName(), "Haha!", build3.toString(), Colors.MESSAGE_RED), true);
+										chan.addElement(new ChannelElement(chan.getElements(), TimeStamp.newInstance(), chan.getName(), "Haha!", build3, Colors.MESSAGE_RED), true);
 										return;
 									}
 									break;

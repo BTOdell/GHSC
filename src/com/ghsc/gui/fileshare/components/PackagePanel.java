@@ -66,25 +66,23 @@ public class PackagePanel extends JPanel {
 	/*
 	 * Event variables
 	 */
+	private final EventListener<String> usernameListener = (final String username) -> sync();
 	private final EventProviderListener eventProviderListener = new EventProviderListener() {
-		public void providerAdded(EventProvider<?>.Context context) {
+		public void providerAdded(EventProvider.Context context) {
 			String cName = context.getName();
 			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
 				if (pack != null && pack instanceof LocalPackage) {
+					//noinspection unchecked
 					context.subscribe(usernameListener);
 				}
 			}
 		}
-		public void providerRemoved(EventProvider<?>.Context context) {
+		public void providerRemoved(EventProvider.Context context) {
 			String cName = context.getName();
 			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
+				//noinspection unchecked
 				context.unsubscribe(usernameListener);
 			}
-		}
-	};
-	private final EventListener<String> usernameListener = new EventListener<String>() {
-		public void eventReceived(String username) {
-			sync();
 		}
 	};
 	

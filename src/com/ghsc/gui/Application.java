@@ -82,7 +82,7 @@ public class Application implements ComplexIdentifiable {
 	
 	// Events
 	public static final String NICK_EVENTPROVIDER = "nick";
-	private final EventProvider<String> nickEventProvider = new EventProvider<String>(NICK_EVENTPROVIDER);
+	private final EventProvider<String> nickEventProvider = new EventProvider<>(NICK_EVENTPROVIDER);
 	
 	private String hostname = null, nick = null;
 	private UUID userID = null;

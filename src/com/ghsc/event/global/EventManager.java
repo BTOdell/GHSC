@@ -7,8 +7,9 @@ import com.ghsc.event.EventProvider;
 
 /**
  * A utility to allow separate sectors of the application message each other through a publish-subscribe event system.<br>
- * Warning: A provider listener may receive more than one {@link EventProviderListener#providerAdded(com.ghsc.event.global.EventProvider.Context)} events if a listener and a provider are added at the same time.
- * @author Odell
+ * 
+ * Warning: A provider listener may receive more than one {@link EventProviderListener#providerAdded(EventProvider.Context)}
+ * events if a listener and a provider are added at the same time.
  */
 public class EventManager {
 	
@@ -25,8 +26,8 @@ public class EventManager {
 	private final CopyOnWriteArraySet<EventProvider<?>> providers;
 	
 	private EventManager() {
-		providerListeners = new CopyOnWriteArraySet<EventProviderListener>();
-		providers = new CopyOnWriteArraySet<EventProvider<?>>();
+		providerListeners = new CopyOnWriteArraySet<>();
+		providers = new CopyOnWriteArraySet<>();
 	}
 	
 	/**
@@ -36,14 +37,16 @@ public class EventManager {
 	 * @return whether this listener was added to the set of listeners.
 	 */
 	public boolean addListener(final EventProviderListener epl) {
-		if (epl == null)
+		if (epl == null) {
 			return false;
+		}
 		final Iterator<EventProvider<?>> it = providers.iterator();
 		if (providerListeners.add(epl)) {
 			while (it.hasNext()) {
 				final EventProvider<?> p = it.next();
-				if (p == null)
+				if (p == null) {
 					continue;
+				}
 				epl.providerAdded(p.getContext());
 			}
 			return true;
@@ -52,9 +55,7 @@ public class EventManager {
 	}
 	
 	public boolean removeListener(final EventProviderListener epl) {
-		if (epl == null)
-			return false;
-		return providerListeners.remove(epl);
+		return epl != null && providerListeners.remove(epl);
 	}
 	
 	public boolean add(final EventProvider<?> ep) {
@@ -64,8 +65,9 @@ public class EventManager {
 		if (providers.add(ep)) {
 			while (it.hasNext()) {
 				final EventProviderListener l = it.next();
-				if (l == null)
+				if (l == null) {
 					continue;
+				}
 				l.providerAdded(ep.getContext());
 			}
 			return true;
@@ -74,14 +76,14 @@ public class EventManager {
 	}
 	
 	public boolean remove(final EventProvider<?> ep) {
-		if (ep == null)
+		if (ep == null) {
 			return false;
+		}
 		if (providers.remove(ep)) {
-			final Iterator<EventProviderListener> it = providerListeners.iterator();
-			while (it.hasNext()) {
-				final EventProviderListener l = it.next();
-				if (l == null)
+			for (final EventProviderListener l : providerListeners) {
+				if (l == null) {
 					continue;
+				}
 				l.providerRemoved(ep.getContext());
 			}
 			return true;
