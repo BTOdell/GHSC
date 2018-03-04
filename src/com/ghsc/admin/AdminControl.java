@@ -37,7 +37,7 @@ public class AdminControl {
 		this.frame = application.getMainFrame();
 		this.commands = new AdminCommands(this);
 		
-		this.hash = retrieveHash();
+		//this.hash = retrieveHash();
 	}
 	
 	public boolean isAdmin() {

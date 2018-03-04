@@ -1,6 +1,5 @@
 package com.ghsc.gui;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
@@ -12,24 +11,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.regex.Pattern;
 
-import javax.swing.Box;
-import javax.swing.GroupLayout;
+import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import com.ghsc.admin.commands.AdminCommand;
@@ -40,11 +24,7 @@ import com.ghsc.common.Debug;
 import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
 import com.ghsc.event.EventListener;
-import com.ghsc.event.EventProvider;
-import com.ghsc.event.global.EventManager;
-import com.ghsc.event.global.EventProviderListener;
 import com.ghsc.event.message.MessageEvent;
-import com.ghsc.files.FileStorage.Hook;
 import com.ghsc.files.FileStorage.Node;
 import com.ghsc.files.Profile;
 import com.ghsc.gui.components.antispam.SpamControl;
@@ -56,11 +36,6 @@ import com.ghsc.gui.components.chat.channels.ChannelElement;
 import com.ghsc.gui.components.chat.input.ChatInput;
 import com.ghsc.gui.components.input.InputWizard;
 import com.ghsc.gui.components.input.ValidationResult;
-import com.ghsc.gui.components.input.WizardListener;
-import com.ghsc.gui.components.input.WizardValidator;
-import com.ghsc.gui.components.popup.Popup;
-import com.ghsc.gui.components.popup.PopupBuilder;
-import com.ghsc.gui.components.popup.PopupManager;
 import com.ghsc.gui.components.status.StatusLabel;
 import com.ghsc.gui.components.users.User;
 import com.ghsc.gui.components.users.UserContainer;
@@ -71,8 +46,7 @@ import com.ghsc.util.TimeStamp;
 import com.ghsc.util.Utilities;
 
 /**
- * The main GUI interface for GHSC.
- * @author Odell
+ * The main GUI interface.
  */
 public class MainFrame extends JFrame {
 	
@@ -86,49 +60,23 @@ public class MainFrame extends JFrame {
 	/*
 	 * Event variables
 	 */
-	private final EventProviderListener eventProviderListener = new EventProviderListener() {
-		public void providerAdded(EventProvider.Context context) {
-			String cName = context.getName();
-			if (cName != null) {
-				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
-					//noinspection unchecked
-					context.subscribe(nickListener);
-				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
-					//noinspection unchecked
-					context.subscribe(sendMessageListener);
-				}
-			}
-		}
-		public void providerRemoved(EventProvider.Context context) {
-			String cName = context.getName();
-			if (cName != null) {
-				if (cName.equals(Application.NICK_EVENTPROVIDER)) {
-					//noinspection unchecked
-					context.unsubscribe(nickListener);
-				} else if (cName.equals(ChatInput.SENDMESSAGE_EVENTPROVIDER)) {
-					//noinspection unchecked
-					context.unsubscribe(sendMessageListener);
-				}
-			}
-		}
-	};
 	private final EventListener<String> nickListener = (final String nick) -> {
         final Application application = Application.getInstance();
         setNick(nick);
         getUsers().send(MessageEvent.construct(MessageEvent.Type.IDENTIFY, User.ATT_HOSTNAME, application.getHostname(), User.ATT_NICK, application.getPreferredName()), User.ALL);
     };
 	private final EventListener<String> sendMessageListener = new EventListener<String>() {
-		public void eventReceived(String text) {
-			Chat chat = chatContainer.getSelectedChat();
+		public void eventReceived(final String text) {
+			final Chat chat = chatContainer.getSelectedChat();
 			if (chat != null) {
-				text = text.trim();
+				final String trimmedText = text.trim();
 				chatTextInput.setText("");
-				if (!text.isEmpty()) {
+				if (!trimmedText.isEmpty()) {
 					String currChat = chat.getName();
 					if (chat instanceof Channel) {
 						Channel chan = (Channel) chat;
 						if (!Application.getInstance().getAdminControl().isAdmin() && chan.getUserCount() > 0) {
-							switch (spamControl.filter(text, currChat)) {
+							switch (spamControl.filter(trimmedText, currChat)) {
 								case 1:
 									//JOptionPane.showMessageDialog(MainFrame.this, "GHSC has detected you spamming " + currChannel + ".\nIf you continue, you will be temporarily banned from the channel.", "Spam warning!", JOptionPane.WARNING_MESSAGE);
 									chan.addElement(new ChannelElement(chan.getElements(), TimeStamp.newInstance(), chan.getName(), "Please stop spamming or I'll have to ban you!", null, Colors.MESSAGE_ORANGE), true);
@@ -159,8 +107,8 @@ public class MainFrame extends JFrame {
 									break;
 							}
 						}
-						MainFrame.this.getUsers().send(MessageEvent.construct(MessageEvent.Type.MESSAGE, User.ATT_CHANNEL, currChat, text), currChat);	
-						chan.addElement(new ChannelElement(chan.getElements(), TimeStamp.newInstance(), null, text), true);
+						MainFrame.this.getUsers().send(MessageEvent.construct(MessageEvent.Type.MESSAGE, User.ATT_CHANNEL, currChat, trimmedText), currChat);
+						chan.addElement(new ChannelElement(chan.getElements(), TimeStamp.newInstance(), null, trimmedText), true);
 					} else {
 						// TODO: not a Channel, handle PMs?
 					}
@@ -192,16 +140,12 @@ public class MainFrame extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainFrame() {
-		
-		EventManager.getEventManager().addListener(eventProviderListener);
+	public MainFrame(final Application application) {
+
+	    application.getNickEventProvider().subscribe(this.nickListener);
 		
 		this.spamControl = new SpamControl();
-		Profile.getProfile().addHook(new Hook() {
-			public Node onSave() {
-				return new Node(Tag.construct("bannedchannels"), spamControl.printBanned());
-			}
-		});
+		Profile.getProfile().addHook(() -> new Node(Tag.construct("bannedchannels"), this.spamControl.printBanned()));
 		Node bannedChannelsNode = Profile.getProfile().search("/bannedchannels");
 		if (bannedChannelsNode != null) {
 			String bannedChannelString = bannedChannelsNode.getData();
@@ -279,7 +223,7 @@ public class MainFrame extends JFrame {
 		setMinimumSize(new Dimension(700, 450));
 		setTitle("GHSC");
 		setIconImage(Images.ICON_32);
-		setDefaultCloseOperation(TrayManager.isSupported() ? JFrame.DO_NOTHING_ON_CLOSE : JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(TrayManager.isSupported() ? WindowConstants.DO_NOTHING_ON_CLOSE : WindowConstants.EXIT_ON_CLOSE);
 		setSize(700, 450);
 		setLocationRelativeTo(null);
 		
@@ -365,92 +309,68 @@ public class MainFrame extends JFrame {
 	
 	public UserContainer getUsers() {
 		if (userList == null) {
-			Profile.getProfile().addHook(new Hook() {
-				public Node onSave() {
-					return new Node(Tag.construct("friends"), userList.printFriends());
-				}
-			});
-			Profile.getProfile().addHook(new Hook() {
-				public Node onSave() {
-					return new Node(Tag.construct("ignored"), userList.printIgnored());
-				}
-			});
+			Profile.getProfile().addHook(() -> new Node(Tag.construct("friends"), userList.printFriends()));
+			Profile.getProfile().addHook(() -> new Node(Tag.construct("ignored"), userList.printIgnored()));
 			final Node friendsNode = Profile.getProfile().search("/friends");
 			final String[] friends = friendsNode != null && friendsNode.getData() != null ? friendsNode.getData().split(Pattern.quote(",")) : new String[0];
 			final Node ignoredNode = Profile.getProfile().search("/ignored");
 			final String[] ignored = ignoredNode != null && ignoredNode.getData() != null ? ignoredNode.getData().split(Pattern.quote(",")) : new String[0];
 			userList = new UserContainer(this, friends, ignored);
 			final Application application = Application.getInstance();
-			application.getPopupManager().submit(new PopupBuilder() {
-				public boolean build(final Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-					if (!userList.isEnabled())
-						return false;
-					int index = userList.locationToIndex(new Point(x, y));
-					if (index >= 0) {
-						userList.setSelectedIndex(index);
-						Object sV = userList.getSelectedValue();
-						if (sV instanceof User) {
-							final User u = (User) sV;
-							if (u != null) {
-								JMenuItem fi = menu.createItem(u.isFriend() ? "Unmark friend" : "Mark as friend", new ActionListener() {
-									public void actionPerformed(ActionEvent e) {
-										u.setFriend(!u.isFriend());
-									}
-								});
-								fi.setFont(Fonts.GLOBAL);
-								menu.add(fi);
-								
-								JMenuItem ii = menu.createItem(u.isIgnored() ? "Show messages" : "Ignore messages", new ActionListener() {
-									public void actionPerformed(ActionEvent e) {
-										u.setIgnored(!u.isIgnored());
-									}
-								});
-								ii.setFont(Fonts.GLOBAL);
-								menu.add(ii);
-								
-								if (application.getAdminControl().isAdmin()) {
-									menu.addSeparator();
-									
-									JMenu adminMenu = menu.createMenu("Admin");
-									{
-										// TODO: make this dynamic!
-										JMenuItem kI = menu.createItem("Kick", new ActionListener() {
-											public void actionPerformed(ActionEvent e) {
-												u.send(AdminCommand.composeCommand(KickCommand.TAG, KickCommand.ATT_CHANNEL, chatContainer.getSelectedChat().getName()));
-											}
-										});
-										kI.setFont(Fonts.GLOBAL);
-										adminMenu.add(kI);
-										
-										final boolean flashStatus = Utilities.resolveToBoolean(u.getCommandState(FlashCommand.TAG));
-										JMenuItem flI = menu.createItem(flashStatus ? "Disable flashing" : "Enable flashing", new ActionListener() {
-											public void actionPerformed(ActionEvent e) {
-												u.send(AdminCommand.composeCommand(FlashCommand.TAG, FlashCommand.ATT_ENABLE, Utilities.resolveToString(!flashStatus)));
-											}
-										});
-										flI.setFont(Fonts.GLOBAL);
-										adminMenu.add(flI);
-									}
-									adminMenu.setFont(Fonts.GLOBAL);
-									menu.add(adminMenu);
-								}
-								
-								menu.addSeparator();
-								
-								JMenuItem ci = menu.createItem("Cancel", new ActionListener() {
-									public void actionPerformed(ActionEvent e) {
-										menu.setVisible(false);
-									}
-								});
-								ci.setFont(Fonts.GLOBAL);
-								menu.add(ci);
-								return true;
-							}
-						}
-					}
-					return false;
-				}
-			}, userList);
+			application.getPopupManager().submit((menu, popupManager, sender, x, y) -> {
+                if (!userList.isEnabled()) {
+                    return false;
+                }
+                int index = userList.locationToIndex(new Point(x, y));
+                if (index >= 0) {
+                    userList.setSelectedIndex(index);
+                    final User u = userList.getSelectedValue();
+                    if (u != null) {
+                        JMenuItem fi = menu.createItem(u.isFriend() ? "Unmark friend" : "Mark as friend", e -> u.setFriend(!u.isFriend()));
+                        fi.setFont(Fonts.GLOBAL);
+                        menu.add(fi);
+
+                        JMenuItem ii = menu.createItem(u.isIgnored() ? "Show messages" : "Ignore messages", e -> u.setIgnored(!u.isIgnored()));
+                        ii.setFont(Fonts.GLOBAL);
+                        menu.add(ii);
+
+                        if (application.getAdminControl().isAdmin()) {
+                            menu.addSeparator();
+
+                            JMenu adminMenu = menu.createMenu("Admin");
+                            {
+                                // TODO: make this dynamic!
+                                JMenuItem kI = menu.createItem("Kick", new ActionListener() {
+                                    public void actionPerformed(ActionEvent e) {
+                                        u.send(AdminCommand.composeCommand(KickCommand.TAG, KickCommand.ATT_CHANNEL, chatContainer.getSelectedChat().getName()));
+                                    }
+                                });
+                                kI.setFont(Fonts.GLOBAL);
+                                adminMenu.add(kI);
+
+                                final boolean flashStatus = Utilities.resolveToBoolean(u.getCommandState(FlashCommand.TAG));
+                                JMenuItem flI = menu.createItem(flashStatus ? "Disable flashing" : "Enable flashing", new ActionListener() {
+                                    public void actionPerformed(ActionEvent e) {
+                                        u.send(AdminCommand.composeCommand(FlashCommand.TAG, FlashCommand.ATT_ENABLE, Utilities.resolveToString(!flashStatus)));
+                                    }
+                                });
+                                flI.setFont(Fonts.GLOBAL);
+                                adminMenu.add(flI);
+                            }
+                            adminMenu.setFont(Fonts.GLOBAL);
+                            menu.add(adminMenu);
+                        }
+
+                        menu.addSeparator();
+
+                        JMenuItem ci = menu.createItem("Cancel", e -> menu.setVisible(false));
+                        ci.setFont(Fonts.GLOBAL);
+                        menu.add(ci);
+                        return true;
+                    }
+                }
+                return false;
+            }, userList);
 		}
 		return userList;
 	}
@@ -476,18 +396,12 @@ public class MainFrame extends JFrame {
 					}
 				}
 			});
-			Application.getInstance().getPopupManager().submit(new PopupBuilder() {
-				public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-					JMenuItem cdn = menu.createItem("Change nick", new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							Application.getInstance().showNickWizard();
-						}
-					});
-					cdn.setFont(Fonts.GLOBAL);
-					menu.add(cdn);
-					return true;
-				}
-			}, nickLabel);
+			Application.getInstance().getPopupManager().submit((menu, popupManager, sender, x, y) -> {
+                JMenuItem cdn = menu.createItem("Change nick", e -> Application.getInstance().showNickWizard());
+                cdn.setFont(Fonts.GLOBAL);
+                menu.add(cdn);
+                return true;
+            }, nickLabel);
 		}
 		return nickLabel;
 	}
@@ -540,6 +454,7 @@ public class MainFrame extends JFrame {
 	public ChatInput getChatTextInput() {
 		if (chatTextInput == null) {
 			chatTextInput = new ChatInput(this);
+			chatTextInput.getEventProvider().subscribe(this.sendMessageListener);
 		}
 		return chatTextInput;
 	}
@@ -548,11 +463,7 @@ public class MainFrame extends JFrame {
 		if (sendMessageButton == null) {
 			sendMessageButton = new JButton("Send message");
 			sendMessageButton.setEnabled(false);
-			sendMessageButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					chatTextInput.sendMessage();
-				}
-			});
+			sendMessageButton.addActionListener(e -> this.chatTextInput.sendMessage());
 		}
 		return sendMessageButton;
 	}
@@ -578,39 +489,34 @@ public class MainFrame extends JFrame {
 			joinChannelButton.setIconTextGap(0);
 			joinChannelButton.setHorizontalTextPosition(SwingConstants.CENTER);
 			joinChannelButton.setIcon(new ImageIcon(Images.ADD_DARK));
-			joinChannelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					if (joinChannelWizard != null && joinChannelWizard.isVisible())
-						return;
-					joinChannelWizard = new InputWizard(MainFrame.this, "Join a channel.", "Channel name", null, "Join", "Creates and joins a new Channel!",
-					new WizardListener<String>() {
-						public void wizardFinished(String input) {
-							if (input != null) {
-								input = input.trim();
-								Channel chan = new Channel(chatContainer, "#" + input);
-								chatContainer.add(chan);
-								chatContainer.setSelectedComponent(chan.getPanel());
-							} else {
-								System.out.println("Channel wizard cancelled.");
-							}
-						}
-					}, new WizardValidator<String, String, Boolean>() {
-						public ValidationResult<String, Boolean> validate(String text) {
-							text = text.trim();
-							if (text.isEmpty())
-								return new ValidationResult<String, Boolean>("Well, you actually have to type something...", false);
-							if (chatContainer.getChat("#" + text) != null)
-								return new ValidationResult<String, Boolean>("You're already in this channel.", false);
-							for (char c : text.toCharArray()) {
-								if (Character.isDigit(c) || Character.isLetter(c) || c == ' ') continue;
-								return new ValidationResult<String, Boolean>("Only allowed letters and numbers!", false);
-							}
-							return new ValidationResult<String, Boolean>("Current name is acceptable.", true);
-						}
-					});
-					joinChannelWizard.setVisible(true);
-				}
-			});
+			joinChannelButton.addActionListener(arg0 -> {
+                if (joinChannelWizard != null && joinChannelWizard.isVisible()) {
+                    return;
+                }
+                joinChannelWizard = new InputWizard(MainFrame.this, "Join a channel.", "Channel name", null, "Join", "Creates and joins a new Channel!",
+                        input -> {
+                            if (input != null) {
+                                input = input.trim();
+                                Channel chan = new Channel(chatContainer, "#" + input);
+                                chatContainer.add(chan);
+                                chatContainer.setSelectedComponent(chan.getPanel());
+                            } else {
+                                System.out.println("Channel wizard cancelled.");
+                            }
+                        }, text -> {
+                            text = text.trim();
+                            if (text.isEmpty())
+                                return new ValidationResult<>("Well, you actually have to type something...", false);
+                            if (chatContainer.getChat("#" + text) != null)
+                                return new ValidationResult<>("You're already in this channel.", false);
+                            for (char c : text.toCharArray()) {
+                                if (Character.isDigit(c) || Character.isLetter(c) || c == ' ') continue;
+                                return new ValidationResult<>("Only allowed letters and numbers!", false);
+                            }
+                            return new ValidationResult<>("Current name is acceptable.", true);
+                        });
+                joinChannelWizard.setVisible(true);
+            });
 			joinChannelButton.setFont(Fonts.GLOBAL);
 			joinChannelButton.setToolTipText("Join a channel");
 			joinChannelButton.setDoubleBuffered(true);
@@ -625,18 +531,16 @@ public class MainFrame extends JFrame {
 			fileTransferButton.setHorizontalTextPosition(SwingConstants.CENTER);
 			fileTransferButton.setIconTextGap(0);
 			fileTransferButton.setIcon(new ImageIcon(Images.PAGE_GO));
-			fileTransferButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					if (Debug.NONE.compareTo(Application.DEBUG) < 0) {
-						FileShare ft = Application.getInstance().getFileShare();
-						if (ft != null) {
-							ft.setVisible(true);
-						}
-					} else {
-						JOptionPane.showMessageDialog(MainFrame.this, "Feature not supported yet!", "Feature not supported.", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			});
+			fileTransferButton.addActionListener(unused -> {
+                if (Debug.NONE.compareTo(Application.DEBUG) < 0) {
+                    FileShare ft = Application.getInstance().getFileShare();
+                    if (ft != null) {
+                        ft.setVisible(true);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Feature not supported yet!", "Feature not supported.", JOptionPane.ERROR_MESSAGE);
+                }
+            });
 			fileTransferButton.setFont(Fonts.GLOBAL);
 			fileTransferButton.setToolTipText("File sharing");
 			fileTransferButton.setDoubleBuffered(true);
@@ -651,30 +555,28 @@ public class MainFrame extends JFrame {
 			adminButton.setHorizontalTextPosition(SwingConstants.CENTER);
 			adminButton.setIconTextGap(0);
 			adminButton.setIcon(new ImageIcon(Images.KEY));
-			adminButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					final Application application = Application.getInstance();
-					if (application.getAdminControl().isLoginVisible()) {
-						adminButton.setSelected(!adminButton.isSelected());
-						return;
-					}
-					if (!adminButton.isSelected()) { // logout
-						if (JOptionPane.showConfirmDialog(MainFrame.this, "Are you sure you want to logout of admin controls?", "Logout?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-							application.getAdminControl().setAdmin(false);
-							adminButton.setToolTipText("Login as admin");
-						} else {
-							adminButton.setSelected(true);
-						}
-					} else { // login
-						if (application.getAdminControl().isReady()) {
-							application.getAdminControl().showLogin();
-						} else {
-							adminButton.setSelected(false);
-							JOptionPane.showMessageDialog(application.getMainFrame(), "Due to network complications, passwords entered can't be validated.", "Admin control is currently unavailable.", JOptionPane.ERROR_MESSAGE);
-						}
-					}
-				}
-			});
+			adminButton.addActionListener(unused -> {
+                final Application application = Application.getInstance();
+                if (application.getAdminControl().isLoginVisible()) {
+                    adminButton.setSelected(!adminButton.isSelected());
+                    return;
+                }
+                if (!adminButton.isSelected()) { // logout
+                    if (JOptionPane.showConfirmDialog(MainFrame.this, "Are you sure you want to logout of admin controls?", "Logout?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
+                        application.getAdminControl().setAdmin(false);
+                        adminButton.setToolTipText("Login as admin");
+                    } else {
+                        adminButton.setSelected(true);
+                    }
+                } else { // login
+                    if (application.getAdminControl().isReady()) {
+                        application.getAdminControl().showLogin();
+                    } else {
+                        adminButton.setSelected(false);
+                        JOptionPane.showMessageDialog(application.getMainFrame(), "Due to network complications, passwords entered can't be validated.", "Admin control is currently unavailable.", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
 			adminButton.setFont(Fonts.GLOBAL);
 			adminButton.setToolTipText("Login as admin");
 			adminButton.setDoubleBuffered(true);
@@ -689,11 +591,7 @@ public class MainFrame extends JFrame {
 			settingsButton.setHorizontalTextPosition(SwingConstants.CENTER);
 			settingsButton.setIconTextGap(0);
 			settingsButton.setIcon(new ImageIcon(Images.COG));
-			settingsButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					JOptionPane.showMessageDialog(MainFrame.this, "Feature not supported yet!", "Feature not supported.", JOptionPane.ERROR_MESSAGE);
-				}
-			});
+			settingsButton.addActionListener(unused -> JOptionPane.showMessageDialog(MainFrame.this, "Feature not supported yet!", "Feature not supported.", JOptionPane.ERROR_MESSAGE));
 			settingsButton.setFont(Fonts.GLOBAL);
 			settingsButton.setToolTipText("Settings");
 			settingsButton.setDoubleBuffered(true);

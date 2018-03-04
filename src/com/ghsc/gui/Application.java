@@ -14,8 +14,7 @@ import javax.swing.UIManager;
 import com.ghsc.admin.AdminControl;
 import com.ghsc.common.Debug;
 import com.ghsc.event.EventProvider;
-import com.ghsc.event.global.EventManager;
-import com.ghsc.files.FileStorage.Hook;
+import com.ghsc.event.IEventProvider;
 import com.ghsc.files.FileStorage.Node;
 import com.ghsc.files.Profile;
 import com.ghsc.files.Settings;
@@ -23,8 +22,6 @@ import com.ghsc.gui.components.chat.ChatContainer;
 import com.ghsc.gui.components.chat.channels.Channel;
 import com.ghsc.gui.components.input.InputWizard;
 import com.ghsc.gui.components.input.ValidationResult;
-import com.ghsc.gui.components.input.WizardListener;
-import com.ghsc.gui.components.input.WizardValidator;
 import com.ghsc.gui.components.popup.PopupManager;
 import com.ghsc.gui.components.util.FrameTitleManager;
 import com.ghsc.gui.fileshare.FileShare;
@@ -61,31 +58,31 @@ public class Application implements ComplexIdentifiable {
 	public static Debug DEBUG = Debug.MINOR;
 	public static Charset CHARSET = Charset.forName("UTF-8");
 	public static Version VERSION = Version.create("0.4.0", "Indev");
-	public static File LAST_DIRECTORY = null;
+	public static File LAST_DIRECTORY;
 	private final String PROGRAM_NAME = "GHSC";
 	
-	private MainFrame frame = null;
-	private FrameTitleManager titleManager = null;
-	private PopupManager popupManager = null;
-	private TrayManager tray = null;
-	private AdminControl adminControl = null;
-	private FileShare fileShare = null;
-	private InputWizard nickDialog = null;
+	private MainFrame frame;
+	private FrameTitleManager titleManager;
+	private PopupManager popupManager;
+	private TrayManager tray;
+	private AdminControl adminControl;
+	private FileShare fileShare;
+	private InputWizard nickDialog;
 
 	// Updating
-	private VersionController versionController = null;
+	private VersionController versionController;
 	private Updater updater = null;
 	
 	// Networking
-	private SocketManager socketManager = null;
+	private SocketManager socketManager;
 	public static NicManager NETWORK = new NicManager();
 	
 	// Events
-	public static final String NICK_EVENTPROVIDER = "nick";
-	private final EventProvider<String> nickEventProvider = new EventProvider<>(NICK_EVENTPROVIDER);
+	private final EventProvider<String> nickEventProvider = new EventProvider<>();
 	
-	private String hostname = null, nick = null;
-	private UUID userID = null;
+	private String hostname;
+	private String nick;
+	private UUID userID;
 	
 	private Application() {}
 	
@@ -95,10 +92,10 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	@Override
-	public void setHostname(String hostname) {
+	public void setHostname(final String hostname) {
 		this.hostname = hostname;
-		if (nick == null) {
-			setNick(hostname);
+		if (this.nick == null) {
+			this.setNick(hostname);
 		}
 	}
 	
@@ -108,25 +105,33 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	@Override
-	public void setNick(String nick) {
+	public void setNick(final String nick) {
 		this.nick = nick;
 		if (this.hostname == null) {
 			this.hostname = nick;
 		}
-		nickEventProvider.fireEvent(nick);
+		this.nickEventProvider.fireEvent(nick);
 	}
+
+    /**
+     * Gets the nick event provider.
+     */
+	public IEventProvider<String> getNickEventProvider() {
+	    return this.nickEventProvider;
+    }
 	
 	@Override
 	public String getPreferredName() {
-		final String temp = getNick();
-		if (temp != null)
-			return temp;
-		return getHostname();
+		final String temp = this.getNick();
+		if (temp != null) {
+            return temp;
+        }
+		return this.getHostname();
 	}
 
 	@Override
 	public UUID getID() {
-		return userID;
+		return this.userID;
 	}
 
 	@Override
@@ -135,10 +140,8 @@ public class Application implements ComplexIdentifiable {
 	}
 
 	@Override
-	public void setID(String uuid) {
-		try {
-			setID(UUID.fromString(uuid));
-		} catch (IllegalArgumentException iae) {}
+	public void setID(final String uuid) {
+        this.setID(UUID.fromString(uuid));
 	}
 	
 	/**
@@ -147,9 +150,9 @@ public class Application implements ComplexIdentifiable {
 	 * @param vers - the new version of this application.
 	 */
 	public void setVersion(Version vers) {
-		VERSION = vers;
-		if (titleManager != null) {
-			titleManager.appendTitle(null);
+		Application.VERSION = vers;
+		if (this.titleManager != null) {
+			this.titleManager.appendTitle(null);
 		}
 	}
 	
@@ -158,8 +161,8 @@ public class Application implements ComplexIdentifiable {
 	 * then this method will cause the taskbar item to flash.
 	 */
 	public void flashTaskbar() {
-		if (frame != null && !frame.isFocused()) {
-			frame.toFront();
+		if (this.frame != null && !this.frame.isFocused()) {
+			this.frame.toFront();
 		}
 	}
 	
@@ -167,41 +170,38 @@ public class Application implements ComplexIdentifiable {
 	 * Displays a wizard for current user to modify his display name/username.
 	 */
 	public void showNickWizard() {
-		if (nickDialog != null && nickDialog.isVisible())
-			return;
-		nickDialog = new InputWizard(frame, "Change nickname", "Nickname", getPreferredName(), "Apply", "Applies your new nickname!",
-		new WizardListener<String>() {
-			public void wizardFinished(String input) {
-				if (input != null) {
-					if (input.equals(nick))
-						return;
-					setNick(input);
-					frame.getChatContainer().refreshUser(null);
-				} else {
-					if (Debug.MINOR.compareTo(DEBUG) < 0)
-						System.out.println("Nickname wizard cancelled.");
-				}
-			}
-		}, new WizardValidator<String, String, Boolean>() {
-			public ValidationResult<String, Boolean> validate(String text) {
-				if (text.isEmpty())
-					return new ValidationResult<String, Boolean>("Well, you actually have to type something...", false);
-				if (text.length() > 18)
-					return new ValidationResult<String, Boolean>("Name can't exceed 18 characters.", false);
-				if (text.startsWith("_") || text.startsWith(" "))
-					return new ValidationResult<String, Boolean>("Can't start with any space character.", false);
-				if (text.contains("__") || text.contains("  "))
-					return new ValidationResult<String, Boolean>("Can't contain two spaces anywhere.", false);
-				if (text.contains(" _") || text.contains("_ "))
-					return new ValidationResult<String, Boolean>("Come on...", false);
-				for (char c : text.toCharArray()) {
-					if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_') continue;
-					return new ValidationResult<String, Boolean>("Only allowed letters and numbers!", false);
-				}
-				return new ValidationResult<String, Boolean>("Current name is acceptable.", true);
-			}
-		});
-		nickDialog.setVisible(true);
+		if (this.nickDialog != null && this.nickDialog.isVisible()) {
+            return;
+        }
+		this.nickDialog = new InputWizard(frame, "Change nickname", "Nickname", getPreferredName(), "Apply", "Applies your new nickname!",
+                input -> {
+                    if (input != null) {
+                        if (input.equals(nick))
+                            return;
+                        setNick(input);
+                        frame.getChatContainer().refreshUser(null);
+                    } else {
+                        if (Debug.MINOR.compareTo(DEBUG) < 0)
+                            System.out.println("Nickname wizard cancelled.");
+                    }
+                }, text -> {
+                    if (text.isEmpty())
+                        return new ValidationResult<>("Well, you actually have to type something...", false);
+                    if (text.length() > 18)
+                        return new ValidationResult<>("Name can't exceed 18 characters.", false);
+                    if (text.startsWith("_") || text.startsWith(" "))
+                        return new ValidationResult<>("Can't start with any space character.", false);
+                    if (text.contains("__") || text.contains("  "))
+                        return new ValidationResult<>("Can't contain two spaces anywhere.", false);
+                    if (text.contains(" _") || text.contains("_ "))
+                        return new ValidationResult<>("Come on...", false);
+                    for (char c : text.toCharArray()) {
+                        if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_') continue;
+                        return new ValidationResult<>("Only allowed letters and numbers!", false);
+                    }
+                    return new ValidationResult<>("Current name is acceptable.", true);
+                });
+		this.nickDialog.setVisible(true);
 	}
 	
 	/**
@@ -274,35 +274,33 @@ public class Application implements ComplexIdentifiable {
 		/*
 		 * Add this shutdown hook, so that correct de-initialization will take place even if we call System.exit(int).
 		 */
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			public void run() {
-				if (socketManager != null) {
-					socketManager.close();
-				}
-				if (Profile.getProfile().isSavable()) {
-					if (Profile.getProfile().save()) {
-						System.out.println("Profile saved.");
-					} else {
-						System.out.println("Failed to save profile!");
-					}
-				}
-				if (Settings.getSettings().isSavable()) {
-					if (Settings.getSettings().save()) {
-						System.out.println("Settings saved.");
-					} else {
-						System.out.println("Failed to save settings!");
-					}
-				}
-				if (frame != null) {
-					if (frame.getUsers() != null) {
-						frame.getUsers().disconnectAll();
-					}
-				}
-				if (fileShare != null)
-					fileShare.dispose();
-				System.gc();
-			}
-		}));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (socketManager != null) {
+                socketManager.close();
+            }
+            if (Profile.getProfile().isSavable()) {
+                if (Profile.getProfile().save()) {
+                    System.out.println("Profile saved.");
+                } else {
+                    System.out.println("Failed to save profile!");
+                }
+            }
+            if (Settings.getSettings().isSavable()) {
+                if (Settings.getSettings().save()) {
+                    System.out.println("Settings saved.");
+                } else {
+                    System.out.println("Failed to save settings!");
+                }
+            }
+            if (frame != null) {
+                if (frame.getUsers() != null) {
+                    frame.getUsers().disconnectAll();
+                }
+            }
+            if (fileShare != null)
+                fileShare.dispose();
+            System.gc();
+        }));
 		
 		this.socketManager = new SocketManager();
 		
@@ -324,12 +322,10 @@ public class Application implements ComplexIdentifiable {
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
 		// userid
-		Profile.getProfile().addHook(new Hook() {
-			public Node onSave() {
-				final UUID id = getID();
-				return id != null ? new Node(Tag.construct("userID"), id) : null;
-			}
-		});
+		Profile.getProfile().addHook(() -> {
+            final UUID id = getID();
+            return id != null ? new Node(Tag.construct("userID"), id) : null;
+        });
 		final Node userIdNode = Profile.getProfile().search("/userID");
 		if (userIdNode != null) {
 			final String userIdString = userIdNode.getData();
@@ -341,25 +337,21 @@ public class Application implements ComplexIdentifiable {
 			setID(UUID.randomUUID());
 		}
 		System.out.println("UserID: " + getID());
-		// Events
-		EventManager.getEventManager().add(nickEventProvider);
 		//Tray
 		if (TrayManager.isSupported()) {
 			tray = new TrayManager(null);
 			tray.activate();
 		}
 		// GUI
-		SwingUtilities.invokeAndWait(new Runnable() {
-			public void run() {
-				try {
-					popupManager = new PopupManager();
-					frame = new MainFrame();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+		SwingUtilities.invokeAndWait(() -> {
+            try {
+                popupManager = new PopupManager();
+                frame = new MainFrame(Application.this);
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 		titleManager = new FrameTitleManager(frame, PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
 			public void onTitleChanged(String title) {
 				if (tray != null)
@@ -385,11 +377,7 @@ public class Application implements ComplexIdentifiable {
 		versionController.start();
 		setVersion(VERSION);
 		
-		Profile.getProfile().addHook(new Hook() {
-			public Node onSave() {
-				return new Node(Tag.construct("nick"), getNick());
-			}
-		});
+		Profile.getProfile().addHook(() -> new Node(Tag.construct("nick"), getNick()));
 		Node nickNode = Profile.getProfile().search("/nick");
 		if (nickNode != null) {
 			String nickData = nickNode.getData();
@@ -405,32 +393,27 @@ public class Application implements ComplexIdentifiable {
 		frame.setStatus("Loading channels");
 		ChatContainer chatContainer = frame.getChatContainer();
 		
-		Settings.getSettings().addHook(new Hook() {
-			public Node onSave() {
-				return new Node(Tag.construct("chats"), getMainFrame().getChatContainer().printChats());
-			}
-		});
+		Settings.getSettings().addHook(() -> new Node(Tag.construct("chats"), getMainFrame().getChatContainer().printChats()));
 		Node chatsNode = Settings.getSettings().search("/chats");
-		while (true) {
-			if (chatsNode != null) {
-				String chatString = chatsNode.getData();
-				if (chatString != null) {
-					String[] chats = chatString.split(Pattern.quote(","));
-					if (chats.length > 0) {
-						for (String chatName : chats) {
-							if (chatName.startsWith("#")) {
-								chatContainer.add(new Channel(chatContainer, chatName));
-							} else {
-								// TODO: handle private messaging
-							}
-						}
-						break;
-					}
-				}
-			}
-			chatContainer.add(new Channel(chatContainer, "#Global"));
-			break;
-		}
+        loadChannels: {
+            if (chatsNode != null) {
+                String chatString = chatsNode.getData();
+                if (chatString != null) {
+                    String[] chats = chatString.split(Pattern.quote(","));
+                    if (chats.length > 0) {
+                        for (String chatName : chats) {
+                            if (chatName.startsWith("#")) {
+                                chatContainer.add(new Channel(chatContainer, chatName));
+                            } else {
+                                // TODO: handle private messaging
+                            }
+                        }
+                        break loadChannels;
+                    }
+                }
+            }
+            chatContainer.add(new Channel(chatContainer, "#Global"));
+        }
 		
 		frame.toggleInput(true);
 		frame.setStatus("Finalizing startup...", 1000);

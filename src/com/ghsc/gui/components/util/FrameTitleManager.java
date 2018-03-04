@@ -9,20 +9,14 @@ import javax.swing.Timer;
 /**
  * Dynamically manage the title of frames.<br>
  * Temporary titles with timeouts.
- * @author Odell
  */
 public abstract class FrameTitleManager {
 	
 	private final Frame frame;
 	private String defaultTitle;
 	
-	private Timer timer = null;
-	private ActionListener event = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			appendTitle(null);
-		}
-	};
-	
+	private final Timer timer;
+
 	/**
 	 * Initializes a new FrameTitleManager.
 	 * @param frame
@@ -33,12 +27,12 @@ public abstract class FrameTitleManager {
 	public FrameTitleManager(final Frame frame, final String defaultTitle) {
 		this.frame = frame;
 		setDefaultTitle(defaultTitle);
-		timer = new Timer(0, event);
-		timer.setRepeats(false);
+		this.timer = new Timer(0, e -> appendTitle(null));
+		this.timer.setRepeats(false);
 	}
 	
 	public final String getDefaultTitle() {
-		return defaultTitle;
+		return this.defaultTitle;
 	}
 	
 	/**
@@ -47,7 +41,7 @@ public abstract class FrameTitleManager {
 	 * 		the new default title of the controlled frame.
 	 */
 	public final void setDefaultTitle(final String defaultTitle) {
-		setDefaultTitle(defaultTitle, false);
+		this.setDefaultTitle(defaultTitle, false);
 	}
 	
 	/**
@@ -59,26 +53,28 @@ public abstract class FrameTitleManager {
 	 */
 	public final void setDefaultTitle(final String defaultTitle, final boolean modify) {
 		this.defaultTitle = defaultTitle;
-		if (modify && (timer == null || !timer.isRunning()))
-			reset();
+		if (modify && (this.timer == null || !this.timer.isRunning())) {
+			this.reset();
+		}
 	}
 	
 	private void stopTimer() {
-		if (timer.isRunning())
-			timer.stop();
+		if (this.timer.isRunning()) {
+			this.timer.stop();
+		}
 	}
 	
 	private void restartTimer(int delay) {
 		stopTimer();
-		timer.setInitialDelay(delay);
-		timer.restart();
+		this.timer.setInitialDelay(delay);
+		this.timer.restart();
 	}
 	
 	/**
 	 * Sets the title of the controlled frame to the default title.
 	 */
 	public final void reset() {
-		setTitle(defaultTitle);
+		this.setTitle(this.defaultTitle);
 	}
 	
 	/**
@@ -87,8 +83,9 @@ public abstract class FrameTitleManager {
 	 * 		the suggested title of the frame.
 	 */
 	public final void setTitle(final String title) {
-		if (frame != null)
-			frame.setTitle(title);
+		if (this.frame != null) {
+			this.frame.setTitle(title);
+		}
 		onTitleChanged(title);
 	}
 	
@@ -98,8 +95,8 @@ public abstract class FrameTitleManager {
 	 * 		the text to append the default title.
 	 */
 	public final void appendTitle(final String append) {
-		final StringBuilder build = new StringBuilder().append(defaultTitle);
-		setTitle((append != null ? build.append(' ').append(append) : build).toString());
+		final StringBuilder build = new StringBuilder().append(this.defaultTitle);
+		this.setTitle((append != null ? build.append(' ').append(append) : build).toString());
 	}
 	
 	/**
@@ -112,8 +109,9 @@ public abstract class FrameTitleManager {
 	public final void submit(final String title, final int period) {
 		setTitle(title);
 		stopTimer();
-		if (period > 0)
+		if (period > 0) {
 			restartTimer(period);
+		}
 	}
 	
 	/**
@@ -126,8 +124,9 @@ public abstract class FrameTitleManager {
 	public final void submitAppend(final String append, final int period) {
 		appendTitle(append);
 		stopTimer();
-		if (period > 0)
+		if (period > 0) {
 			restartTimer(period);
+		}
 	}
 	
 	/**

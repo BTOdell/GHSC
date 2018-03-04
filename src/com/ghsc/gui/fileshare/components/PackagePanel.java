@@ -35,8 +35,6 @@ import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
 import com.ghsc.event.EventListener;
 import com.ghsc.event.EventProvider;
-import com.ghsc.event.global.EventManager;
-import com.ghsc.event.global.EventProviderListener;
 import com.ghsc.gui.Application;
 import com.ghsc.gui.components.input.WizardListener;
 import com.ghsc.gui.components.popup.Popup;
@@ -62,30 +60,7 @@ public class PackagePanel extends JPanel {
 	private final FilePackage pack;
 	private boolean headerHovered = false, headerDown = false;
 	private boolean expanded = false;
-	
-	/*
-	 * Event variables
-	 */
-	private final EventListener<String> usernameListener = (final String username) -> sync();
-	private final EventProviderListener eventProviderListener = new EventProviderListener() {
-		public void providerAdded(EventProvider.Context context) {
-			String cName = context.getName();
-			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
-				if (pack != null && pack instanceof LocalPackage) {
-					//noinspection unchecked
-					context.subscribe(usernameListener);
-				}
-			}
-		}
-		public void providerRemoved(EventProvider.Context context) {
-			String cName = context.getName();
-			if (cName != null && cName.equals(Application.NICK_EVENTPROVIDER)) {
-				//noinspection unchecked
-				context.unsubscribe(usernameListener);
-			}
-		}
-	};
-	
+
 	private JLabel packageIconLabel;
 	private JLabel packageNameLabel;
 	private JLabel packageOwnerLabel;
@@ -107,9 +82,10 @@ public class PackagePanel extends JPanel {
 		super();
 		//this.frame = frame;
 		this.pack = pack;
-		
-		EventManager.getEventManager().addListener(eventProviderListener);
-		
+		if (pack != null && pack instanceof LocalPackage) {
+			Application.getInstance().getNickEventProvider().subscribe((final String username) -> this.sync());
+		}
+
 		this.addMouseListener(new MouseAdapter() {
 			public void mouseExited(MouseEvent me) {
 				headerHovered = headerDown = false;

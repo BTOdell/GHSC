@@ -18,27 +18,19 @@ import javax.swing.text.JTextComponent;
 
 import com.ghsc.common.Fonts;
 import com.ghsc.event.EventProvider;
-import com.ghsc.event.global.EventManager;
+import com.ghsc.event.IEventProvider;
 import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.util.PromptHandler;
 
 public class ChatInput extends JTextArea {
 	
 	private static final long serialVersionUID = 1L;
-	
-	public static final String SENDMESSAGE_EVENTPROVIDER = "chatinput.sendmessage";
-	
-	MainFrame frame;
-	private final EventProvider<String> sendMessageProvider;
-	
-	public ChatInput() {
-		super();
-		this.sendMessageProvider = new EventProvider<String>(SENDMESSAGE_EVENTPROVIDER);
-		EventManager.getEventManager().add(sendMessageProvider);
-	}
-	
-	public ChatInput(MainFrame frame) {
-		this();
+
+	private final EventProvider<String> sendMessageProvider = new EventProvider<>();
+
+	private final MainFrame frame;
+
+	public ChatInput(final MainFrame frame) {
 		this.frame = frame;
 		init();
 	}
@@ -84,9 +76,16 @@ public class ChatInput extends JTextArea {
             }
 		});
 	}
-	
+
+    /**
+     * Gets the event provider for sent messages.
+     */
+	public IEventProvider<String> getEventProvider() {
+	    return this.sendMessageProvider;
+    }
+
 	public void sendMessage() {
-		sendMessageProvider.fireEvent(getText());
+	    this.sendMessageProvider.fireEvent(this.getText());
 	}
 
 	private class TransferHandler extends javax.swing.TransferHandler {
@@ -131,12 +130,10 @@ public class ChatInput extends JTextArea {
 				}
 				System.out.println();
 				return super.importData(support);
-			} catch (UnsupportedFlavorException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
+			} catch (UnsupportedFlavorException | IOException e) {
 				e.printStackTrace();
 			}
-			return false;
+            return false;
 		}
 		
 		public int getSourceActions(JComponent c) {
