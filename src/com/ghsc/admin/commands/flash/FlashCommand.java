@@ -13,11 +13,13 @@ import com.ghsc.util.Utilities;
 
 public class FlashCommand extends AdminCommand {
 	
-	public static final String TAG = "flash", ATT_STATE = "st", ATT_ENABLE = "e";
+	public static final String TAG = "flash";
+	public static final String ATT_STATE = "st";
+	public static final String ATT_ENABLE = "e";
 	
 	private FlashFrame frame;
 	
-	public FlashCommand(AdminControl control) {
+	public FlashCommand(final AdminControl control) {
 		super(control);
 	}
 
@@ -26,11 +28,10 @@ public class FlashCommand extends AdminCommand {
 		if (Utilities.resolveToBoolean(me.getAttribute(ATT_RESPONSE))) {
 			final boolean success = Utilities.resolveToBoolean(me.getAttribute(ATT_SUCCESS));
 			final String message = me.getAttribute(ATT_MESSAGE);
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(), message, "Command result", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-				}
-			});
+			SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(),
+					message,
+					"Command result",
+					success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE));
 			return null;
 		} else if (Utilities.resolveToBoolean(me.getAttribute(ATT_UPDATE))) {
 			user.setCommandState(TAG, Utilities.resolveToBoolean(me.getAttribute(ATT_STATE))); // state
@@ -41,22 +42,14 @@ public class FlashCommand extends AdminCommand {
 				if (this.frame == null) {
                     this.frame = new FlashFrame();
                     this.frame.setVisible(true);
-					new Thread(new Runnable() {
-						public void run() {
-							user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(true)), User.ALL);
-						}
-					}).start();
+					new Thread(() -> user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(true)), User.ALL)).start();
 					return AdminCommand.composeResponse(TAG, true, true, this.getName() + ": enabled");
 				}
 			} else {
 				if (this.frame != null) {
                     this.frame.dispose();
                     this.frame = null;
-					new Thread(new Runnable() {
-						public void run() {
-							user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(false)), User.ALL);
-						}
-					}).start();
+					new Thread(() -> user.getContainer().send(AdminCommand.composeUpdate(TAG, ATT_STATE, Utilities.resolveToString(false)), User.ALL)).start();
 					return AdminCommand.composeResponse(TAG, true, true, this.getName() + ": disabled");
 				}
 			}

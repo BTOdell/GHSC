@@ -279,7 +279,7 @@ public class MainFrame extends JFrame {
 	
 	public StatusLabel getStatusLabel() {
 		if (this.statusLabel == null) {
-			this.statusLabel = new StatusLabel(true);
+			this.statusLabel = new StatusLabel();
 			this.statusLabel.setStatus("Starting up...");
 			this.statusLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD, 14));
 		}
@@ -368,7 +368,7 @@ public class MainFrame extends JFrame {
 			this.nickLabel.setToolTipText("Double click to change nick.");
 			this.nickLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD, 18));
 			this.nickLabel.addMouseListener(new MouseAdapter() {
-				public void mouseClicked(MouseEvent e) {
+				public void mouseClicked(final MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() > 1) {
 						Application.getInstance().showNickWizard();
 					}

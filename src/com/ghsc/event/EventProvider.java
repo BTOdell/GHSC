@@ -10,12 +10,12 @@ public class EventProvider<E> implements IEventProvider<E> {
 	private final CopyOnWriteArraySet<EventListener<E>> listeners = new CopyOnWriteArraySet<>();
 
 	@Override
-	public boolean subscribe(EventListener<E> listener) {
+	public boolean subscribe(final EventListener<E> listener) {
 		return listener != null && this.listeners.add(listener);
 	}
 
 	@Override
-	public boolean unsubscribe(EventListener<E> listener) {
+	public boolean unsubscribe(final EventListener<E> listener) {
 		return listener != null && this.listeners.remove(listener);
 	}
 

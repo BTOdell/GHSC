@@ -6,7 +6,8 @@ import com.ghsc.util.Tag;
 
 public class RemoteFileNode extends FileNode {
 	
-	private final String name, path;
+	private final String name;
+	private final String path;
 	private final long size;
 	private final boolean directory;
 	
@@ -22,7 +23,7 @@ public class RemoteFileNode extends FileNode {
 		this.path = path;
 		this.size = Math.max(0, size);
 		this.directory = size < 0;
-		this.endTag = new StringBuilder("</").append(this.getTagName()).append(">").toString();
+		this.endTag = "</" + this.getTagName() + ">";
 	}
 	
 	/**
@@ -42,7 +43,7 @@ public class RemoteFileNode extends FileNode {
 		return (RemoteFileNodeChildren) this.container;
 	}
 	
-	public void setContainer(RemoteFileNodeChildren container) {
+	public void setContainer(final RemoteFileNodeChildren container) {
 		this.container = container;
 	}
 	
@@ -78,7 +79,7 @@ public class RemoteFileNode extends FileNode {
 	public long getSize() {
 		long temp = this.getFileSize();
 		if (!this.isLeaf()) {
-			for (RemoteFileNode node : this.getChildren()) {
+			for (final RemoteFileNode node : this.getChildren()) {
                 temp += node.getSize();
             }
 		}
@@ -89,7 +90,7 @@ public class RemoteFileNode extends FileNode {
 	public long getFileCount() {
 		long temp = this.isDirectory() ? 0 : 1;
 		if (!this.isLeaf()) {
-			for (RemoteFileNode node : this.getChildren()) {
+			for (final RemoteFileNode node : this.getChildren()) {
                 temp += node.getFileCount();
             }
 		}
@@ -100,7 +101,7 @@ public class RemoteFileNode extends FileNode {
 	public long getDirectoryCount() {
 		long temp = this.isDirectory() ? 1 : 0;
 		if (!this.isLeaf()) {
-			for (RemoteFileNode node : this.getChildren()) {
+			for (final RemoteFileNode node : this.getChildren()) {
                 temp += node.getDirectoryCount();
             }
 		}
@@ -124,10 +125,10 @@ public class RemoteFileNode extends FileNode {
 	}
 	
 	@Override
-	public void receive(Object o) {
+	public void receive(final Object o) {
 		if (o instanceof Taggable) {
-			Taggable t = (Taggable) o;
-			String tName = t.getTagName();
+			final Taggable t = (Taggable) o;
+			final String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
 				if (this.children == null) {
 					this.setChildren(new RemoteFileNodeChildren(this));
@@ -138,7 +139,7 @@ public class RemoteFileNode extends FileNode {
 	}
 
 	@Override
-	public EndTaggable createForTag(Tag tag) {
+	public EndTaggable createForTag(final Tag tag) {
 		final String tagName = tag.getName();
 		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
 			final String name = tag.getAttribute(FileNode.ATT_NAME);
@@ -183,7 +184,7 @@ public class RemoteFileNode extends FileNode {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		return this == o;
 	}
 	

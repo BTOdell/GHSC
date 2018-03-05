@@ -1,31 +1,31 @@
 package com.ghsc.gui.fileshare.internal;
 
-import java.text.SimpleDateFormat;
-import java.util.LinkedList;
-import java.util.UUID;
-
 import com.ghsc.gui.components.users.User;
 import com.ghsc.impl.EndTaggable;
 import com.ghsc.impl.Taggable;
 import com.ghsc.util.Tag;
 import com.ghsc.util.Utilities;
 
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.UUID;
+
 public class RemotePackage extends FilePackage {
 	
 	private final User host;
-	private RemoteFileNode[] roots;
-	private boolean passwordProtected;
-	
-	public RemotePackage(final User user, final String name, final String description, String creationDateS, final Visibility visibility, final boolean passwordProtected, final String uuid) {
-		super(name, description, parseCalendar(new SimpleDateFormat(DATE_FORMAT), creationDateS), visibility);
+    private final boolean passwordProtected;
+
+    private RemoteFileNode[] roots;
+
+    /**
+     * Creates a new package from existing remote data.
+     */
+	public RemotePackage(final User user, final UUID uuid, final String name, final String description,
+                         final Calendar creationDate, final Visibility visibility,
+                         final boolean passwordProtected) {
+		super(uuid, name, description, creationDate, visibility);
 		this.host = user;
-		this.uuid = UUID.fromString(uuid);
 		this.passwordProtected = passwordProtected;
-	}
-	
-	@Override
-	public UUID getUUID() {
-		return this.uuid;
 	}
 	
 	public User getHost() {
@@ -92,22 +92,37 @@ public class RemotePackage extends FilePackage {
 	
 	public static RemotePackage parse(final User u, final Tag pTag) {
 		// parse package info...
-		if (pTag == null) {
+		if (pTag == null || !pTag.getName().equals(TAGNAME)) {
             return null;
         }
-		String name = null, uuid = null, vA = null, cD = null;
-		if (!pTag.getName().equals(TAGNAME) || (name = pTag.getAttribute(ATT_NAME)) == null || 
-			(uuid = pTag.getAttribute(ATT_UUID)) == null || (vA = pTag.getAttribute(ATT_VISIBILITY)) == null ||
-			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null) {
+        final String uuidString = pTag.getAttribute(ATT_UUID);
+        final String name = pTag.getAttribute(ATT_NAME);
+        final String visibilityString = pTag.getAttribute(ATT_VISIBILITY);
+        final String creationDateString = pTag.getAttribute(ATT_CREATIONDATE);
+        if (uuidString == null || name == null || visibilityString == null || creationDateString == null) {
             return null;
         }
-		final int vIndex = vA.indexOf(':');
-		final String[] vD = { vA.substring(0, vIndex), vA.substring(vIndex + 1, vA.length()) };
-		final RemotePackage rp = new RemotePackage(u, name, pTag.getAttribute(ATT_DESCRIPTION), cD, new Visibility(Visibility.Type.match(vD[0]), vD.length > 1 ? vD[1] : null), Utilities.resolveToBoolean(pTag.getAttribute(ATT_PASSWORDPROTECTED)), uuid);
-		rp.setDownloadCount(Long.parseLong(pTag.getAttribute(ATT_DOWNLOADCOUNT)));
-		
+        final UUID uuid = UUID.fromString(uuidString);
+        final Visibility visibility = Visibility.parse(visibilityString);
+        final Calendar creationDate = parseCalendar(creationDateString);
+        if (visibility == null || creationDate == null) {
+            return null;
+        }
+		final RemotePackage parsedRemotePackage = new RemotePackage(
+		        u, uuid, name, pTag.getAttribute(ATT_DESCRIPTION),
+                creationDate, visibility, Utilities.resolveToBoolean(pTag.getAttribute(ATT_PASSWORDPROTECTED)));
+        // Load download count
+        final long downloadCount;
+        final String downloadCountString = pTag.getAttribute(ATT_DOWNLOADCOUNT);
+        if (downloadCountString != null) {
+            downloadCount = Long.parseLong(downloadCountString);
+        } else {
+            downloadCount = 0;
+        }
+		parsedRemotePackage.setDownloadCount(downloadCount);
+        // Load files
 		final RemoteFileNodeChildren rChildren = new RemoteFileNodeChildren(null);
-		final LinkedList<EndTaggable> tagStack = new LinkedList<EndTaggable>();
+		final LinkedList<EndTaggable> tagStack = new LinkedList<>();
 		tagStack.push(rChildren); // initialize with RemoteNodeChildren.
 		final StringBuilder build = new StringBuilder(pTag.getPost());
 		EndTaggable peek = rChildren;
@@ -135,9 +150,9 @@ public class RemotePackage extends FilePackage {
 				return null;
 			}
 		}
-		RemoteFileNode[] nodes = rChildren.toArray(new RemoteFileNode[rChildren.size()]);
-		rp.setRoots(nodes);
-		return rp;
+		final RemoteFileNode[] nodes = rChildren.toArray(new RemoteFileNode[rChildren.size()]);
+		parsedRemotePackage.setRoots(nodes);
+		return parsedRemotePackage;
 	}
 	
 }

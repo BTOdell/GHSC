@@ -82,15 +82,16 @@ public class MessageDecoder {
 						}
 						break outer;
 					case BODY:
+					    if (this.buffer == null) {
+					        throw new IllegalStateException("Buffer has not been initialized yet.");
+                        }
 						final int copyLength = Math.min(this.buffer.length - this.offset, bufLen - bufOff);
 						System.arraycopy(buf, bufOff, this.buffer, this.offset, copyLength);
                         this.offset += copyLength;
 						bufOff += copyLength;
 						if (this.offset >= this.buffer.length) {
 							final String parsed = new String(this.cipher.get().decrypt(this.buffer), Application.CHARSET);
-							if (parsed != null) {
-                                this.callback.eventReceived(MessageEvent.parse(parsed));
-							}
+                            this.callback.eventReceived(MessageEvent.parse(parsed));
                             this.state = State.NO_TAG;
                             this.offset = 0;
                             this.buffer = null;

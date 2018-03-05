@@ -24,7 +24,7 @@ public abstract class Chat {
 	 * @param container - a ChatContainer which contains this Chat.
 	 * @param name - the name of the chat.
 	 */
-	public Chat(ChatContainer container, String name) {
+	public Chat(final ChatContainer container, final String name) {
 		this.container = container;
 		this.name = name;
 
@@ -36,7 +36,7 @@ public abstract class Chat {
 	 */
 	protected abstract void init();
 	
-	protected void setSelection(ChatElement element) {
+	protected void setSelection(final ChatElement element) {
 		if (this.lastElement != null) {
 			this.lastElement.setBackground(null);
 		}
@@ -50,12 +50,10 @@ public abstract class Chat {
 	 * Will scroll to the bottom.
 	 */
 	public void scrollBottom() {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				JScrollBar v = Chat.this.scrollPane.getVerticalScrollBar();
-				if (v != null) {
-                    v.setValue(v.getMaximum());
-                }
+		SwingUtilities.invokeLater(() -> {
+			final JScrollBar v = this.scrollPane.getVerticalScrollBar();
+			if (v != null) {
+				v.setValue(v.getMaximum());
 			}
 		});
 	}

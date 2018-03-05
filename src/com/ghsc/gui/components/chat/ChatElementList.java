@@ -17,14 +17,13 @@ public class ChatElementList extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	
-	private Chat container;
-	
-	private ArrayList<ChatElement> elements;
+	private final Chat container;
+	private final ArrayList<ChatElement> elements;
 
-	public ChatElementList(Chat container) {
+	public ChatElementList(final Chat container) {
 		super();
 		this.container = container;
-		this.elements = new ArrayList<ChatElement>();
+		this.elements = new ArrayList<>();
 		this.setBackground(Color.WHITE);
 
 		this.setLayout(new ChatLayout());
@@ -34,7 +33,7 @@ public class ChatElementList extends JPanel {
 		return this.container;
 	}
 	
-	public ChatElement get(int index) {
+	public ChatElement get(final int index) {
 		return this.elements.get(index);
 	}
 	
@@ -42,7 +41,7 @@ public class ChatElementList extends JPanel {
 		return this.elements.size();
 	}
 	
-	public void addElement(ChatElement element) {
+	public void addElement(final ChatElement element) {
 		this.add(element);
 		this.elements.add(element);
 		this.repaint();
@@ -57,19 +56,21 @@ public class ChatElementList extends JPanel {
 	
 	public class ChatLayout implements LayoutManager {
 		
-		private int prefWidth, prefHeight, minWidth, minHeight;
+		private int prefWidth;
+		private int prefHeight;
+		private int minWidth;
+		private int minHeight;
 
 		@Override
-		public void addLayoutComponent(String name, Component comp) {}
+		public void addLayoutComponent(final String name, final Component comp) {}
 
-		private void setSizes(Container parent) {
-			int nComps = parent.getComponentCount();
-			Dimension d = null;
-			
+		private void setSizes(final Container parent) {
+			final int nComps = parent.getComponentCount();
+
 			// reset widths and heights
 			this.prefWidth = this.prefHeight = this.minWidth = this.minHeight = 0;
 			
-			Insets insets = parent.getInsets();
+			final Insets insets = parent.getInsets();
 
 			this.prefWidth = ChatElementList.this.container.getScrollPane().getViewport().getWidth();
 			if (Debug.MAJOR.compareTo(Application.DEBUG) < 0) {
@@ -77,9 +78,9 @@ public class ChatElementList extends JPanel {
             }
 			
 			for (int i = 0; i < nComps; i++) {
-				Component c = parent.getComponent(i);
+				final Component c = parent.getComponent(i);
 				if (c.isVisible()) {
-					d = c.getPreferredSize();
+					Dimension d = c.getPreferredSize();
 					if (d == null) {
                         d = c.getMinimumSize();
                     }
@@ -93,41 +94,41 @@ public class ChatElementList extends JPanel {
 		}
 
 		@Override
-		public void layoutContainer(Container parent) {
+		public void layoutContainer(final Container parent) {
 			this.setSizes(parent);
 			
-			Insets insets = parent.getInsets();
+			final Insets insets = parent.getInsets();
 			int y = insets.top;
 			
-			int nComps = parent.getComponentCount();
+			final int nComps = parent.getComponentCount();
 			for (int i = 0; i < nComps; ++i) {
-				Component comp = parent.getComponent(i);
+				final Component comp = parent.getComponent(i);
 				
 				Dimension d = comp.getPreferredSize();
 				if (d == null) {
                     d = comp.getMinimumSize();
                 }
 				
-				int h = (d != null) ? d.height : 0;
+				final int h = (d != null) ? d.height : 0;
 				comp.setBounds(insets.left, y, this.prefWidth - insets.left - insets.right, h);
 				y += h;
 			}
 		}
 
 		@Override
-		public Dimension minimumLayoutSize(Container parent) {
+		public Dimension minimumLayoutSize(final Container parent) {
 			this.setSizes(parent);
 			return new Dimension(this.minWidth, this.minHeight);
 		}
 
 		@Override
-		public Dimension preferredLayoutSize(Container parent) {
+		public Dimension preferredLayoutSize(final Container parent) {
 			this.setSizes(parent);
 			return new Dimension(this.prefWidth, this.prefHeight);
 		}
 
 		@Override
-		public void removeLayoutComponent(Component comp) {}
+		public void removeLayoutComponent(final Component comp) {}
 	}
 	
 }

@@ -14,7 +14,7 @@ public abstract class ACAdapter {
 		return this.selectedItemString;
 	}
 	
-	public void setSelectedItemString(String itemStr) {
+	public void setSelectedItemString(final String itemStr) {
 		this.selectedItemString = itemStr;
 	}
 	
@@ -23,7 +23,7 @@ public abstract class ACAdapter {
 	public abstract Object getItem(int index);
 	
 	public boolean listContainsSelectedItem() {
-		Object selectedItem = this.getSelectedItem();
+		final Object selectedItem = this.getSelectedItem();
 		for (int i = 0, n = this.getItemCount(); i < n; i++) {
 			if (this.getItem(i) == selectedItem) {
                 return true;
@@ -38,7 +38,7 @@ public abstract class ACAdapter {
 		this.markFrom(0);
 	}
 	
-	public void markFrom(int start) {
+	public void markFrom(final int start) {
 		this.getTextComponent().setCaretPosition(this.getTextComponent().getText().length());
 		this.getTextComponent().moveCaretPosition(start);
 	}

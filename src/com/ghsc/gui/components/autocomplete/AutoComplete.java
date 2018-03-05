@@ -34,7 +34,7 @@ public final class AutoComplete {
 	private static final List<String> COMBO_BOX_ACTIONS = Collections.unmodifiableList(Arrays.asList("selectNext", "selectNext2", "selectPrevious", "selectPrevious2", "pageDownPassThrough", "pageUpPassThrough", "homePassThrough", "endPassThrough"));
 	
 	private static final Object errorFeedbackAction = new TextAction("provide-error-feedback") {
-		public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(final ActionEvent e) {
 			UIManager.getLookAndFeel().provideErrorFeedback(this.getTextComponent(e));
 		}
 	};
@@ -43,17 +43,17 @@ public final class AutoComplete {
 		// prevent instantiation
 	}
 	
-	public static void enable(JComboBox comboBox, boolean strict) {
+	public static void enable(final JComboBox comboBox, final boolean strict) {
 		enable(comboBox, null, strict);
 	}
 	
-	public static void enable(JComboBox comboBox, ObjectToStringConverter converter, boolean strict) {
+	public static void enable(final JComboBox comboBox, final ObjectToStringConverter converter, final boolean strict) {
 		disable(comboBox);
 		comboBox.setEditable(true);
 		// fix the popup location
 		MacOSXPopupLocationFix.install(comboBox);
 		
-		JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
+		final JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
 		final ACAdapter adapter = new ComboBoxAdapter(comboBox);
 		final ACDocument document = createACDocument(adapter, strict, converter, editorComponent.getDocument());
 		enable(editorComponent, document, adapter);
@@ -62,41 +62,41 @@ public final class AutoComplete {
 		comboBox.setEditor(new ACComboBoxEditor(comboBox.getEditor(), document.getConverter()));
 		// Changing the l&f can change the combobox' editor which in turn
 		// would not be autocompletion-enabled. The new editor needs to be set-up.
-		PropertyChangeListener pcl = new PropertyChangeListener(comboBox);
+		final PropertyChangeListener pcl = new PropertyChangeListener(comboBox);
 		comboBox.addPropertyChangeListener("editor", pcl);
 		comboBox.addPropertyChangeListener("enabled", pcl);
 		
 		if (!strict) {
-			ActionMap map = comboBox.getActionMap();
-			for (String key : COMBO_BOX_ACTIONS) {
-				Action a = map.get(key);
+			final ActionMap map = comboBox.getActionMap();
+			for (final String key : COMBO_BOX_ACTIONS) {
+				final Action a = map.get(key);
 				map.put(key, new SelectionAction(a));
 			}
 		}
 	}
 	
-	public static void enable(JList list, JTextComponent textComponent) {
+	public static void enable(final JList list, final JTextComponent textComponent) {
 		enable(list, textComponent, null);
 	}
 	
-	public static void enable(JList list, JTextComponent textComponent, ObjectToStringConverter stringConverter) {
+	public static void enable(final JList list, final JTextComponent textComponent, final ObjectToStringConverter stringConverter) {
 		disable(list);
-		ACAdapter adapter = new ListAdapter(list, textComponent, stringConverter);
-		ACDocument document = createACDocument(adapter, true, stringConverter, textComponent.getDocument());
+		final ACAdapter adapter = new ListAdapter(list, textComponent, stringConverter);
+		final ACDocument document = createACDocument(adapter, true, stringConverter, textComponent.getDocument());
 		enable(textComponent, document, adapter);
 	}
 	
-	public static void enable(JTextComponent textComponent, List<?> items, boolean strictMatching) {
+	public static void enable(final JTextComponent textComponent, final List<?> items, final boolean strictMatching) {
 		enable(textComponent, items, strictMatching, null);
 	}
 	
-	public static void enable(JTextComponent textComponent, List<?> items, boolean strictMatching, ObjectToStringConverter stringConverter) {
-		ACAdapter adapter = new TextComponentAdapter(textComponent, items);
-		ACDocument document = createACDocument(adapter, strictMatching, stringConverter, textComponent.getDocument());
+	public static void enable(final JTextComponent textComponent, final List<?> items, final boolean strictMatching, final ObjectToStringConverter stringConverter) {
+		final ACAdapter adapter = new TextComponentAdapter(textComponent, items);
+		final ACDocument document = createACDocument(adapter, strictMatching, stringConverter, textComponent.getDocument());
 		enable(textComponent, document, adapter);
 	}
 	
-	public static void enable(JTextComponent textComponent, ACDocument document, ACAdapter adapter) {
+	public static void enable(final JTextComponent textComponent, final ACDocument document, final ACAdapter adapter) {
 		disable(textComponent);
 		textComponent.setDocument(document);
 		// mark entire text when the text component gains focus
@@ -105,49 +105,49 @@ public final class AutoComplete {
 		// Tweak some key bindings
 		javax.swing.InputMap editorInputMap = textComponent.getInputMap();
 		while (editorInputMap != null) {
-			javax.swing.InputMap parent = editorInputMap.getParent();
+			final javax.swing.InputMap parent = editorInputMap.getParent();
 			if (parent instanceof UIResource) {
 				installMap(editorInputMap, document.isStrictMatching());
 				break;
 			}
 			editorInputMap = parent;
 		}
-		ActionMap editorActionMap = textComponent.getActionMap();
+		final ActionMap editorActionMap = textComponent.getActionMap();
 		editorActionMap.put("nonstrict-backspace", new NonStrictBackspaceAction(editorActionMap.get(DefaultEditorKit.deletePrevCharAction), editorActionMap.get(DefaultEditorKit.selectionBackwardAction), adapter));
 	}
 
-	static void disable(JComboBox comboBox) {
-		JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
+	static void disable(final JComboBox comboBox) {
+		final JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
 		if (editorComponent.getDocument() instanceof ACDocument) {
-			ACDocument doc = (ACDocument) editorComponent.getDocument();
+			final ACDocument doc = (ACDocument) editorComponent.getDocument();
 			if (doc.isStrictMatching()) {
-				ActionMap map = comboBox.getActionMap();
-				for (String key : COMBO_BOX_ACTIONS) {
+				final ActionMap map = comboBox.getActionMap();
+				for (final String key : COMBO_BOX_ACTIONS) {
 					map.put(key, null);
 				}
 			}
 			// remove old property change listener
-			for (java.beans.PropertyChangeListener l : comboBox.getPropertyChangeListeners("editor")) {
+			for (final java.beans.PropertyChangeListener l : comboBox.getPropertyChangeListeners("editor")) {
 				if (l instanceof AutoComplete.PropertyChangeListener) {
 					comboBox.removePropertyChangeListener("editor", l);
 				}
 			}
-			for (java.beans.PropertyChangeListener l : comboBox.getPropertyChangeListeners("enabled")) {
+			for (final java.beans.PropertyChangeListener l : comboBox.getPropertyChangeListeners("enabled")) {
 				if (l instanceof AutoComplete.PropertyChangeListener) {
 					comboBox.removePropertyChangeListener("enabled", l);
 				}
 			}
-			ACComboBoxEditor editor = (ACComboBoxEditor) comboBox.getEditor();
+			final ACComboBoxEditor editor = (ACComboBoxEditor) comboBox.getEditor();
 			comboBox.setEditor(editor.wrapped);
 			// remove old key listener
-			for (KeyListener l : editorComponent.getKeyListeners()) {
+			for (final KeyListener l : editorComponent.getKeyListeners()) {
 				if (l instanceof AutoComplete.KeyAdapter) {
 					editorComponent.removeKeyListener(l);
 					break;
 				}
 			}
 			disable(editorComponent);
-			for (ActionListener l : comboBox.getActionListeners()) {
+			for (final ActionListener l : comboBox.getActionListeners()) {
 				if (l instanceof ComboBoxAdapter) {
 					comboBox.removeActionListener(l);
 					break;
@@ -158,8 +158,8 @@ public final class AutoComplete {
 		}
 	}
 
-	static void disable(JList list) {
-		for (ListSelectionListener l : list.getListSelectionListeners()) {
+	static void disable(final JList list) {
+		for (final ListSelectionListener l : list.getListSelectionListeners()) {
 			if (l instanceof ListAdapter) {
 				list.removeListSelectionListener(l);
 				break;
@@ -167,13 +167,13 @@ public final class AutoComplete {
 		}
 	}
 
-	static void disable(JTextComponent textComponent) {
-		Document doc = textComponent.getDocument();
+	static void disable(final JTextComponent textComponent) {
+		final Document doc = textComponent.getDocument();
 		if (doc instanceof ACDocument) {
 			// remove autocomplete key/action mappings
 			javax.swing.InputMap map = textComponent.getInputMap();
 			while (map.getParent() != null) {
-				javax.swing.InputMap parent = map.getParent();
+				final javax.swing.InputMap parent = map.getParent();
 				if (parent instanceof AutoComplete.InputMap) {
 					map.setParent(parent.getParent());
 				}
@@ -181,7 +181,7 @@ public final class AutoComplete {
 			}
 			textComponent.getActionMap().put("nonstrict-backspace", null);
 			// remove old focus listener
-			for (FocusListener l : textComponent.getFocusListeners()) {
+			for (final FocusListener l : textComponent.getFocusListeners()) {
 				if (l instanceof AutoComplete.FocusAdapter) {
 					textComponent.removeFocusListener(l);
 					break;
@@ -192,8 +192,8 @@ public final class AutoComplete {
 		}
 	}
 	
-	private static void installMap(javax.swing.InputMap componentMap, boolean strict) {
-		InputMap map = new AutoComplete.InputMap();
+	private static void installMap(final javax.swing.InputMap componentMap, final boolean strict) {
+		final InputMap map = new AutoComplete.InputMap();
 		if (strict) {
 			map.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), DefaultEditorKit.selectionBackwardAction);
 			// ignore VK_DELETE and CTRL+VK_X and beep instead when strict matching
@@ -209,7 +209,7 @@ public final class AutoComplete {
 		componentMap.setParent(map);
 	}
 	
-	static ACDocument createACDocument(ACAdapter adapter, boolean strictMatching, ObjectToStringConverter stringConverter, Document delegate) {
+	static ACDocument createACDocument(final ACAdapter adapter, final boolean strictMatching, final ObjectToStringConverter stringConverter, final Document delegate) {
 		if (delegate instanceof StyledDocument) {
 			return new ACStyledDocument(adapter, strictMatching, stringConverter, (StyledDocument) delegate);
 		}
@@ -218,10 +218,11 @@ public final class AutoComplete {
 
 	static class NonStrictBackspaceAction extends TextAction {
 		
-		Action backspace, selectionBackward;
+		Action backspace;
+		Action selectionBackward;
 		ACAdapter adapter;
 
-		public NonStrictBackspaceAction(Action backspace, Action selectionBackward, ACAdapter adapter) {
+		public NonStrictBackspaceAction(final Action backspace, final Action selectionBackward, final ACAdapter adapter) {
 			super("nonstrict-backspace");
 			this.backspace = backspace;
 			this.selectionBackward = selectionBackward;
@@ -229,7 +230,7 @@ public final class AutoComplete {
 		}
 
 		@Override
-		public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(final ActionEvent e) {
 			if (this.adapter.listContainsSelectedItem()) {
                 this.selectionBackward.actionPerformed(e);
 			} else {
@@ -243,27 +244,27 @@ public final class AutoComplete {
 	}
 	
 	static class FocusAdapter extends java.awt.event.FocusAdapter {
-		private ACAdapter adapter;
+		private final ACAdapter adapter;
 
-		public FocusAdapter(ACAdapter adaptor) {
+		public FocusAdapter(final ACAdapter adaptor) {
 			this.adapter = adaptor;
 		}
 
 		@Override
-		public void focusGained(FocusEvent e) {
+		public void focusGained(final FocusEvent e) {
             this.adapter.markAll();
 		}
 	}
 
 	static class KeyAdapter extends java.awt.event.KeyAdapter {
-		private JComboBox comboBox;
+		private final JComboBox comboBox;
 
-		public KeyAdapter(JComboBox comboBox) {
+		public KeyAdapter(final JComboBox comboBox) {
 			this.comboBox = comboBox;
 		}
 
 		@Override
-		public void keyPressed(KeyEvent e) {
+		public void keyPressed(final KeyEvent e) {
 			// don't popup on action keys (cursor movements, etc...)
 			if (e.isActionKey()) {
 				return;
@@ -282,14 +283,14 @@ public final class AutoComplete {
 	}
 
 	static class PropertyChangeListener implements java.beans.PropertyChangeListener {
-		private JComboBox comboBox;
+		private final JComboBox comboBox;
 
-		public PropertyChangeListener(JComboBox comboBox) {
+		public PropertyChangeListener(final JComboBox comboBox) {
 			this.comboBox = comboBox;
 		}
 
 		@Override
-		public void propertyChange(PropertyChangeEvent evt) {
+		public void propertyChange(final PropertyChangeEvent evt) {
 			if ("editor".equals(evt.getPropertyName())) {
 				this.handleEditor(evt);
 			} else if ("enabled".equals(evt.getPropertyName())) {
@@ -297,36 +298,36 @@ public final class AutoComplete {
 			}
 		}
 
-		private void handleEnabled(PropertyChangeEvent evt) {
+		private void handleEnabled(final PropertyChangeEvent evt) {
 			if (Boolean.TRUE.equals(evt.getNewValue())) {
                 this.comboBox.setEditable(true);
 			} else {
-				JTextComponent textComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
-				boolean strictMatching = ((ACDocument) textComponent.getDocument()).isStrictMatching();
+				final JTextComponent textComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
+				final boolean strictMatching = ((ACDocument) textComponent.getDocument()).isStrictMatching();
                 this.comboBox.setEditable(!strictMatching);
 			}
 		}
 
-		private void handleEditor(PropertyChangeEvent evt) {
+		private void handleEditor(final PropertyChangeEvent evt) {
 			if (evt.getNewValue() instanceof ACComboBoxEditor) {
 				return;
 			}
-			ACComboBoxEditor acEditor = (ACComboBoxEditor) evt.getOldValue();
+			final ACComboBoxEditor acEditor = (ACComboBoxEditor) evt.getOldValue();
 			boolean strictMatching = false;
 			if (acEditor.getEditorComponent() != null) {
-				JTextComponent textComponent = (JTextComponent) acEditor.getEditorComponent();
+				final JTextComponent textComponent = (JTextComponent) acEditor.getEditorComponent();
 				strictMatching = ((ACDocument) textComponent.getDocument()).isStrictMatching();
 				disable(textComponent);
-				for (KeyListener l : textComponent.getKeyListeners()) {
+				for (final KeyListener l : textComponent.getKeyListeners()) {
 					if (l instanceof KeyAdapter) {
 						textComponent.removeKeyListener(l);
 						break;
 					}
 				}
 			}
-			JTextComponent editorComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
-			ACAdapter adapter = new ComboBoxAdapter(this.comboBox);
-			ACDocument document = createACDocument(adapter, strictMatching, acEditor.converter, editorComponent.getDocument());
+			final JTextComponent editorComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
+			final ACAdapter adapter = new ComboBoxAdapter(this.comboBox);
+			final ACDocument document = createACDocument(adapter, strictMatching, acEditor.converter, editorComponent.getDocument());
 			enable(editorComponent, document, adapter);
 			editorComponent.addKeyListener(new AutoComplete.KeyAdapter(this.comboBox));
 			// set before adding the listener for the editor
@@ -335,17 +336,17 @@ public final class AutoComplete {
 	}
 
 	static class SelectionAction implements Action {
-		private Action delegate;
+		private final Action delegate;
 
-		public SelectionAction(Action delegate) {
+		public SelectionAction(final Action delegate) {
 			this.delegate = delegate;
 		}
 		
 		@Override
-		public void actionPerformed(ActionEvent e) {
-			JComboBox comboBox = (JComboBox) e.getSource();
-			JTextComponent textComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
-			ACDocument doc = (ACDocument) textComponent.getDocument();
+		public void actionPerformed(final ActionEvent e) {
+			final JComboBox comboBox = (JComboBox) e.getSource();
+			final JTextComponent textComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
+			final ACDocument doc = (ACDocument) textComponent.getDocument();
 			// doing this prevents the updating of the selected item to "" during the remove prior
 			// to the insert in JTextComponent.setText
 			doc.strictMatching = true;
@@ -357,22 +358,22 @@ public final class AutoComplete {
 		}
 		
 		@Override
-		public void addPropertyChangeListener(java.beans.PropertyChangeListener listener) {
+		public void addPropertyChangeListener(final java.beans.PropertyChangeListener listener) {
             this.delegate.addPropertyChangeListener(listener);
 		}
 		
 		@Override
-		public void removePropertyChangeListener(java.beans.PropertyChangeListener listener) {
+		public void removePropertyChangeListener(final java.beans.PropertyChangeListener listener) {
             this.delegate.removePropertyChangeListener(listener);
 		}
 		
 		@Override
-		public Object getValue(String key) {
+		public Object getValue(final String key) {
 			return this.delegate.getValue(key);
 		}
 		
 		@Override
-		public void putValue(String key, Object value) {
+		public void putValue(final String key, final Object value) {
             this.delegate.putValue(key, value);
 		}
 		
@@ -382,7 +383,7 @@ public final class AutoComplete {
 		}
 
 		@Override
-		public void setEnabled(boolean b) {
+		public void setEnabled(final boolean b) {
             this.delegate.setEnabled(b);
 		}
 	}

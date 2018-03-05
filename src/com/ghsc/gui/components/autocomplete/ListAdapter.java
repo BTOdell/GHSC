@@ -11,11 +11,11 @@ public class ListAdapter extends ACAdapter implements ListSelectionListener {
 	JTextComponent textComponent;
 	ObjectToStringConverter stringConverter;
 
-	public ListAdapter(JList<?> list, JTextComponent textComponent) {
+	public ListAdapter(final JList<?> list, final JTextComponent textComponent) {
 		this(list, textComponent, ObjectToStringConverter.DEFAULT);
 	}
 
-	public ListAdapter(JList<?> list, JTextComponent textComponent, ObjectToStringConverter stringConverter) {
+	public ListAdapter(final JList<?> list, final JTextComponent textComponent, final ObjectToStringConverter stringConverter) {
 		this.list = list;
 		this.textComponent = textComponent;
 		this.stringConverter = stringConverter;
@@ -24,7 +24,7 @@ public class ListAdapter extends ACAdapter implements ListSelectionListener {
 	}
 
 	@Override
-	public void valueChanged(ListSelectionEvent listSelectionEvent) {
+	public void valueChanged(final ListSelectionEvent listSelectionEvent) {
 		this.getTextComponent().setText(this.stringConverter.getPreferredStringForItem(this.list.getSelectedValue()));
 		this.markAll();
 	}
@@ -40,12 +40,12 @@ public class ListAdapter extends ACAdapter implements ListSelectionListener {
 	}
 
 	@Override
-	public Object getItem(int index) {
+	public Object getItem(final int index) {
 		return this.list.getModel().getElementAt(index);
 	}
 
 	@Override
-	public void setSelectedItem(Object item) {
+	public void setSelectedItem(final Object item) {
         this.list.setSelectedValue(item, true);
 	}
 

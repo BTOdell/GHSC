@@ -10,8 +10,8 @@ public class FlashFrame extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private Flasher flasher;
-	private boolean keyListener;
+	private final Flasher flasher;
+	private final boolean keyListener;
 	private JPanel canvas;
 	
 	/**
@@ -21,7 +21,7 @@ public class FlashFrame extends JFrame {
 		this(false);
 	}
 	
-	public FlashFrame(boolean keyListener) {
+	public FlashFrame(final boolean keyListener) {
 		this.keyListener = keyListener;
 		this.initComponents();
 		this.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -40,8 +40,8 @@ public class FlashFrame extends JFrame {
 	private void initComponents() {
 		if (this.keyListener) {
 			this.addKeyListener(new KeyAdapter() {
-				public void keyPressed(KeyEvent arg0) {
-					if (arg0.getKeyCode() == KeyEvent.VK_ESCAPE) {
+				public void keyPressed(final KeyEvent keyEvent) {
+					if (keyEvent.getKeyCode() == KeyEvent.VK_ESCAPE) {
 						FlashFrame.this.dispose();
 					}
 				}

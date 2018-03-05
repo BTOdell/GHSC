@@ -10,7 +10,7 @@ public class TextComponentAdapter extends ACAdapter {
     JTextComponent textComponent;
     Object selectedItem;
     
-    public TextComponentAdapter(JTextComponent textComponent, List<?> items) {
+    public TextComponentAdapter(final JTextComponent textComponent, final List<?> items) {
         this.items = items;
         this.textComponent = textComponent;
     }
@@ -26,12 +26,12 @@ public class TextComponentAdapter extends ACAdapter {
     }
     
     @Override
-    public Object getItem(int index) {
+    public Object getItem(final int index) {
         return this.items.get(index);
     }
     
     @Override
-    public void setSelectedItem(Object item) {
+    public void setSelectedItem(final Object item) {
         this.selectedItem = item;
     }
     

@@ -37,24 +37,25 @@ public class PasswordWizard extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private MainFrame frame;
-	private WizardListener<String> listener;
-	private WizardValidator<String, String, Boolean> validator;
-	private String title, label;
+	private final MainFrame frame;
+	private final WizardListener<String> listener;
+	private final WizardValidator<String, String, Boolean> validator;
+	private final String title;
+	private final String label;
 	
-	private Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
+	private final Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
 	
 	private SwingWorker<Boolean, String> passwordWorker;
 	
-	private JLabel PasswordLabel;
-	private JPasswordField PasswordField;
-	private JButton LoginButton;
-	private JButton CancelButton;
+	private JLabel passwordLabel;
+	private JPasswordField passwordField;
+	private JButton loginButton;
+	private JButton cancelButton;
 
 	/**
 	 * Create the dialog.
 	 */
-	public PasswordWizard(MainFrame frame, String title, String label, WizardListener<String> listener, WizardValidator<String, String, Boolean> validator) {
+	public PasswordWizard(final MainFrame frame, final String title, final String label, final WizardListener<String> listener, final WizardValidator<String, String, Boolean> validator) {
 		super(frame);
 		this.frame = frame;
 		this.title = title;
@@ -66,8 +67,8 @@ public class PasswordWizard extends JDialog {
 	}
 	
 	@Override
-	public void setCursor(Cursor cursor) {
-		for (Component comp : this.getComponents()) {
+	public void setCursor(final Cursor cursor) {
+		for (final Component comp : this.getComponents()) {
 			if (comp != null) {
                 comp.setCursor(cursor);
             }
@@ -88,7 +89,7 @@ public class PasswordWizard extends JDialog {
 	 */
 	private void initComponents() {
 		this.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent arg0) {
+			public void windowClosing(final WindowEvent arg0) {
 				PasswordWizard.this.close();
 			}
 		});
@@ -109,99 +110,93 @@ public class PasswordWizard extends JDialog {
 	}
 	
 	private JLabel getChannelNameLabel() {
-		if (this.PasswordLabel == null) {
-			this.PasswordLabel = new JLabel(this.label);
-			this.PasswordLabel.setFont(Fonts.GLOBAL);
-			this.PasswordLabel.setBounds(23, 11, 180, 20);
+		if (this.passwordLabel == null) {
+			this.passwordLabel = new JLabel(this.label);
+			this.passwordLabel.setFont(Fonts.GLOBAL);
+			this.passwordLabel.setBounds(23, 11, 180, 20);
 		}
-		return this.PasswordLabel;
+		return this.passwordLabel;
 	}
 	
 	private JPasswordField getChannelNameField() {
-		if (this.PasswordField == null) {
-			this.PasswordField = new JPasswordField();
-			this.PasswordField.addFocusListener(new FocusAdapter() {
-				public void focusGained(FocusEvent arg0) {
-					PasswordWizard.this.PasswordField.setBorder(UIManager.getBorder("PasswordField.border"));
+		if (this.passwordField == null) {
+			this.passwordField = new JPasswordField();
+			this.passwordField.addFocusListener(new FocusAdapter() {
+				public void focusGained(final FocusEvent arg0) {
+					PasswordWizard.this.passwordField.setBorder(UIManager.getBorder("PasswordField.border"));
 				}
 			});
-			this.PasswordField.addMouseListener(new MouseAdapter() {
-				public void mousePressed(MouseEvent arg0) {
-					PasswordWizard.this.PasswordField.setBorder(UIManager.getBorder("PasswordField.border"));
+			this.passwordField.addMouseListener(new MouseAdapter() {
+				public void mousePressed(final MouseEvent arg0) {
+					PasswordWizard.this.passwordField.setBorder(UIManager.getBorder("PasswordField.border"));
 				}
 			});
-			this.PasswordField.addKeyListener(new KeyAdapter() {
-				public void keyPressed(KeyEvent e) {
-					PasswordWizard.this.PasswordField.setBorder(UIManager.getBorder("PasswordField.border"));
+			this.passwordField.addKeyListener(new KeyAdapter() {
+				public void keyPressed(final KeyEvent e) {
+					PasswordWizard.this.passwordField.setBorder(UIManager.getBorder("PasswordField.border"));
 				}
 			});
-			this.PasswordField.setBounds(23, 31, 220, 20);
-			this.PasswordField.setColumns(10);
+			this.passwordField.setBounds(23, 31, 220, 20);
+			this.passwordField.setColumns(10);
 		}
-		return this.PasswordField;
+		return this.passwordField;
 	}
 	
 	private JButton getLoginButton() {
-		if (this.LoginButton == null) {
-			this.LoginButton = new JButton("Login");
-			this.LoginButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
+		if (this.loginButton == null) {
+			this.loginButton = new JButton("Login");
+			this.loginButton.addActionListener(new ActionListener() {
+				public void actionPerformed(final ActionEvent event) {
 					if (PasswordWizard.this.passwordWorker == null) {
-						final String pass = new String(PasswordWizard.this.PasswordField.getPassword());
+						final String pass = new String(PasswordWizard.this.passwordField.getPassword());
 						PasswordWizard.this.passwordWorker = new SwingWorker<Boolean, String>() {
-							
-							protected Boolean doInBackground() throws Exception {
+							protected Boolean doInBackground() {
 								return PasswordWizard.this.validator.validate(pass).getResult();
 							}
-
 							protected void done() {
 								try {
-									boolean result = this.get();
+									final boolean result = this.get();
 									if (result) {
 										PasswordWizard.this.listener.wizardFinished(pass);
 										PasswordWizard.this.dispose();
 									} else {
-										PasswordWizard.this.PasswordField.setBorder(PasswordWizard.this.errorBorder);
+										PasswordWizard.this.passwordField.setBorder(PasswordWizard.this.errorBorder);
 									}
-								} catch (Exception ignored) {
+								} catch (final Exception ignored) {
 								} finally {
 									PasswordWizard.this.setCursor(null);
 									PasswordWizard.this.passwordWorker = null;
 								}
 							}
-
 						};
 						PasswordWizard.this.passwordWorker.execute();
-						
 						PasswordWizard.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 					}
 				}
 			});
-			this.LoginButton.setFont(Fonts.GLOBAL);
-			this.LoginButton.setActionCommand("OK");
-			this.LoginButton.setBounds(23, 62, 105, 23);
-			this.getRootPane().setDefaultButton(this.LoginButton);
+			this.loginButton.setFont(Fonts.GLOBAL);
+			this.loginButton.setActionCommand("OK");
+			this.loginButton.setBounds(23, 62, 105, 23);
+			this.getRootPane().setDefaultButton(this.loginButton);
 		}
-		return this.LoginButton;
+		return this.loginButton;
 	}
 	
 	private JButton getCancelButton() {
-		if (this.CancelButton == null) {
-			this.CancelButton = new JButton("Cancel");
-			this.CancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					if (PasswordWizard.this.passwordWorker != null) {
-						PasswordWizard.this.passwordWorker.cancel(true);
-                    }
-					PasswordWizard.this.close();
-				}
-			});
-			this.CancelButton.setFont(Fonts.GLOBAL);
-			this.CancelButton.setToolTipText("Cancels the login.");
-			this.CancelButton.setActionCommand("Cancel");
-			this.CancelButton.setBounds(138, 62, 105, 23);
+		if (this.cancelButton == null) {
+			this.cancelButton = new JButton("Cancel");
+			this.cancelButton.addActionListener(event -> {
+                if (this.passwordWorker != null) {
+					this.passwordWorker.cancel(true);
+}
+				this.close();
+            });
+			this.cancelButton.setFont(Fonts.GLOBAL);
+			this.cancelButton.setToolTipText("Cancels the login.");
+			this.cancelButton.setActionCommand("Cancel");
+			this.cancelButton.setBounds(138, 62, 105, 23);
 		}
-		return this.CancelButton;
+		return this.cancelButton;
 	}
 	
 }

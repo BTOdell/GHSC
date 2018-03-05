@@ -56,7 +56,7 @@ public class UserSocketListener implements ISocketController {
 				}
 				acceptSocket.close();
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.out.println("User socket listener interrupted.");
 		}
 	}

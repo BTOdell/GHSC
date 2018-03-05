@@ -18,7 +18,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	private static MenuElement[] path;
 	
 	private final ChangeListener cl = new ChangeListener() {
-		public void stateChanged(ChangeEvent e) {
+		public void stateChanged(final ChangeEvent e) {
 			if (EnhancedCheckBoxMenuItem.this.getModel().isArmed() && EnhancedCheckBoxMenuItem.this.isShowing()) {
 				path = MenuSelectionManager.defaultManager().getSelectedPath();
 			}
@@ -31,16 +31,16 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 		super();
 	}
 	
-	public EnhancedCheckBoxMenuItem(boolean stayOpen) {
+	public EnhancedCheckBoxMenuItem(final boolean stayOpen) {
 		super();
 		this.setStayOpen(stayOpen);
 	}
 	
-	public EnhancedCheckBoxMenuItem(String text) {
+	public EnhancedCheckBoxMenuItem(final String text) {
 		super(text);
 	}
 	
-	public EnhancedCheckBoxMenuItem(String text, boolean stayOpen) {
+	public EnhancedCheckBoxMenuItem(final String text, final boolean stayOpen) {
 		super(text);
 		this.setStayOpen(stayOpen);
 	}
@@ -49,7 +49,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 		return this.stayOpen;
 	}
 	
-	public void setStayOpen(boolean enabled) {
+	public void setStayOpen(final boolean enabled) {
 		if (this.stayOpen != enabled) { // state will change
 			this.stayOpen = enabled;
 			if (enabled) {
@@ -67,12 +67,12 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	 *            the time to "hold down" the button, in milliseconds
 	 */
 	@Override
-	public void doClick(int pressTime) {
+	public void doClick(final int pressTime) {
 		super.doClick(pressTime);
 		if (path.length > 0) {
-			MenuElement source = path[0];
+			final MenuElement source = path[0];
 			if (source != null && source instanceof JPopupMenu) {
-				JPopupMenu jpm = (JPopupMenu) source;
+				final JPopupMenu jpm = (JPopupMenu) source;
 				jpm.setVisible(true);
 			}
 		}

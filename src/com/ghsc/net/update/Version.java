@@ -17,14 +17,16 @@ import java.util.regex.Pattern;
  */
 public class Version implements Comparable<Version> {
 	
-	public static final String COMPATIBLE = "c", REQUIRED = "r", FORCED = "f";
+	public static final String COMPATIBLE = "c";
+	public static final String REQUIRED = "r";
+	public static final String FORCED = "f";
 	
 	private final int[] version = new int[3];
 	private String status;
 	private final ArrayList<String> flags;
 	
 	private Version() {
-		this.flags = new ArrayList<String>();
+		this.flags = new ArrayList<>();
 	}
 	
 	public String getStatus() {
@@ -35,7 +37,7 @@ public class Version implements Comparable<Version> {
 		this.status = status;
 	}
 	
-	public boolean hasFlag(String flag) {
+	public boolean hasFlag(final String flag) {
 		return this.flags.contains(flag);
 	}
 	
@@ -44,14 +46,14 @@ public class Version implements Comparable<Version> {
 	 * @param from - the String representation to parse from.
 	 * @return a version from the string.
 	 */
-	public static Version parse(String from) {
-		Version v = new Version();
-		String[] split = from.split(Pattern.quote(" "));
-		String[] versionSplit = split[0].split(Pattern.quote("."), v.version.length);
+	public static Version parse(final String from) {
+		final Version v = new Version();
+		final String[] split = from.split(Pattern.quote(" "));
+		final String[] versionSplit = split[0].split(Pattern.quote("."), v.version.length);
 		for (int i = 0; i < versionSplit.length; i++) {
 			try {
 				v.version[i] = Integer.parseInt(versionSplit[i]);
-			} catch (NumberFormatException nfe) {
+			} catch (final NumberFormatException nfe) {
 				return null;
 			}
 		}
@@ -61,7 +63,7 @@ public class Version implements Comparable<Version> {
 		return v;
 	}
 	
-	public static Version create(String parse, String status) {
+	public static Version create(final String parse, final String status) {
 		final Version v = parse(parse);
 		if (v == null) {
 			return null;
@@ -88,7 +90,7 @@ public class Version implements Comparable<Version> {
 	 * @return a basic String representation of this version.
 	 */
 	public String toString() {
-		StringBuilder build = new StringBuilder();
+		final StringBuilder build = new StringBuilder();
 		for (int i = 0; i < this.version.length; i++) {
 			build.append(this.version[i]);
 			if (i + 1 < this.version.length) {
@@ -99,9 +101,9 @@ public class Version implements Comparable<Version> {
 	}
 
 	@Override
-	public int compareTo(Version o) {
+	public int compareTo(final Version o) {
 		for (int i = 0; i < this.version.length; i++) {
-			int diff = o.version[i] - this.version[i];
+			final int diff = o.version[i] - this.version[i];
 			if (diff == 0) {
 				continue;
 			}
@@ -111,7 +113,7 @@ public class Version implements Comparable<Version> {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		return o instanceof Version && this.compareTo((Version) o) == 0;
 	}
 	

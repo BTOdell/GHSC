@@ -11,7 +11,7 @@ public class ACComboBoxEditor implements ComboBoxEditor {
 	final ObjectToStringConverter converter;
 	private Object lastSelected;
 	
-	public ACComboBoxEditor(ComboBoxEditor wrapped, ObjectToStringConverter converter) {
+	public ACComboBoxEditor(final ComboBoxEditor wrapped, final ObjectToStringConverter converter) {
 		this.wrapped = wrapped;
 		this.converter = converter;
 	}
@@ -45,12 +45,12 @@ public class ACComboBoxEditor implements ComboBoxEditor {
 	}
 
 	@Override
-	public void addActionListener(ActionListener l) {
+	public void addActionListener(final ActionListener l) {
 		this.wrapped.addActionListener(l);
 	}
 
 	@Override
-	public void removeActionListener(ActionListener l) {
+	public void removeActionListener(final ActionListener l) {
 		this.wrapped.removeActionListener(l);
 	}
 	

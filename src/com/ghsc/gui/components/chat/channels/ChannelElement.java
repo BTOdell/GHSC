@@ -15,32 +15,32 @@ public class ChannelElement extends ChatElement {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private ChannelElement(ChatElementList container, TimeStamp time, String title, String message, boolean me) {
+	private ChannelElement(final ChatElementList container, final TimeStamp time, final String title, final String message, final boolean me) {
 		super(container, time, title, message, me);
 	}
 	
 	/**
 	 * Creates for my messages.
 	 */
-	public ChannelElement(ChatElementList container, TimeStamp time, String title, String message) {
+	public ChannelElement(final ChatElementList container, final TimeStamp time, final String title, final String message) {
 		super(container, time, title, message);
 	}
 	
 	/**
 	 * Creates for automated message.
 	 */
-	public ChannelElement(ChatElementList container, TimeStamp time, String sender, String title, String message) {
+	public ChannelElement(final ChatElementList container, final TimeStamp time, final String sender, final String title, final String message) {
 		super(container, time, sender, title, message);
 	}
 	
-	public ChannelElement(ChatElementList container, TimeStamp time, String sender, String title, String message, Color color) {
+	public ChannelElement(final ChatElementList container, final TimeStamp time, final String sender, final String title, final String message, final Color color) {
 		super(container, time, sender, title, message, color);
 	}
 	
 	/**
 	 * Creates for actual user.
 	 */
-	public ChannelElement(ChatElementList container, TimeStamp time, User sender, String title, String message, boolean show, Color color) {
+	public ChannelElement(final ChatElementList container, final TimeStamp time, final User sender, final String title, final String message, final boolean show, final Color color) {
 		super(container, time, sender, title, message, show, color);
 	}
 	

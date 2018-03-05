@@ -173,7 +173,7 @@ public class ChatContainer extends JTabbedPane {
 		return chats.toArray(new String[chats.size()]);
 	}
 	
-	public void refreshUser(User u) {
+	public void refreshUser(final User u) {
 		synchronized (this.chats) {
 			for (final Chat chat : this.chats) {
                 if (chat instanceof Channel) {

@@ -23,18 +23,17 @@ import com.ghsc.gui.fileshare.FileShareFrame;
 import com.ghsc.gui.fileshare.internal.RemotePackage;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A GUI dialog for locating a private package.
  */
 public class FindPackageDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
 
-	private FileShareFrame frame;
-	private WizardListener<RemotePackage[]> listener;
-	private WizardValidator<String, RemotePackage[], Boolean> validator;
+	private final FileShareFrame frame;
+	private final WizardListener<RemotePackage[]> listener;
+	private final WizardValidator<String, RemotePackage[], Boolean> validator;
 	
-	private Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
+	private final Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
 	
 	private SwingWorker<ValidationResult<RemotePackage[], Boolean>, String> discoverWorker;
 	
@@ -46,7 +45,7 @@ public class FindPackageDialog extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public FindPackageDialog(FileShareFrame frame, WizardListener<RemotePackage[]> listener, WizardValidator<String, RemotePackage[], Boolean> validator) {
+	public FindPackageDialog(final FileShareFrame frame, final WizardListener<RemotePackage[]> listener, final WizardValidator<String, RemotePackage[], Boolean> validator) {
 		super(frame);
 		this.frame = frame;
 		this.listener = listener;
@@ -62,7 +61,7 @@ public class FindPackageDialog extends JDialog {
 	
 	private void initComponents() {
 		this.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent arg0) {
+			public void windowClosing(final WindowEvent arg0) {
 				FindPackageDialog.this.close();
 			}
 		});
@@ -105,23 +104,23 @@ public class FindPackageDialog extends JDialog {
 		if (this.okButton == null) {
 			this.okButton = new JButton("OK");
 			this.okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
+				public void actionPerformed(final ActionEvent event) {
 					if (FindPackageDialog.this.discoverWorker == null) {
 						final String key = FindPackageDialog.this.getKeyField().getText();
 						FindPackageDialog.this.discoverWorker = new SwingWorker<ValidationResult<RemotePackage[], Boolean>, String>() {
-							protected ValidationResult<RemotePackage[], Boolean> doInBackground() throws Exception {
+							protected ValidationResult<RemotePackage[], Boolean> doInBackground() {
 								return FindPackageDialog.this.validator.validate(key);
 							}
 							protected void done() {
 								try {
-									ValidationResult<RemotePackage[], Boolean> result = this.get();
+									final ValidationResult<RemotePackage[], Boolean> result = this.get();
 									if (result != null && result.getResult()) {
 										FindPackageDialog.this.listener.wizardFinished(result.getValue());
 										FindPackageDialog.this.dispose();
 									} else {
 										FindPackageDialog.this.getKeyField().setBorder(FindPackageDialog.this.errorBorder);
 									}
-								} catch (Exception ignored) {
+								} catch (final Exception ignored) {
 								} finally {
 									FindPackageDialog.this.discoverWorker = null;
 								}
@@ -142,14 +141,12 @@ public class FindPackageDialog extends JDialog {
 	private JButton getCancelButton() {
 		if (this.cancelButton == null) {
 			this.cancelButton = new JButton("Cancel");
-			this.cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					if (FindPackageDialog.this.discoverWorker != null) {
-						FindPackageDialog.this.discoverWorker.cancel(true);
-                    }
-					FindPackageDialog.this.close();
-				}
-			});
+			this.cancelButton.addActionListener(event -> {
+                if (this.discoverWorker != null) {
+					this.discoverWorker.cancel(true);
+}
+				this.close();
+            });
 			this.cancelButton.setFont(Fonts.GLOBAL);
 			this.cancelButton.setToolTipText("Cancels this dialog.");
 			this.cancelButton.setActionCommand("Cancel");

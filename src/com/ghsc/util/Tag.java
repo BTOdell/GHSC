@@ -12,9 +12,15 @@ import java.util.Set;
  */
 public class Tag {
 	
-	protected String raw, raw_encoded, name, post, tag, tag_encoded;
+	protected String raw;
+	protected String raw_encoded;
+	protected String name;
+	protected String post;
+	protected String tag;
+	protected String tag_encoded;
 	protected HashMap<String, Base64Value> attributes;
-	protected int length, length_encoded;
+	protected int length;
+	protected int length_encoded;
 	protected boolean parsed;
 	
 	public Tag(final Object raw) {
@@ -143,7 +149,7 @@ public class Tag {
 	 * @param force whether to force parsing even if this tag is already parsed.
 	 * @return this tag after parsing.
 	 */
-	public Tag parse(boolean force) {
+	public Tag parse(final boolean force) {
 		if (this.parsed && !force) {
             return this;
         }
@@ -205,7 +211,7 @@ public class Tag {
 		return this.parseBasic(false);
 	}
 	
-	public Tag parseBasic(boolean force) {
+	public Tag parseBasic(final boolean force) {
 		if (this.parsed && !force) {
             return this;
         }
@@ -247,10 +253,10 @@ public class Tag {
 		if (equalsIndex < 0) {
 			this.name = build.toString();
 		} else {
-			final String data0 = build.substring(0, equalsIndex), 
-					data1 = build.substring(equalsIndex + 2, build.length() - 1);
+			final String data0 = build.substring(0, equalsIndex);
+			final String data1 = build.substring(equalsIndex + 2, build.length() - 1);
 			if (this.attributes == null) {
-				this.attributes = new HashMap<String, Base64Value>();
+				this.attributes = new HashMap<>();
             }
 			this.attributes.put(data0, new Base64Value(Base64.decode(data1), data1));
 		}
@@ -271,23 +277,26 @@ public class Tag {
 	 * If the length of the attributes aren't even, then the last attributes is appended as post data.
 	 * @return a Tag object from the arguments.
 	 */
-	public static Tag construct(Object name, Object... attributes) {
+	public static Tag construct(final Object name, final Object... attributes) {
 		int aLength = attributes.length;
-		boolean odd = (aLength & 1) == 1;
+		final boolean odd = (aLength & 1) == 1;
 		if (odd) {
             aLength--;
         }
-		final StringBuilder build = new StringBuilder(), buildE = new StringBuilder();
+		final StringBuilder build = new StringBuilder();
+		final StringBuilder buildE = new StringBuilder();
 		build.append('<').append(name.toString());
 		buildE.append('<').append(name.toString());
-		final HashMap<String, Base64Value> att = aLength > 0 ? new HashMap<String, Base64Value>() : null;
+		final HashMap<String, Base64Value> att = aLength > 0 ? new HashMap<>() : null;
 		int i = 0;
 		while (i < aLength) {
-			final Object key = attributes[i++], value = attributes[i++];
+			final Object key = attributes[i++];
+			final Object value = attributes[i++];
 			if (key == null || value == null) {
                 continue;
             }
-			final String keyString = key.toString(), valueString = value.toString();
+			final String keyString = key.toString();
+			final String valueString = value.toString();
 			final Base64Value bv = new Base64Value(valueString, Base64.encode(valueString));
 			att.put(keyString, bv);
 			build.append(' ').append(keyString).append("=\"").append(valueString).append('"');
@@ -295,7 +304,8 @@ public class Tag {
 		}
 		build.append('>');
 		buildE.append('>');
-		final String tagString = build.toString(), tagEString = buildE.toString();
+		final String tagString = build.toString();
+		final String tagEString = buildE.toString();
 		if (odd) {
 			build.append(attributes[aLength]);
 			buildE.append(attributes[aLength]);
@@ -306,7 +316,8 @@ public class Tag {
 	
 	private static class Base64Value {
 		
-		private String value, base64;
+		private final String value;
+		private final String base64;
 		
 		private Base64Value(final String value, final String base64) {
 			this.value = value;

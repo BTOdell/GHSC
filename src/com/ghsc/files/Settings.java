@@ -35,22 +35,16 @@ public class Settings extends FileStorage {
 	
 	private static void configureStaticSettings() {
 		if (settingsInstance != null) {
-			{
-				// application last directory for filechooser
-				settingsInstance.addHook(new Hook() {
-					public Node onSave() {
-						return Application.LAST_DIRECTORY != null ? 
-								new Node(Tag.construct("application_lastdir"), Application.LAST_DIRECTORY.getPath()) : null;
-					}
-				});
-				final Node lastDirNode = settingsInstance.search("/application_lastdir");
-				if (lastDirNode != null) {
-					final String lastDirString = lastDirNode.getData();
-					if (lastDirString != null) {
-						final File lastDirFile = new File(lastDirString);
-						if (lastDirFile.exists()) {
-							Application.LAST_DIRECTORY = lastDirFile;
-						}
+			// Application last directory for FileChooser
+			settingsInstance.addHook(() -> Application.LAST_DIRECTORY != null ?
+					new Node(Tag.construct("application_lastdir"), Application.LAST_DIRECTORY.getPath()) : null);
+			final Node lastDirNode = settingsInstance.search("/application_lastdir");
+			if (lastDirNode != null) {
+				final String lastDirString = lastDirNode.getData();
+				if (lastDirString != null) {
+					final File lastDirFile = new File(lastDirString);
+					if (lastDirFile.exists()) {
+						Application.LAST_DIRECTORY = lastDirFile;
 					}
 				}
 			}

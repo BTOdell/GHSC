@@ -22,11 +22,11 @@ public class FilterDocument extends DefaultStyledDocument {
 	}
 	
 	@Override
-	public void insertString(int offset, String str, AttributeSet as) throws BadLocationException {
+	public void insertString(final int offset, final String str, final AttributeSet as) throws BadLocationException {
 		final StringBuilder sb = new StringBuilder(str);
 		int i = 0;
 		while (i < sb.length()) {
-			char c = sb.charAt(i);
+			final char c = sb.charAt(i);
 			if (this.filter != null && !this.filter.accept(c)) {
 				sb.deleteCharAt(i);
 				continue;

@@ -13,18 +13,18 @@ public class Boot {
 	 * The main starting point of application.
 	 * @param args - any parameters to pass?
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		final Application application = Application.getInstance();
 		System.out.println("Starting up...");
 		try {
 			System.setSecurityManager(null);
-		} catch (SecurityException ignored) {}
+		} catch (final SecurityException ignored) {}
 		Profile.getProfile();
-		Settings settings = Settings.getSettings();
+		final Settings settings = Settings.getSettings();
 		System.out.println("GHSC folder: " + settings.getStorageDirectory());
 		try {
 			application.initialize();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}

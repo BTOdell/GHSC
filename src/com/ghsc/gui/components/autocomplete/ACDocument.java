@@ -20,38 +20,24 @@ import javax.swing.text.Segment;
 
 public class ACDocument implements Document {
 
-	private static final Comparator<String> EQUALS_IGNORE_CASE = new Comparator<String>() {
-		public int compare(String o1, String o2) {
-			return o1.equalsIgnoreCase(o2) ? 0 : -1;
+	private static final Comparator<String> EQUALS_IGNORE_CASE = (o1, o2) -> o1.equalsIgnoreCase(o2) ? 0 : -1;
+	private static final Comparator<String> STARTS_WITH_IGNORE_CASE = (o1, o2) -> {
+		if (o1.length() < o2.length()) {
+			return -1;
 		}
+		return o1.regionMatches(true, 0, o2, 0, o2.length()) ? 0 : -1;
 	};
-	private static final Comparator<String> STARTS_WITH_IGNORE_CASE = new Comparator<String>() {
-		public int compare(String o1, String o2) {
-			if (o1.length() < o2.length()) {
-				return -1;
-			}
-			return o1.regionMatches(true, 0, o2, 0, o2.length()) ? 0 : -1;
-		}
-	};
-	private static final Comparator<String> EQUALS = new Comparator<String>() {
-		public int compare(String o1, String o2) {
-			return o1.equals(o2) ? 0 : -1;
-		}
-	};
-	private static final Comparator<String> STARTS_WITH = new Comparator<String>() {
-		public int compare(String o1, String o2) {
-			return o1.startsWith(o2) ? 0 : -1;
-		}
-	};
-	
+	private static final Comparator<String> EQUALS = (o1, o2) -> o1.equals(o2) ? 0 : -1;
+	private static final Comparator<String> STARTS_WITH = (o1, o2) -> o1.startsWith(o2) ? 0 : -1;
+
 	protected final Document delegate;
 	private final Handler handler;
 	ACAdapter adapter;
-	private ObjectToStringConverter converter;
+	private final ObjectToStringConverter converter;
 	protected boolean strictMatching;
 	boolean selecting;
-	
-	public ACDocument(ACAdapter adapter, boolean strictMatching, ObjectToStringConverter converter, Document delegate) {
+
+	public ACDocument(final ACAdapter adapter, final boolean strictMatching, final ObjectToStringConverter converter, final Document delegate) {
 		if (adapter == null) {
 			throw new IllegalArgumentException("adapter cannot be null");
 		}
@@ -74,11 +60,11 @@ public class ACDocument implements Document {
 		this.adapter.markAll();
 	}
 	
-	public ACDocument(ACAdapter adapter, boolean strictMatching, ObjectToStringConverter stringConverter) {
+	public ACDocument(final ACAdapter adapter, final boolean strictMatching, final ObjectToStringConverter stringConverter) {
 		this(adapter, strictMatching, stringConverter, null);
 	}
 	
-	public ACDocument(ACAdapter adapter, boolean strictMatching) {
+	public ACDocument(final ACAdapter adapter, final boolean strictMatching) {
 		this(adapter, strictMatching, null);
 	}
 	
@@ -95,7 +81,7 @@ public class ACDocument implements Document {
 	}
 
 	@Override
-	public void remove(int offs, int len) throws BadLocationException {
+	public void remove(final int offs, final int len) throws BadLocationException {
 		// return immediately when selecting an item
 		if (this.selecting) {
 			return;
@@ -108,7 +94,7 @@ public class ACDocument implements Document {
 	}
 
 	@Override
-	public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
+	public void insertString(int offs, final String str, final AttributeSet a) throws BadLocationException {
 		// return immediately when selecting an item
 		if (this.selecting) {
 			return;
@@ -116,8 +102,8 @@ public class ACDocument implements Document {
 		// insert the string into the document
         this.getDelegate().insertString(offs, str, a);
 		// lookup and select a matching item
-		LookupResult lookupResult;
-		String pattern = this.getText(0, this.getLength());
+		final LookupResult lookupResult;
+		final String pattern = this.getText(0, this.getLength());
 		if (pattern == null || pattern.isEmpty()) {
 			lookupResult = new LookupResult(null, "");
             this.setSelectedItem(lookupResult.matchingItem, lookupResult.matchingString);
@@ -147,30 +133,30 @@ public class ACDocument implements Document {
 		}
         this.setText(lookupResult.matchingString);
 		// select the completed part
-		int len = str == null ? 0 : str.length();
+		final int len = str == null ? 0 : str.length();
 		offs = lookupResult.matchingString == null ? 0 : offs + len;
 		this.adapter.markFrom(offs);
 	}
 	
-	private void setText(String text) {
+	private void setText(final String text) {
 		try {
 			// remove all text and insert the completed string
             this.getDelegate().remove(0, this.getLength());
             this.getDelegate().insertString(0, text, null);
-		} catch (BadLocationException e) {
+		} catch (final BadLocationException e) {
 			throw new RuntimeException(e.toString());
 		}
 	}
 	
-	private void setSelectedItem(Object item, String itemAsString) {
+	private void setSelectedItem(final Object item, final String itemAsString) {
 		this.selecting = true;
 		this.adapter.setSelectedItem(item);
 		this.adapter.setSelectedItemString(itemAsString);
 		this.selecting = false;
 	}
 	
-	private LookupResult lookupItem(String pattern) {
-		Object selectedItem = this.adapter.getSelectedItem();
+	private LookupResult lookupItem(final String pattern) {
+		final Object selectedItem = this.adapter.getSelectedItem();
 		LookupResult lookupResult;
 		// first try: case sensitive
 		lookupResult = this.lookupItem(pattern, EQUALS);
@@ -202,8 +188,8 @@ public class ACDocument implements Document {
 		return new LookupResult(null, "");
 	}
 
-	private LookupResult lookupOneItem(Object item, String pattern, Comparator<String> comparator) {
-		String[] possibleStrings = this.converter.getPossibleStringsForItem(item);
+	private LookupResult lookupOneItem(final Object item, final String pattern, final Comparator<String> comparator) {
+		final String[] possibleStrings = this.converter.getPossibleStringsForItem(item);
 		if (possibleStrings != null) {
 			for (final String possibleString : possibleStrings) {
 				if (comparator.compare(possibleString, pattern) == 0) {
@@ -214,11 +200,11 @@ public class ACDocument implements Document {
 		return null;
 	}
 
-	private LookupResult lookupItem(String pattern, Comparator<String> comparator) {
+	private LookupResult lookupItem(final String pattern, final Comparator<String> comparator) {
 		// iterate over all items and return first match
 		for (int i = 0, n = this.adapter.getItemCount(); i < n; i++) {
-			Object currentItem = this.adapter.getItem(i);
-			LookupResult result = this.lookupOneItem(currentItem, pattern, comparator);
+			final Object currentItem = this.adapter.getItem(i);
+			final LookupResult result = this.lookupOneItem(currentItem, pattern, comparator);
 			if (result != null) {
 				return result;
 			}
@@ -227,17 +213,17 @@ public class ACDocument implements Document {
 	}
 	
 	@Override
-	public void addDocumentListener(DocumentListener listener) {
+	public void addDocumentListener(final DocumentListener listener) {
 		this.handler.addDocumentListener(listener);
 	}
 	
 	@Override
-	public void addUndoableEditListener(UndoableEditListener listener) {
+	public void addUndoableEditListener(final UndoableEditListener listener) {
 		this.handler.addUndoableEditListener(listener);
 	}
 	
 	@Override
-	public Position createPosition(int offs) throws BadLocationException {
+	public Position createPosition(final int offs) throws BadLocationException {
 		return this.delegate.createPosition(offs);
 	}
 	
@@ -257,7 +243,7 @@ public class ACDocument implements Document {
 	}
 	
 	@Override
-	public Object getProperty(Object key) {
+	public Object getProperty(final Object key) {
 		return this.getDelegate().getProperty(key);
 	}
 	
@@ -272,32 +258,32 @@ public class ACDocument implements Document {
 	}
 	
 	@Override
-	public String getText(int offset, int length) throws BadLocationException {
+	public String getText(final int offset, final int length) throws BadLocationException {
 		return this.getDelegate().getText(offset, length);
 	}
 	
 	@Override
-	public void getText(int offset, int length, Segment txt) throws BadLocationException {
+	public void getText(final int offset, final int length, final Segment txt) throws BadLocationException {
         this.getDelegate().getText(offset, length, txt);
 	}
 	
 	@Override
-	public void putProperty(Object key, Object value) {
+	public void putProperty(final Object key, final Object value) {
         this.getDelegate().putProperty(key, value);
 	}
 	
 	@Override
-	public void removeDocumentListener(DocumentListener listener) {
+	public void removeDocumentListener(final DocumentListener listener) {
 		this.handler.removeDocumentListener(listener);
 	}
 	
 	@Override
-	public void removeUndoableEditListener(UndoableEditListener listener) {
+	public void removeUndoableEditListener(final UndoableEditListener listener) {
 		this.handler.removeUndoableEditListener(listener);
 	}
 	
 	@Override
-	public void render(Runnable r) {
+	public void render(final Runnable r) {
         this.getDelegate().render(r);
 	}
 	
@@ -309,7 +295,7 @@ public class ACDocument implements Document {
 		Object matchingItem;
 		String matchingString;
 
-		public LookupResult(Object matchingItem, String matchingString) {
+		public LookupResult(final Object matchingItem, final String matchingString) {
 			this.matchingItem = matchingItem;
 			this.matchingString = matchingString;
 		}
@@ -319,19 +305,19 @@ public class ACDocument implements Document {
 		
 		private final EventListenerList listenerList = new EventListenerList();
 
-		public void addDocumentListener(DocumentListener listener) {
+		public void addDocumentListener(final DocumentListener listener) {
 			this.listenerList.add(DocumentListener.class, listener);
 		}
 
-		public void addUndoableEditListener(UndoableEditListener listener) {
+		public void addUndoableEditListener(final UndoableEditListener listener) {
 			this.listenerList.add(UndoableEditListener.class, listener);
 		}
 		
-		public void removeDocumentListener(DocumentListener listener) {
+		public void removeDocumentListener(final DocumentListener listener) {
 			this.listenerList.remove(DocumentListener.class, listener);
 		}
 		
-		public void removeUndoableEditListener(UndoableEditListener listener) {
+		public void removeUndoableEditListener(final UndoableEditListener listener) {
 			this.listenerList.remove(UndoableEditListener.class, listener);
 		}
 		
@@ -339,7 +325,7 @@ public class ACDocument implements Document {
 		public void changedUpdate(DocumentEvent e) {
 			e = new ACDocumentEvent(ACDocument.this, e);
 			// Guaranteed to return a non-null array
-			Object[] listeners = this.listenerList.getListenerList();
+			final Object[] listeners = this.listenerList.getListenerList();
 			// Process the listeners last to first, notifying
 			// those that are interested in this event
 			for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -356,7 +342,7 @@ public class ACDocument implements Document {
 		public void insertUpdate(DocumentEvent e) {
 			e = new ACDocumentEvent(ACDocument.this, e);
 			// Guaranteed to return a non-null array
-			Object[] listeners = this.listenerList.getListenerList();
+			final Object[] listeners = this.listenerList.getListenerList();
 			// Process the listeners last to first, notifying
 			// those that are interested in this event
 			for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -373,7 +359,7 @@ public class ACDocument implements Document {
 		public void removeUpdate(DocumentEvent e) {
 			e = new ACDocumentEvent(ACDocument.this, e);
 			// Guaranteed to return a non-null array
-			Object[] listeners = this.listenerList.getListenerList();
+			final Object[] listeners = this.listenerList.getListenerList();
 			// Process the listeners last to first, notifying
 			// those that are interested in this event
 			for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -390,7 +376,7 @@ public class ACDocument implements Document {
 		public void undoableEditHappened(UndoableEditEvent e) {
 			e = new UndoableEditEvent(ACDocument.this, e.getEdit());
 			// Guaranteed to return a non-null array
-			Object[] listeners = this.listenerList.getListenerList();
+			final Object[] listeners = this.listenerList.getListenerList();
 			// Process the listeners last to first, notifying
 			// those that are interested in this event
 			for (int i = listeners.length - 2; i >= 0; i -= 2) {

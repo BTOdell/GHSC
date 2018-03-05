@@ -26,11 +26,16 @@ import com.ghsc.util.Utilities;
  */
 public abstract class AdminCommand {
 	
-	public static final String ATT_COMMAND = "c", ATT_UPDATE = "u", ATT_RESPONSE = "r", ATT_SUPPORTED = "sp", ATT_SUCCESS = "s", ATT_MESSAGE = "m";
+	public static final String ATT_COMMAND = "c";
+	public static final String ATT_UPDATE = "u";
+	public static final String ATT_RESPONSE = "r";
+	public static final String ATT_SUPPORTED = "sp";
+	public static final String ATT_SUCCESS = "s";
+	public static final String ATT_MESSAGE = "m";
 	
 	protected AdminControl control;
 	
-	public AdminCommand(AdminControl control) {
+	public AdminCommand(final AdminControl control) {
 		this.control = control;
 	}
 	
@@ -51,15 +56,15 @@ public abstract class AdminCommand {
 	 * MessageEvent composing for admin commands.
 	 */
 	
-	public static Tag composeCommand(Object command, Object... custom) {
+	public static Tag composeCommand(final Object command, final Object... custom) {
 		return Tag.construct(Type.ADMIN, Utilities.merge(custom, ATT_COMMAND, command, ATT_UPDATE, Utilities.resolveToString(false), ATT_RESPONSE, Utilities.resolveToString(false)));
 	}
 	
-	public static Tag composeUpdate(Object command, Object... custom) {
+	public static Tag composeUpdate(final Object command, final Object... custom) {
 		return Tag.construct(Type.ADMIN, Utilities.merge(custom, ATT_COMMAND, command, ATT_UPDATE, Utilities.resolveToString(true), ATT_RESPONSE, Utilities.resolveToString(false)));
 	}
 	
-	public static Tag composeResponse(Object command, boolean supported, boolean success, Object message, Object... custom) {
+	public static Tag composeResponse(final Object command, final boolean supported, final boolean success, final Object message, final Object... custom) {
 		if (supported) {
 			return Tag.construct(Type.ADMIN, Utilities.merge(custom, ATT_COMMAND, command, ATT_UPDATE, Utilities.resolveToString(false), ATT_RESPONSE, Utilities.resolveToString(true), ATT_SUPPORTED, Utilities.resolveToString(supported), ATT_SUCCESS, Utilities.resolveToString(success), ATT_MESSAGE, message));
 		} else {

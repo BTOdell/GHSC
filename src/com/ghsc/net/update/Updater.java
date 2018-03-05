@@ -53,7 +53,7 @@ public class Updater {
 		application.getMainFrame().setStatus("Update found. Connecting...");
 		// begin updating...
 		try {
-			String currentRunningPath = Application.currentRunningPath();
+			final String currentRunningPath = Application.currentRunningPath();
 			FileOutputStream out = null;
 			InputStream in = null;
 			try {
@@ -61,7 +61,7 @@ public class Updater {
 				out = new FileOutputStream(new File(currentRunningPath), false);
 				in = new URL(this.getLatestJarPath()).openStream();
 				application.getMainFrame().setStatus("Update found. Downloading...");
-				byte[] buf = new byte[DOWNLOAD_BUFFER_SIZE];
+				final byte[] buf = new byte[DOWNLOAD_BUFFER_SIZE];
 				int read;
 				while ((read = in.read(buf)) >= 0) {
 					out.write(buf, 0, read);
@@ -71,14 +71,14 @@ public class Updater {
 					try {
 						out.flush();
 						out.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 					}
 				}
 				if (in != null) {
 					try {
 						in.close();
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						e.printStackTrace();
 					}
 				}
@@ -86,7 +86,7 @@ public class Updater {
 			// restart application
 			application.getMainFrame().setStatus("Restarting...");
 			Application.restart();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			// cancel update...
 			JOptionPane.showMessageDialog(null, "Updating failed. Contact developer and report this issue.", "Update failed.", JOptionPane.ERROR_MESSAGE);
@@ -98,18 +98,18 @@ public class Updater {
 	 * If it finds one, prompts the user to continue and then updates.
 	 * @param debug - whether to print version status to the console.
 	 */
-	public void updateCheck(boolean refresh, boolean debug) {
+	public void updateCheck(final boolean refresh, final boolean debug) {
 		final Application application = Application.getInstance();
-		Version latestVersion = refresh ? application.getVersionController().refresh(false) : application.getVersionController().getLatest();
+		final Version latestVersion = refresh ? application.getVersionController().refresh(false) : application.getVersionController().getLatest();
 		if (latestVersion != null) {
-			int updateStatus = latestVersion.compareTo(this.version);
+			final int updateStatus = latestVersion.compareTo(this.version);
 			if (updateStatus < 0) {
 				if (debug) {
                     System.out.println("Application is out of date and needs update!");
                 }
 				if (Application.isJar()) {
-					final boolean required = application.getVersionController().isRequired(latestVersion),
-							forced = application.getVersionController().isForced(latestVersion);
+					final boolean required = application.getVersionController().isRequired(latestVersion);
+					final boolean forced = application.getVersionController().isForced(latestVersion);
 					if (forced || JOptionPane.showOptionDialog(null, "An update has been found for GHSC.\nWould you like to update now?", "Update found!", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[] { "Update", required ? "Exit" : "Cancel" }, "Update") == 0) {
 						this.version = latestVersion;
 						this.update();

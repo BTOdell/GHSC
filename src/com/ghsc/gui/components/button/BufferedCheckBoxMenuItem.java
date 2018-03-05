@@ -10,15 +10,15 @@ public class BufferedCheckBoxMenuItem extends EnhancedCheckBoxMenuItem {
 		super();
 	}
 	
-	public BufferedCheckBoxMenuItem(boolean stayOpen) {
+	public BufferedCheckBoxMenuItem(final boolean stayOpen) {
 		super(stayOpen);
 	}
 	
-	public BufferedCheckBoxMenuItem(String text) {
+	public BufferedCheckBoxMenuItem(final String text) {
 		super(text);
 	}
 	
-	public BufferedCheckBoxMenuItem(String text, boolean stayOpen) {
+	public BufferedCheckBoxMenuItem(final String text, final boolean stayOpen) {
 		super(text, stayOpen);
 	}
 
@@ -26,7 +26,7 @@ public class BufferedCheckBoxMenuItem extends EnhancedCheckBoxMenuItem {
 		return this.enableBuffer;
 	}
 	
-	public void setBuffer(boolean enabled) {
+	public void setBuffer(final boolean enabled) {
         this.enableBuffer = enabled;
 	}
 	
@@ -34,7 +34,7 @@ public class BufferedCheckBoxMenuItem extends EnhancedCheckBoxMenuItem {
 		this.setSelected(this.enableBuffer);
 	}
 	
-	public void setSelected(boolean enabled, boolean buffer) {
+	public void setSelected(final boolean enabled, final boolean buffer) {
 		this.setSelected(buffer ? this.enableBuffer = enabled : enabled);
 	}
 	

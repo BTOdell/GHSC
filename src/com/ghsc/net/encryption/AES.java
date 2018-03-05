@@ -31,10 +31,10 @@ public class AES {
 	
 	private Cipher create(final byte[] key, final int mode) {
 		try {
-			Cipher c = Cipher.getInstance(CIPHER_TYPE);
+			final Cipher c = Cipher.getInstance(CIPHER_TYPE);
 			c.init(mode, new SecretKeySpec(key, KEY_TYPE), new IvParameterSpec(IV));
 			return c;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -50,7 +50,7 @@ public class AES {
 	public synchronized byte[] encrypt(final byte[] data, final int offset, final int length) {
 		try {
 			return this.e.doFinal(data, offset, length);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -62,7 +62,7 @@ public class AES {
 	public synchronized byte[] decrypt(final byte[] encrypted, final int offset, final int length) {
 		try {
 			return this.d.doFinal(encrypted, offset, length);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -73,13 +73,13 @@ public class AES {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		return o != null && o instanceof AES && SHA2.verify(((AES) o).key, this.key);
 	}
 	
-	public static byte[] getRandomBytes(int length) {
-		byte[] bytes = new byte[length];
-		SecureRandom sr = new SecureRandom();
+	public static byte[] getRandomBytes(final int length) {
+		final byte[] bytes = new byte[length];
+		final SecureRandom sr = new SecureRandom();
 		sr.nextBytes(bytes);
 		return bytes;
 	}

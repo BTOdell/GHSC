@@ -30,27 +30,27 @@ import com.ghsc.util.Tag;
  */
 public class MulticastSocketController implements ISocketController {
 	
-	public static final String ATT_IP = "ip", 
-			ATT_PORT = "p", 
-			ATT_VERSION = "v", 
-			ATT_ID = "id", 
-			ATT_USERNAME = "n";
-	
+	private static final String ATT_IP = "ip";
+    private static final String ATT_PORT = "p";
+    private static final String ATT_VERSION = "v";
+    private static final String ATT_ID = "id";
+    private static final String ATT_USERNAME = "n";
+
 	private static final int RECEIVE_BUFFER = 8192;
 	private static final int SEND_DELAY = 500;
 	private static final int CONNECT_DELAY = 2000;
 	private static final int INTERFACE_UPDATE_DELAY = 10000;
 	
-	public static final int MULTICAST_PORT = 5688;
-	public static final String MULTICAST_IP_ADDRESS = "224.0.0.115";
-	public static final InetAddress MULTICAST_ADDRESS;
-	public static final InetSocketAddress MULTICAST_SOCKET_ADDRESS;
-	
+	private static final int MULTICAST_PORT = 5688;
+	private static final String MULTICAST_IP_ADDRESS = "224.0.0.115";
+	private static final InetAddress MULTICAST_ADDRESS;
+	private static final InetSocketAddress MULTICAST_SOCKET_ADDRESS;
+
 	static {
 		InetAddress multicastAddress;
 		try {
 			multicastAddress = InetAddress.getByName(MULTICAST_IP_ADDRESS);
-		} catch (UnknownHostException e) {
+		} catch (final UnknownHostException e) {
 			e.printStackTrace();
 			multicastAddress = null;
 		}
@@ -143,6 +143,9 @@ public class MulticastSocketController implements ISocketController {
 		// this prevents race conditions with who connects first
 		final Application application = Application.getInstance();
 		final String remoteUUIDString = message.getAttribute(ATT_ID);
+		if (remoteUUIDString == null) {
+			return;
+		}
 		final UUID remoteUUID = UUID.fromString(remoteUUIDString);
 		final UUID localUUID = application.getID();
 		// If remoteUUID >= localUUID, then don't connect
@@ -157,7 +160,8 @@ public class MulticastSocketController implements ISocketController {
 			return;
 		}
 		final int remotePort = Integer.parseInt(remotePortString);
-		if (!application.getVersionController().isCompatible(Version.parse(message.getAttribute(ATT_VERSION)))) {
+		final String versionString = message.getAttribute(ATT_VERSION);
+		if (versionString == null || !application.getVersionController().isCompatible(Version.parse(versionString))) {
 			return;
 		}
 		final UserContainer users = application.getMainFrame().getUsers();

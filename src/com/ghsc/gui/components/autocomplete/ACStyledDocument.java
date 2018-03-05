@@ -12,15 +12,15 @@ import javax.swing.text.StyledDocument;
 
 public class ACStyledDocument extends ACDocument implements StyledDocument {
 	
-	public ACStyledDocument(ACAdapter adapter, boolean strictMatching, ObjectToStringConverter stringConverter, StyledDocument delegate) {
+	public ACStyledDocument(final ACAdapter adapter, final boolean strictMatching, final ObjectToStringConverter stringConverter, final StyledDocument delegate) {
 		super(adapter, strictMatching, stringConverter, delegate);
 	}
 
-	public ACStyledDocument(ACAdapter adapter, boolean strictMatching, ObjectToStringConverter stringConverter) {
+	public ACStyledDocument(final ACAdapter adapter, final boolean strictMatching, final ObjectToStringConverter stringConverter) {
 		super(adapter, strictMatching, stringConverter);
 	}
 
-	public ACStyledDocument(ACAdapter adapter, boolean strictMatching) {
+	public ACStyledDocument(final ACAdapter adapter, final boolean strictMatching) {
 		super(adapter, strictMatching);
 	}
 	
@@ -34,62 +34,62 @@ public class ACStyledDocument extends ACDocument implements StyledDocument {
 	}
 
 	@Override
-	public Style addStyle(String nm, Style parent) {
+	public Style addStyle(final String nm, final Style parent) {
 		return this.getDelegate().addStyle(nm, parent);
 	}
 
 	@Override
-	public Color getBackground(AttributeSet attr) {
+	public Color getBackground(final AttributeSet attr) {
 		return this.getDelegate().getBackground(attr);
 	}
 	
 	@Override
-	public Element getCharacterElement(int pos) {
+	public Element getCharacterElement(final int pos) {
 		return this.getDelegate().getCharacterElement(pos);
 	}
 	
 	@Override
-	public Font getFont(AttributeSet attr) {
+	public Font getFont(final AttributeSet attr) {
 		return this.getDelegate().getFont(attr);
 	}
 	
 	@Override
-	public Color getForeground(AttributeSet attr) {
+	public Color getForeground(final AttributeSet attr) {
 		return this.getDelegate().getForeground(attr);
 	}
 	
 	@Override
-	public Style getLogicalStyle(int p) {
+	public Style getLogicalStyle(final int p) {
 		return this.getDelegate().getLogicalStyle(p);
 	}
 
 	@Override
-	public Element getParagraphElement(int pos) {
+	public Element getParagraphElement(final int pos) {
 		return this.getDelegate().getParagraphElement(pos);
 	}
 
 	@Override
-	public Style getStyle(String nm) {
+	public Style getStyle(final String nm) {
 		return this.getDelegate().getStyle(nm);
 	}
 	
 	@Override
-	public void removeStyle(String nm) {
+	public void removeStyle(final String nm) {
 		this.getDelegate().removeStyle(nm);
 	}
 	
 	@Override
-	public void setCharacterAttributes(int offset, int length, AttributeSet s, boolean replace) {
+	public void setCharacterAttributes(final int offset, final int length, final AttributeSet s, final boolean replace) {
 		this.getDelegate().setCharacterAttributes(offset, length, s, replace);
 	}
 	
 	@Override
-	public void setLogicalStyle(int pos, Style s) {
+	public void setLogicalStyle(final int pos, final Style s) {
 		this.getDelegate().setLogicalStyle(pos, s);
 	}
 	
 	@Override
-	public void setParagraphAttributes(int offset, int length, AttributeSet s, boolean replace) {
+	public void setParagraphAttributes(final int offset, final int length, final AttributeSet s, final boolean replace) {
 		this.getDelegate().setParagraphAttributes(offset, length, s, replace);
 	}
 	

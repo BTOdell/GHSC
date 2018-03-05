@@ -12,7 +12,7 @@ public class ValidationResult<V,R> {
 	/**
 	 * Initializes a new ValidationResult with a value and a result.
 	 */
-	public ValidationResult(V value, R result) {
+	public ValidationResult(final V value, final R result) {
 		this.value = value;
 		this.result = result;
 	}

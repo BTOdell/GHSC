@@ -11,7 +11,7 @@ public class FileShareFileChooser extends JFileChooser {
 	
 	private static final long serialVersionUID = 1L;
 	
-	public FileShareFileChooser(File startDirectory) {
+	public FileShareFileChooser(final File startDirectory) {
 		super(startDirectory);
         this.init();
 	}

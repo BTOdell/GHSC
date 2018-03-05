@@ -15,7 +15,7 @@ final class ACDocumentEvent implements DocumentEvent {
 	}
 
 	@Override
-	public ElementChange getChange(Element elem) {
+	public ElementChange getChange(final Element elem) {
 		return this.event.getChange(elem);
 	}
 	

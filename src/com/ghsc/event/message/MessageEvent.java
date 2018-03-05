@@ -57,7 +57,7 @@ public class MessageEvent extends Tag {
 		
 		String match;
 		
-		Type(String m) {
+		Type(final String m) {
 			this.match = m;
 		}
 		
@@ -66,8 +66,8 @@ public class MessageEvent extends Tag {
 			return this.match;
 		}
 		
-		public static Type from(String type) {
-			for (Type t : values()) {
+		public static Type from(final String type) {
+			for (final Type t : values()) {
 				if (t.match.equalsIgnoreCase(type)) {
                     return t;
                 }
@@ -81,7 +81,7 @@ public class MessageEvent extends Tag {
 	 * Initializes a new MessageEvent.
 	 * @param raw the raw data that this MessageEvent is made up of.
 	 */
-	private MessageEvent(Object raw) {
+	private MessageEvent(final Object raw) {
 		super(raw);
 	}
 	

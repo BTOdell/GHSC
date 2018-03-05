@@ -22,8 +22,8 @@ public class Popup extends JPopupMenu {
 	 * @param listener - the listener to add to the JMenuItem.
 	 * @return the created and configured JMenuItem.
 	 */
-	public JMenuItem createItem(String title, ActionListener listener) {
-		JMenuItem item = new JMenuItem(title);
+	public JMenuItem createItem(final String title, final ActionListener listener) {
+		final JMenuItem item = new JMenuItem(title);
 		if (listener != null) {
             item.addActionListener(listener);
         }
@@ -36,11 +36,11 @@ public class Popup extends JPopupMenu {
 	 * @param title - the title to pass to {@link #createItem(String, ActionListener)}.
 	 * @param listener - the listener to pass to {@link #createItem(String, ActionListener)}.
 	 */
-	public void addItem(String title, ActionListener listener) {
+	public void addItem(final String title, final ActionListener listener) {
         this.add(this.createItem(title, listener));
 	}
 	
-	public JMenu createMenu(String title) {
+	public JMenu createMenu(final String title) {
 		return new JMenu(title);
 	}
 	

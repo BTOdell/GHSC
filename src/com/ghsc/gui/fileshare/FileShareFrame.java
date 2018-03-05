@@ -1,54 +1,27 @@
 package com.ghsc.gui.fileshare;
 
-import java.awt.Rectangle;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import com.ghsc.common.Fonts;
+import com.ghsc.common.Images;
+import com.ghsc.gui.components.input.ValidationResult;
+import com.ghsc.gui.fileshare.components.*;
+import com.ghsc.gui.fileshare.internal.FilePackage;
+import com.ghsc.gui.fileshare.internal.FilePackage.Visibility;
+import com.ghsc.gui.fileshare.internal.RemotePackage;
+import com.ghsc.util.SnapAdapter;
+import com.ghsc.util.SnapAdapter.Magnet;
+import com.ghsc.util.SnapAdapter.Side;
+
+import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Set;
-
-import javax.swing.Box;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
-
-import com.ghsc.common.Fonts;
-import com.ghsc.common.Images;
-import com.ghsc.gui.components.input.ValidationResult;
-import com.ghsc.gui.components.input.WizardListener;
-import com.ghsc.gui.components.input.WizardValidator;
-import com.ghsc.gui.fileshare.components.FindPackageDialog;
-import com.ghsc.gui.fileshare.components.PackagePanel;
-import com.ghsc.gui.fileshare.components.PackagePanelList;
-import com.ghsc.gui.fileshare.components.PackageWizard;
-import com.ghsc.gui.fileshare.components.SortByPopup;
-import com.ghsc.gui.fileshare.internal.FilePackage;
-import com.ghsc.gui.fileshare.internal.FilePackage.Visibility;
-import com.ghsc.gui.fileshare.internal.LocalPackage;
-import com.ghsc.gui.fileshare.internal.RemotePackage;
-import com.ghsc.impl.ObjectProcessor;
-import com.ghsc.util.SnapAdapter;
-import com.ghsc.util.SnapAdapter.Magnet;
-import com.ghsc.util.SnapAdapter.Side;
 
 public class FileShareFrame extends JDialog {
 	
@@ -80,20 +53,20 @@ public class FileShareFrame extends JDialog {
 		if (owner != null) {
 			
 			final WindowAdapter wa = new WindowAdapter() {
-				public void windowGainedFocus(WindowEvent we) {
+				public void windowGainedFocus(final WindowEvent we) {
 					if (!FileShareFrame.this.equals(we.getOppositeWindow())) {
 						FileShareFrame.this.requestFocus(true);
 						owner.requestFocus();
 					}
 				}
-				public void windowClosing(WindowEvent e) {
+				public void windowClosing(final WindowEvent e) {
 					FileShareFrame.this.setVisible(false, false);
 				}
 			};
 			owner.addWindowFocusListener(wa);
 			owner.addWindowListener(wa);
 			owner.addComponentListener(new ComponentAdapter() {
-				public void componentShown(ComponentEvent arg0) {
+				public void componentShown(final ComponentEvent arg0) {
 					FileShareFrame.this.applyVisible();
 				}
 			});
@@ -111,11 +84,11 @@ public class FileShareFrame extends JDialog {
 	}
 	
 	@Override
-	public void setVisible(boolean enabled) {
+	public void setVisible(final boolean enabled) {
 		super.setVisible(this.visibleBuffer = enabled);
 	}
 	
-	public void setVisible(boolean enabled, boolean buffer) {
+	public void setVisible(final boolean enabled, final boolean buffer) {
 		super.setVisible(buffer ? this.visibleBuffer = enabled : enabled);
 	}
 	
@@ -175,20 +148,16 @@ public class FileShareFrame extends JDialog {
 			this.packageWizardButton.setIconTextGap(0);
 			this.packageWizardButton.setHorizontalTextPosition(SwingConstants.CENTER);
 			this.packageWizardButton.setIcon(new ImageIcon(Images.PACKAGE_ADD));
-			this.packageWizardButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					if (FileShareFrame.this.packageWizard == null) {
-						FileShareFrame.this.packageWizard = new PackageWizard(FileShareFrame.this, new WizardListener<LocalPackage>() {
-							public void wizardFinished(LocalPackage lPackage) {
-								if (lPackage != null) {
-									FileShareFrame.this.fileShare.addPackages(lPackage);
-									// TODO: message users about new package
-								}
-								FileShareFrame.this.packageWizard = null;
-							}
-						});
-						FileShareFrame.this.packageWizard.setVisible(true);
-					}
+			this.packageWizardButton.addActionListener(arg0 -> {
+				if (this.packageWizard == null) {
+					this.packageWizard = new PackageWizard(this, lPackage -> {
+						if (lPackage != null) {
+							this.fileShare.addPackages(lPackage);
+							// TODO: message users about new package
+						}
+						this.packageWizard = null;
+					});
+					this.packageWizard.setVisible(true);
 				}
 			});
 			this.packageWizardButton.setFont(Fonts.GLOBAL);
@@ -204,47 +173,41 @@ public class FileShareFrame extends JDialog {
 			this.findPackageButton = new JButton();
 			this.findPackageButton.setIconTextGap(0);
 			this.findPackageButton.setHorizontalTextPosition(SwingConstants.CENTER);
-			this.findPackageButton.setIcon(new ImageIcon(Images.FIND));
-			this.findPackageButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					if (FileShareFrame.this.findPackageDialog == null) {
-						FileShareFrame.this.findPackageDialog = new FindPackageDialog(FileShareFrame.this, new WizardListener<RemotePackage[]>() {
-							public void wizardFinished(RemotePackage[] packages) {
-								if (packages != null) {
-									for (RemotePackage rp : packages) {
-										rp.getVisibility().setDiscovered(true);
-									}
-								}
-								FileShareFrame.this.findPackageDialog = null;
-							}
-						}, new WizardValidator<String, RemotePackage[], Boolean>() {
-							public ValidationResult<RemotePackage[], Boolean> validate(String key) {
-								if (key == null) {
-									return new ValidationResult<RemotePackage[], Boolean>(null, false);
-								}
-								final LinkedList<RemotePackage> remotePackages = new LinkedList<RemotePackage>();
-								final Collection<FilePackage> packages = FileShareFrame.this.fileShare.packages.values();
-								synchronized (FileShareFrame.this.fileShare.packages) {
-									for (final FilePackage pack : packages) {
-										if (pack == null || !(pack instanceof RemotePackage)) {
-											continue;
-										}
-										final RemotePackage rp = (RemotePackage) pack;
-										final Visibility v = rp.getVisibility();
-										if (!v.isDiscovered() && key.equals(v.getData().toString())) {
-											remotePackages.add(rp);
-										}
-									}
-								}
-								int size = remotePackages.size();
-								return new ValidationResult<RemotePackage[], Boolean>(remotePackages.toArray(new RemotePackage[size]), size > 0);
-							}
-						});
-						FileShareFrame.this.findPackageDialog.setVisible(true);
-					}
-				}
-			});
-			this.findPackageButton.setFont(Fonts.GLOBAL);
+            this.findPackageButton.setIcon(new ImageIcon(Images.FIND));
+            this.findPackageButton.addActionListener(arg0 -> {
+                if (this.findPackageDialog == null) {
+                    this.findPackageDialog = new FindPackageDialog(this, packages -> {
+                        if (packages != null) {
+                            for (final RemotePackage rp : packages) {
+                                rp.getVisibility().setDiscovered(true);
+                            }
+                        }
+                        this.findPackageDialog = null;
+                    }, key -> {
+                        if (key == null) {
+                            return new ValidationResult<>(null, false);
+                        }
+                        final LinkedList<RemotePackage> remotePackages = new LinkedList<>();
+                        final Collection<FilePackage> packages = this.fileShare.packages.values();
+                        synchronized (this.fileShare.packages) {
+                            for (final FilePackage pack : packages) {
+                                if (pack == null || !(pack instanceof RemotePackage)) {
+                                    continue;
+                                }
+                                final RemotePackage rp = (RemotePackage) pack;
+                                final Visibility v = rp.getVisibility();
+                                if (!v.isDiscovered() && key.equals(v.getData().toString())) {
+                                    remotePackages.add(rp);
+                                }
+                            }
+                        }
+                        final int size = remotePackages.size();
+                        return new ValidationResult<>(remotePackages.toArray(new RemotePackage[size]), size > 0);
+                    });
+                    this.findPackageDialog.setVisible(true);
+                }
+            });
+            this.findPackageButton.setFont(Fonts.GLOBAL);
 			this.findPackageButton.setToolTipText("Find private packages");
 			this.findPackageButton.setDoubleBuffered(true);
 			this.findPackageButton.setFocusable(false);
@@ -259,7 +222,7 @@ public class FileShareFrame extends JDialog {
 			this.sortByButton.setHorizontalTextPosition(SwingConstants.LEADING);
 			this.sortByButton.setIcon(new ImageIcon(Images.BULLET_ARROW_DOWN));
 			this.sortByButton.addMouseListener(new MouseAdapter() {
-				public void mouseReleased(MouseEvent e) {
+				public void mouseReleased(final MouseEvent e) {
 					if (FileShareFrame.this.getSortByPopup().isShowing()) {
 						FileShareFrame.this.getSortByPopup().setVisible(false);
 					} else {
@@ -280,24 +243,22 @@ public class FileShareFrame extends JDialog {
 		if (this.sortByPopup == null) {
 			this.sortByPopup = new SortByPopup(this.sortByButton);
 			this.sortByPopup.addPopupMenuListener(new PopupMenuListener() {
-				public void popupMenuCanceled(PopupMenuEvent pme) {}
-				public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+				public void popupMenuCanceled(final PopupMenuEvent pme) {}
+				public void popupMenuWillBecomeInvisible(final PopupMenuEvent pme) {
 					System.out.println("Sorting packages.");
 					final Set<Comparator<PackagePanel>> comps = FileShareFrame.this.sortByPopup.getSortingComparators();
-					final Comparator<PackagePanel> comp = new Comparator<PackagePanel>() {
-						public int compare(PackagePanel p, PackagePanel pp) {
-							for (Comparator<PackagePanel> c : comps) {
-								int cp = c.compare(p, pp);
-								if (cp != 0) {
-									return cp;
-								}
-							}
-							return 0;
-						}
-					};
+					final Comparator<PackagePanel> comp = (p, pp) -> {
+                        for (final Comparator<PackagePanel> c : comps) {
+                            final int cp = c.compare(p, pp);
+                            if (cp != 0) {
+                                return cp;
+                            }
+                        }
+                        return 0;
+                    };
 					FileShareFrame.this.getPackagePanels().setComparator(comp);
 				}
-				public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {}
+				public void popupMenuWillBecomeVisible(final PopupMenuEvent pme) {}
 			});
 			this.sortByPopup.setDoubleBuffered(true);
 		}
@@ -308,7 +269,7 @@ public class FileShareFrame extends JDialog {
 		if (this.packageScrollPane == null) {
 			this.packageScrollPane = new JScrollPane();
 			this.packageScrollPane.addComponentListener(new ComponentAdapter() {
-				public void componentResized(ComponentEvent ce) {
+				public void componentResized(final ComponentEvent ce) {
 					FileShareFrame.this.getPackagePanels().invalidate();
 				}
 			});
@@ -321,11 +282,7 @@ public class FileShareFrame extends JDialog {
 	
 	public PackagePanelList getPackagePanels() {
 		if (this.packagePanels == null) {
-			this.packagePanels = new PackagePanelList(this, new ObjectProcessor<Object, LinkedList<FilePackage>>() {
-				public LinkedList<FilePackage> process(Object input) {
-					return new LinkedList<FilePackage>(FileShareFrame.this.fileShare.packages.values());
-				}
-			});
+			this.packagePanels = new PackagePanelList(this, input -> new LinkedList<>(this.fileShare.packages.values()));
 		}
 		return this.packagePanels;
 	}

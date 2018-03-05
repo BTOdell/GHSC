@@ -5,7 +5,7 @@ import java.lang.reflect.Array;
 public class Utilities {
 	
 	@SafeVarargs
-	public static <E> E[] merge(E[] array, E... es) {
+	public static <E> E[] merge(final E[] array, final E... es) {
 		@SuppressWarnings("unchecked")
 		final E[] alloc = (E[]) Array.newInstance(array.getClass().getComponentType(), array.length + es.length);
 		System.arraycopy(array, 0, alloc, 0, array.length);
@@ -20,8 +20,8 @@ public class Utilities {
 	 * @return <code>true</code>, if the element was found, otherwise <code>false</code>.
 	 */
 	@SafeVarargs
-	public static <E> boolean contains(E element, E... elements) {
-		for (E e : elements) {
+	public static <E> boolean contains(final E element, final E... elements) {
+		for (final E e : elements) {
             if (element == null ? e == null : element.equals(e)) {
                 return true;
             }
@@ -34,12 +34,13 @@ public class Utilities {
 		final int max = content.length() - search.length();
 		o: for (int i = 0; i < max; i++) {
 			if (quotes) {
-				quotes &= content.charAt(i) != '"';
+				quotes = content.charAt(i) != '"';
 				continue;
 			}
 			for (int j = i, s = 0; s < search.length(); j++, s++) {
-				char cc = content.charAt(j);
-				if ((quotes |= (cc == '"')) || (cc != search.charAt(s))) {
+				final char cc = content.charAt(j);
+				quotes = cc == '"';
+				if (quotes || (cc != search.charAt(s))) {
                     continue o;
                 }
 			}
@@ -49,7 +50,8 @@ public class Utilities {
 	}
 	
 	public static boolean startsWith(final CharSequence content, final CharSequence search) {
-		final int contentLength = content.length(), searchLength = search.length();
+		final int contentLength = content.length();
+		final int searchLength = search.length();
 		if (searchLength > contentLength) {
             return false;
         }
@@ -61,11 +63,12 @@ public class Utilities {
 		return true;
 	}
 	
-	public static int countLength(int i) {
+	public static int countLength(final int i) {
 		return ((int) Math.log10(i)) + 1;
 	}
 	
-	private static final String BOOLEAN_TRUE = "t", BOOLEAN_FALSE = "f";
+	private static final String BOOLEAN_TRUE = "t";
+	private static final String BOOLEAN_FALSE = "f";
 	
 	public static boolean resolveToBoolean(final Object o) {
 		if (o == null) {

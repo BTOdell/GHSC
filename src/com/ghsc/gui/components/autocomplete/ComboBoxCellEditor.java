@@ -19,7 +19,7 @@ public class ComboBoxCellEditor extends DefaultCellEditor {
 		this.delegate = new EditorDelegate() {
 			private static final long serialVersionUID = 1L;
 			
-			public void setValue(Object value) {
+			public void setValue(final Object value) {
 				comboBox.setSelectedItem(value);
 			}
 			
@@ -27,9 +27,9 @@ public class ComboBoxCellEditor extends DefaultCellEditor {
 				return comboBox.getSelectedItem();
 			}
 			
-			public boolean shouldSelectCell(EventObject anEvent) {
+			public boolean shouldSelectCell(final EventObject anEvent) {
 				if (anEvent instanceof MouseEvent) {
-					MouseEvent e = (MouseEvent) anEvent;
+					final MouseEvent e = (MouseEvent) anEvent;
 					return e.getID() != MouseEvent.MOUSE_DRAGGED;
 				}
 				return true;
@@ -42,10 +42,10 @@ public class ComboBoxCellEditor extends DefaultCellEditor {
 				return super.stopCellEditing();
 			}
 			
-			public void actionPerformed(ActionEvent e) {
-				JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
+			public void actionPerformed(final ActionEvent e) {
+				final JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
 				if (editorComponent.getDocument() instanceof ACDocument) {
-					ACDocument document = (ACDocument) editorComponent.getDocument();
+					final ACDocument document = (ACDocument) editorComponent.getDocument();
 					if (!document.selecting) {
 						ComboBoxCellEditor.this.stopCellEditing();
 					}

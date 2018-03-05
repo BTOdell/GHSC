@@ -148,7 +148,7 @@ public class PromptHandler implements FocusListener {
 	}
 
 	@Override
-	public void focusGained(FocusEvent fe) {
+	public void focusGained(final FocusEvent fe) {
 		if (!this.textComp.equals(fe.getSource())) {
             return;
         }
@@ -156,7 +156,7 @@ public class PromptHandler implements FocusListener {
 	}
 
 	@Override
-	public void focusLost(FocusEvent fe) {
+	public void focusLost(final FocusEvent fe) {
 		if (!this.textComp.equals(fe.getSource())) {
             return;
         }

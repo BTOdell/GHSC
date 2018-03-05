@@ -2,8 +2,6 @@ package com.ghsc.gui.components.input;
 
 import java.awt.Color;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -28,33 +26,36 @@ import com.ghsc.gui.MainFrame;
 
 /**
  * Provides an interactive dialog wizard, with a single text field as well as a text validator.
- * @author Odell
  */
 public class InputWizard extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private MainFrame frame;
-	private WizardListener<String> listener;
-	private WizardValidator<String, String, Boolean> validator;
-	private String title, label, pretext, join, tooltip;
+	private final MainFrame frame;
+	private final WizardListener<String> listener;
+	private final WizardValidator<String, String, Boolean> validator;
+	private final String title;
+	private final String label;
+	private final String pretext;
+	private final String join;
+	private final String tooltip;
 	
-	private Image dialogIcon;
-	private ImageIcon check = new ImageIcon(Images.CHECK);
-	private ImageIcon x = new ImageIcon(Images.X);
+	private final Image dialogIcon;
+	private final ImageIcon check = new ImageIcon(Images.CHECK);
+	private final ImageIcon x = new ImageIcon(Images.X);
 	
-	private Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
+	private final Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
 	
-	private JLabel InputNameLabel;
-	private JTextField InputNameField;
+	private JLabel inputNameLabel;
+	private JTextField inputNameField;
 	private JLabel ValidationImage;
-	private JButton JoinButton;
-	private JButton CancelButton;
+	private JButton joinButton;
+	private JButton cancelButton;
 
 	/**
 	 * Create the dialog.
 	 */
-	public InputWizard(MainFrame frame, Image icon, String title, String label, String pretext, String joinText, String joinTooltip, WizardListener<String> listener, WizardValidator<String, String, Boolean> validator) {
+	public InputWizard(final MainFrame frame, final Image icon, final String title, final String label, final String pretext, final String joinText, final String joinTooltip, final WizardListener<String> listener, final WizardValidator<String, String, Boolean> validator) {
 		super(frame);
 		this.frame = frame;
 		this.dialogIcon = icon;
@@ -72,7 +73,7 @@ public class InputWizard extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public InputWizard(MainFrame frame, String title, String label, String pretext, String joinText, String joinTooltip, WizardListener<String> listener, WizardValidator<String, String, Boolean> validator) {
+	public InputWizard(final MainFrame frame, final String title, final String label, final String pretext, final String joinText, final String joinTooltip, final WizardListener<String> listener, final WizardValidator<String, String, Boolean> validator) {
 		super(frame);
 		this.frame = frame;
 		this.dialogIcon = frame != null ? frame.getIconImage() : null;
@@ -91,8 +92,8 @@ public class InputWizard extends JDialog {
 	 * Validates the current input text, and makes appropriate changes the visual interface.
 	 */
 	private void doValidate() {
-		String current = this.InputNameField.getText();
-		ValidationResult<String, Boolean> validation = this.validator.validate(current);
+		final String current = this.inputNameField.getText();
+		final ValidationResult<String, Boolean> validation = this.validator.validate(current);
 		if (validation.getResult()) {
             this.ValidationImage.setIcon(this.check);
             this.ValidationImage.setToolTipText(validation.getValue());
@@ -115,7 +116,7 @@ public class InputWizard extends JDialog {
 	 */
 	private void initComponents() {
 		this.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent arg0) {
+			public void windowClosing(final WindowEvent arg0) {
 				InputWizard.this.close();
 			}
 		});
@@ -139,81 +140,75 @@ public class InputWizard extends JDialog {
 	}
 	
 	private JLabel getChannelNameLabel() {
-		if (this.InputNameLabel == null) {
-            this.InputNameLabel = new JLabel(this.label);
-            this.InputNameLabel.setFont(Fonts.GLOBAL);
-            this.InputNameLabel.setBounds(23, 11, 180, 20);
+		if (this.inputNameLabel == null) {
+            this.inputNameLabel = new JLabel(this.label);
+            this.inputNameLabel.setFont(Fonts.GLOBAL);
+            this.inputNameLabel.setBounds(23, 11, 180, 20);
 		}
-		return this.InputNameLabel;
+		return this.inputNameLabel;
 	}
 	
 	private JTextField getChannelNameField() {
-		if (this.InputNameField == null) {
-            this.InputNameField = new JTextField();
-            this.InputNameField.addFocusListener(new FocusAdapter() {
-				public void focusGained(FocusEvent arg0) {
-                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+		if (this.inputNameField == null) {
+            this.inputNameField = new JTextField();
+            this.inputNameField.addFocusListener(new FocusAdapter() {
+				public void focusGained(final FocusEvent arg0) {
+                    InputWizard.this.inputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
 			});
-            this.InputNameField.addMouseListener(new MouseAdapter() {
-				public void mousePressed(MouseEvent arg0) {
-                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+            this.inputNameField.addMouseListener(new MouseAdapter() {
+				public void mousePressed(final MouseEvent arg0) {
+                    InputWizard.this.inputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
 			});
-            this.InputNameField.addKeyListener(new KeyAdapter() {
-				public void keyPressed(KeyEvent e) {
-                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+            this.inputNameField.addKeyListener(new KeyAdapter() {
+				public void keyPressed(final KeyEvent e) {
+                    InputWizard.this.inputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
-				public void keyReleased(KeyEvent e) {
+				public void keyReleased(final KeyEvent e) {
 					InputWizard.this.doValidate();
 				}
 			});
-            this.InputNameField.setBounds(23, 31, 180, 20);
-            this.InputNameField.setColumns(10);
+            this.inputNameField.setBounds(23, 31, 180, 20);
+            this.inputNameField.setColumns(10);
 			if (this.pretext != null && !this.pretext.isEmpty()) {
-                this.InputNameField.setText(this.pretext);
-                this.InputNameField.selectAll();
+                this.inputNameField.setText(this.pretext);
+                this.inputNameField.selectAll();
 			}
 		}
-		return this.InputNameField;
+		return this.inputNameField;
 	}
 	
 	private JButton getJoinButton() {
-		if (this.JoinButton == null) {
-            this.JoinButton = new JButton(this.join);
-            this.JoinButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					if (InputWizard.this.validator.validate(InputWizard.this.InputNameField.getText()).getResult()) {
-                        InputWizard.this.listener.wizardFinished(InputWizard.this.InputNameField.getText());
-						InputWizard.this.dispose();
-					} else {
-                        InputWizard.this.InputNameField.setBorder(InputWizard.this.errorBorder);
-					}
+		if (this.joinButton == null) {
+			this.joinButton = new JButton(this.join);
+			this.joinButton.addActionListener(event -> {
+				if (this.validator.validate(this.inputNameField.getText()).getResult()) {
+					this.listener.wizardFinished(this.inputNameField.getText());
+					this.dispose();
+				} else {
+					this.inputNameField.setBorder(this.errorBorder);
 				}
 			});
-            this.JoinButton.setFont(Fonts.GLOBAL);
-            this.JoinButton.setToolTipText(this.tooltip);
-            this.JoinButton.setActionCommand("OK");
-            this.JoinButton.setBounds(23, 62, 105, 23);
-			this.getRootPane().setDefaultButton(this.JoinButton);
+            this.joinButton.setFont(Fonts.GLOBAL);
+            this.joinButton.setToolTipText(this.tooltip);
+            this.joinButton.setActionCommand("OK");
+            this.joinButton.setBounds(23, 62, 105, 23);
+			this.getRootPane().setDefaultButton(this.joinButton);
 		}
-		return this.JoinButton;
+		return this.joinButton;
 	}
 	
 	private JButton getCancelButton() {
-		if (this.CancelButton == null) {
-            this.CancelButton = new JButton("Cancel");
-            this.CancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					InputWizard.this.close();
-				}
-			});
-            this.CancelButton.setFont(Fonts.GLOBAL);
-            this.CancelButton.setToolTipText("Cancels this wizard.");
-            this.CancelButton.setActionCommand("Cancel");
-            this.CancelButton.setBounds(138, 62, 105, 23);
+		if (this.cancelButton == null) {
+            this.cancelButton = new JButton("Cancel");
+            this.cancelButton.addActionListener(event -> this.close());
+            this.cancelButton.setFont(Fonts.GLOBAL);
+            this.cancelButton.setToolTipText("Cancels this wizard.");
+            this.cancelButton.setActionCommand("Cancel");
+            this.cancelButton.setBounds(138, 62, 105, 23);
 		}
-		return this.CancelButton;
+		return this.cancelButton;
 	}
 	
 	private JLabel getValidationImage() {

@@ -13,10 +13,17 @@ import com.ghsc.util.SnapAdapter.Side.Type;
 
 public class SnapAdapter extends ComponentAdapter {
 		
-	private final Window parent, win;
+	private final Window parent;
+	private final Window win;
 	private final Magnet[][] mags;
 	@SuppressWarnings("unused")
-	private int pLastX, pLastY, wLastX, wLastY;
+	private int pLastX;
+	@SuppressWarnings("unused")
+	private int pLastY;
+	@SuppressWarnings("unused")
+	private int wLastX;
+	@SuppressWarnings("unused")
+	private int wLastY;
 	private boolean snapped;
 	
 	public SnapAdapter(final Window to, final Window win, final Magnet[][] mags) {
@@ -31,7 +38,7 @@ public class SnapAdapter extends ComponentAdapter {
 		this.wLastY = tmp.y;
 	}
 	
-	public void setEnabled(boolean enabled) {
+	public void setEnabled(final boolean enabled) {
 		if (enabled) {
 			this.parent.addComponentListener(this);
 			this.win.addComponentListener(this);
@@ -45,7 +52,8 @@ public class SnapAdapter extends ComponentAdapter {
 		if (magIndex < 0 || magIndex >= this.mags.length) {
             throw new IndexOutOfBoundsException("magIndex (" + magIndex + ") is out of bounds: 0 to " + (this.mags.length - 1));
         }
-		Rectangle parentRect = this.parent.getBounds(), compRect = this.win.getBounds();
+		final Rectangle parentRect = this.parent.getBounds();
+		final Rectangle compRect = this.win.getBounds();
 		switch (this.mags[magIndex][0].side.type) { // parent
 			case TOP: // finished!
 				switch (this.mags[magIndex][1].side.type) { // comp
@@ -116,7 +124,7 @@ public class SnapAdapter extends ComponentAdapter {
 	}
 	
 	@Override
-	public void componentMoved(ComponentEvent e) {
+	public void componentMoved(final ComponentEvent e) {
 		final Component source = e.getComponent();
 		if (source != null) {
 			final Rectangle rect = source.getBounds();
@@ -135,7 +143,8 @@ public class SnapAdapter extends ComponentAdapter {
 					 * If magnet succeeds break from for loop.
 					 */
 					final Magnet[] pair = this.mags[i];
-					final Magnet parentMagnet = pair[0], compMagnet = pair[1];
+					final Magnet parentMagnet = pair[0];
+					final Magnet compMagnet = pair[1];
 					final Line2D compLine = compMagnet.side.createLine(rect);
 					switch (parentMagnet.side.type) { // parent
 						case TOP: // finished!
@@ -208,9 +217,9 @@ public class SnapAdapter extends ComponentAdapter {
 		}
 	}
 	
-	public void componentResized(ComponentEvent e) {}
-	public void componentShown(ComponentEvent e) {}
-	public void componentHidden(ComponentEvent e) {}
+	public void componentResized(final ComponentEvent e) {}
+	public void componentShown(final ComponentEvent e) {}
+	public void componentHidden(final ComponentEvent e) {}
 	
 	public static Magnet[] createMagnets(final Side[] sides, final int distance) {
 		return createMagnets(sides, distance, distance);
@@ -235,7 +244,8 @@ public class SnapAdapter extends ComponentAdapter {
 	public static final class Magnet {
 		
 		private final Side side;
-		private final int inner, outer;
+		private final int inner;
+		private final int outer;
 		
 		private Magnet(final Side s, final int inner, final int outer) {
 			this.side = s;
@@ -270,8 +280,9 @@ public class SnapAdapter extends ComponentAdapter {
 					return new Line2D.Double(rect.x, rect.y + rect.height, rect.x + rect.width, rect.y + rect.height);
 				case LEFT:
 					return new Line2D.Double(rect.x, rect.y, rect.x, rect.y + rect.height);
+				default:
+					throw new IllegalStateException("Side type is invalid: " + this.type);
 			}
-			return null;
 		}
 		
 		// create function for alignment
@@ -280,19 +291,11 @@ public class SnapAdapter extends ComponentAdapter {
 				case TOP:
 				case BOTTOM:
 					final int alignX = this.alignX(parentRect, compRect);
-					return new Region() {
-						public boolean contains(final Point orig) {
-							return Side.this.alignDist > Math.abs(orig.x - alignX);
-						}
-					};
+					return orig -> this.alignDist > Math.abs(orig.x - alignX);
 				case LEFT:
 				case RIGHT:
 					final int alignY = this.alignY(parentRect, compRect);
-					return new Region() {
-						public boolean contains(final Point orig) {
-							return Side.this.alignDist > Math.abs(orig.y - alignY);
-						}
-					};
+					return orig -> this.alignDist > Math.abs(orig.y - alignY);
 			}
 			return null;
 		}

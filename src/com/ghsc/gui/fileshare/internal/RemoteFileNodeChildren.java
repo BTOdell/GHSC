@@ -12,7 +12,7 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	
 	public RemoteFileNodeChildren(final RemoteFileNode parent) {
 		super(parent);
-		this.endTag = new StringBuilder("</").append(this.getTagName()).append(">").toString();
+		this.endTag = "</" + this.getTagName() + ">";
 	}
 
 	@Override
@@ -26,10 +26,10 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	}
 	
 	@Override
-	public void receive(Object o) {
+	public void receive(final Object o) {
 		if (o instanceof Taggable) {
-			Taggable t = (Taggable) o;
-			String tName = t.getTagName();
+			final Taggable t = (Taggable) o;
+			final String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
 				this.add((RemoteFileNode) t);
 			}
@@ -37,7 +37,7 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	}
 
 	@Override
-	public EndTaggable createForTag(Tag tag) {
+	public EndTaggable createForTag(final Tag tag) {
 		final String tagName = tag.getName();
 		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
 			final String name = tag.getAttribute(FileNode.ATT_NAME);

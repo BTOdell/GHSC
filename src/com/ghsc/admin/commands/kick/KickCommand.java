@@ -14,9 +14,10 @@ import com.ghsc.util.Utilities;
 
 public class KickCommand extends AdminCommand {
 	
-	public static final String TAG = "kick", ATT_CHANNEL = "c";
+	public static final String TAG = "kick";
+	public static final String ATT_CHANNEL = "c";
 	
-	public KickCommand(AdminControl control) {
+	public KickCommand(final AdminControl control) {
 		super(control);
 	}
 
@@ -26,11 +27,7 @@ public class KickCommand extends AdminCommand {
 			final boolean success = Utilities.resolveToBoolean(me.getAttribute(ATT_SUCCESS));
 			if (!success) {
 				final String message = me.getAttribute(ATT_MESSAGE);
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(), message, "Command not successful", JOptionPane.ERROR_MESSAGE);
-					}
-				});
+				SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(Application.getInstance().getMainFrame(), message, "Command not successful", JOptionPane.ERROR_MESSAGE));
 			}
 			return null;
 		} else if (Utilities.resolveToBoolean(me.getAttribute(ATT_UPDATE))) {
@@ -38,7 +35,7 @@ public class KickCommand extends AdminCommand {
 		} else {
 			final String channel = me.getAttribute(ATT_CHANNEL);
 			if (channel != null) {
-				ChatContainer cc = Application.getInstance().getMainFrame().getChatContainer();
+				final ChatContainer cc = Application.getInstance().getMainFrame().getChatContainer();
 				cc.remove(cc.getChat(channel));
 				return null;
 			}

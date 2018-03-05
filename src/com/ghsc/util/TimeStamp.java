@@ -4,19 +4,20 @@ import java.util.Calendar;
 
 /**
  * Holds data to display a simple clock of HH:MM:SS.
- * @author Odell
  */
 public class TimeStamp {
 	
 	public enum Style { Hour24, Hour12 }
 	
-	byte h, m, s;
+	private final byte h;
+	private final byte m;
+	private final byte s;
 	private boolean showSeconds = true;
 	
 	/**
 	 * Initializes a new TimeStamp with the given hours, minutes and seconds.
 	 */
-	private TimeStamp(byte h, byte m, byte s) {
+	private TimeStamp(final byte h, final byte m, final byte s) {
 		this.h = h;
 		this.m = m;
 		this.s = s;
@@ -25,7 +26,7 @@ public class TimeStamp {
 	/**
 	 * Sets whether to display seconds on the end of the String from {@link #print(Style)}.
 	 */
-	public void setShowSeconds(boolean show) {
+	public void setShowSeconds(final boolean show) {
 		this.showSeconds = show;
 	}
 	
@@ -35,8 +36,8 @@ public class TimeStamp {
 	 * @param style - The 12/24 hour format to use.
 	 * @return a String representing the time of this TimeStamp.
 	 */
-	public String print(Style style) {
-		StringBuilder build = new StringBuilder();
+	public String print(final Style style) {
+		final StringBuilder build = new StringBuilder();
 		byte h = this.h;
 		if (style == Style.Hour12) {
 			if (h > 12) {
@@ -67,7 +68,7 @@ public class TimeStamp {
 	 * @return the newly generated TimeStamp object.
 	 */
 	public static TimeStamp newInstance() {
-		Calendar c = Calendar.getInstance();
+		final Calendar c = Calendar.getInstance();
 		return new TimeStamp((byte) c.get(Calendar.HOUR_OF_DAY), (byte) c.get(Calendar.MINUTE), (byte) c.get(Calendar.SECOND));
 	}
 	

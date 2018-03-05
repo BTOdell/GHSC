@@ -20,14 +20,13 @@ import com.ghsc.admin.commands.kick.KickCommand;
  * 7. Ban user and unban user<br>
  * 8. Prevent user shutdown<br>
  * 9. ...
- * @author Odell
  */
 public class AdminCommands {
 	
-	private AdminControl control;
-	private final HashMap<String, AdminCommand> commands = new HashMap<String, AdminCommand>();
+	private final AdminControl control;
+	private final HashMap<String, AdminCommand> commands = new HashMap<>();
 	
-	public AdminCommands(AdminControl control) {
+	public AdminCommands(final AdminControl control) {
 		this.control = control;
 		this.init();
 	}
@@ -43,7 +42,7 @@ public class AdminCommands {
 		
 	}
 	
-	public final AdminCommand get(String name) {
+	public final AdminCommand get(final String name) {
 		if (name == null) {
             return null;
         }

@@ -54,7 +54,7 @@ public class Images {
 	public static final Image X = get("X.png");
 	public static final Image CHECK = get("check.png");
 			
-	private static Image get(String path) {
+	private static Image get(final String path) {
 		return Toolkit.getDefaultToolkit().getImage(Images.class.getResource("/images/" + path));
 	}
 	

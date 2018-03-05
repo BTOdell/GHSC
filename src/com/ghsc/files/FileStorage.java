@@ -5,8 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -20,13 +22,13 @@ import com.ghsc.util.Utilities;
  * Provides access to the predefined hidden folder created by GHSC on any user's personal folder.
  * 128 bit encryption and base64 encoding.
  * XML-like settings (read and write).
- * @author Odell
  */
 public abstract class FileStorage {
 	
 	protected static final int LOAD_BUFFER_SIZE = 8192;
 	protected static final String FOLDER_NAME = "ghsc";
-	protected static String HOMEPATH, DIRPATH;
+	protected static String HOMEPATH;
+    protected static String DIRPATH;
 	
 	protected final String storagePath;
 	protected final AES encryption;
@@ -41,7 +43,7 @@ public abstract class FileStorage {
 		}
 		if (DIRPATH == null) {
 			DIRPATH = HOMEPATH + File.separator + FOLDER_NAME;
-			File dirFile = new File(DIRPATH);
+			final File dirFile = new File(DIRPATH);
 			if (!dirFile.exists()) {
                 dirFile.mkdirs();
             }
@@ -82,18 +84,18 @@ public abstract class FileStorage {
 	 * @param path '/blah/blah/blah'
 	 * @return traverses the node tree given the path.
 	 */
-	public Node search(String path) {
+	public Node search(final String path) {
 		if (!path.startsWith("/")) {
             return null;
         }
 		return this.root != null ? this.root.search(path) : null;
 	}
 	
-	public boolean addHook(Hook h) {
+	public boolean addHook(final Hook h) {
 		return this.saveHooks.contains(h) || this.saveHooks.add(h);
 	}
 	
-	public boolean removeHook(Hook h) {
+	public boolean removeHook(final Hook h) {
 		return !this.saveHooks.contains(h) || this.saveHooks.remove(h);
 	}
 	
@@ -117,16 +119,16 @@ public abstract class FileStorage {
         }
 		FileOutputStream fos = null;
 		try {
-			File storageFile = new File(this.getStoragePath());
+			final File storageFile = new File(this.getStoragePath());
 			if (!storageFile.exists()) {
 				try {
 					storageFile.createNewFile();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					return false;
 				}
 			}
 			fos = new FileOutputStream(storageFile);
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			sb.append("<").append(this.getStorageName()).append(">");
 			for (final Hook h : this.saveHooks) {
 				if (h == null) {
@@ -138,8 +140,8 @@ public abstract class FileStorage {
 				}
 				sb.append(n.toString());
 			}
-			sb.append("</" + this.getStorageName() + ">");
-			byte[] bytes = this.encryption.encrypt(sb);
+			sb.append("</").append(this.getStorageName()).append(">");
+			final byte[] bytes = this.encryption.encrypt(sb);
 			if (bytes == null) {
 				return false;
 			}
@@ -161,11 +163,11 @@ public abstract class FileStorage {
 	}
 	
 	protected boolean load() {
-		File storageFile = new File(this.getStoragePath());
+		final File storageFile = new File(this.getStoragePath());
 		if (!storageFile.exists()) {
             return false;
         }
-		byte[] buffer = new byte[(int) storageFile.length()];
+		final byte[] buffer = new byte[(int) storageFile.length()];
 		FileInputStream fis = null;
 		int total = 0;
 		try {
@@ -174,26 +176,26 @@ public abstract class FileStorage {
 			while ((read = fis.read(buffer, total, Math.min(LOAD_BUFFER_SIZE, buffer.length - total))) > 0) {
 				total += read;
 			}
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
 			return true;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return false;
 		} finally {
 			if (fis != null) {
 				try {
 					fis.close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		byte[] decrypt = this.encryption.decrypt(buffer, 0, total);
+		final byte[] decrypt = this.encryption.decrypt(buffer, 0, total);
 		if (decrypt == null) {
             return false;
         }
-		StringBuilder sb = new StringBuilder(new String(decrypt, Application.CHARSET));
+		final StringBuilder sb = new StringBuilder(new String(decrypt, Application.CHARSET));
 		final LinkedList<Node> nodeStack = new LinkedList<>();
 		Node peek = null;
 		while (sb.length() > 0) {
@@ -219,7 +221,7 @@ public abstract class FileStorage {
 				peek = n;
 				continue;
 			} else if (peek != null) { // handle data between tags
-				int index = sb.indexOf(peek.getEndTag());
+				final int index = sb.indexOf(peek.getEndTag());
 				if (index >= 0) {
 					final String sub = sb.substring(0, index);
 					if (!sub.isEmpty()) {
@@ -235,7 +237,7 @@ public abstract class FileStorage {
 	}
 	
 	private String determineHome() {
-		String home = System.getenv("HOMESHARE");
+		final String home = System.getenv("HOMESHARE");
 		return home == null ? System.getProperty("user.home") : home;
 	}
 	
@@ -248,12 +250,15 @@ public abstract class FileStorage {
 	 * @param f - the file/directory to delete from the file system.
 	 * @return <tt>true</tt> if everything deleted properly, if error occurred <tt>false</tt>.
 	 */
-	protected boolean deleteFile(File f) {
+	protected boolean deleteFile(final File f) {
 		if (f.exists()) {
 			if (f.isDirectory()) {
-				for (File fs : f.listFiles()) {
-					if (!this.deleteFile(fs)) {
-						return false;
+				final File[] files = f.listFiles();
+				if (files != null) {
+					for (final File fs : files) {
+						if (!this.deleteFile(fs)) {
+							return false;
+						}
 					}
 				}
 			}
@@ -268,10 +273,10 @@ public abstract class FileStorage {
 	 * @param file - the file to make hidden.
 	 * @return <tt>true</tt> if the folder was hidden successfully, otherwise <tt>false</tt>.
 	 */
-	protected boolean setHidden(File file) {
+	protected boolean setHidden(final File file) {
 	    try {
 			return Runtime.getRuntime().exec("attrib +H \"" + file.getPath() + "\"").waitFor() == 0;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return false;
 		}
 	}
@@ -289,14 +294,15 @@ public abstract class FileStorage {
 		private final Tag tag;
 		private final String endTag;
 		private ConcurrentLinkedQueue<Node> nodes;
-		private String data, data_encoded;
+		private String data;
+		private String data_encoded;
 		
 		public Node(final Tag tag) {
 			this.tag = tag.parse();
-			this.endTag = new StringBuilder("</").append(tag.getName()).append(">").toString();
+			this.endTag = "</" + tag.getName() + ">";
 		}
 		
-		public Node(final Tag tag, Object data) {
+		public Node(final Tag tag, final Object data) {
 			this(tag);
 			this.data = data.toString();
 		}
@@ -326,7 +332,7 @@ public abstract class FileStorage {
 			return this.endTag;
 		}
 
-		public void submit(Object o) {
+		public void submit(final Object o) {
 			if (o instanceof Node) {
 				if (this.nodes == null) {
                     this.nodes = new ConcurrentLinkedQueue<>();
@@ -342,7 +348,7 @@ public abstract class FileStorage {
 			return this.search(new StringBuilder(path));
 		}
 		
-		private Node search(StringBuilder sb) {
+		private Node search(final StringBuilder sb) {
 			if (sb.length() <= 0) {
                 return this;
             }
@@ -379,20 +385,23 @@ public abstract class FileStorage {
 				final int index = sb.indexOf("/");
 				final boolean leaf = index < 0;
 				final String name = leaf ? sb.toString() : sb.substring(0, index);
-				final LinkedList<Node> searched = leaf ? new LinkedList<>() : null;
+				List<Node> searched = null;
 				for (final Node n : this.nodes) {
 					if (n == null) {
 						continue;
 					}
 					if (name.equals(n.getTagName())) {
 						if (leaf) {
+							if (searched == null) {
+								searched = new ArrayList<>(this.nodes.size());
+							}
 							searched.add(n);
 						} else {
 							return n.searchAll(sb.delete(0, name.length()));
 						}
 					}
 				}
-				return searched.toArray(new Node[searched.size()]);
+				return searched != null ? searched.toArray(new Node[searched.size()]) : new Node[0];
 			}
 			return null;
 		}

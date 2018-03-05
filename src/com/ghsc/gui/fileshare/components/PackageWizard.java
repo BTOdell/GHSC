@@ -1,50 +1,7 @@
 package com.ghsc.gui.fileshare.components;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.tree.TreePath;
-
 import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
-import com.ghsc.event.EventListener;
 import com.ghsc.gui.Application;
 import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.autocomplete.ObjectToStringConverter;
@@ -57,16 +14,32 @@ import com.ghsc.gui.fileshare.internal.LocalFileNode;
 import com.ghsc.gui.fileshare.internal.LocalPackage;
 import com.ghsc.impl.IObjectConverter;
 import com.ghsc.impl.Identifiable;
-import com.ghsc.impl.InputVerifier;
 import com.ghsc.impl.ObjectConverter;
+
+import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.tree.TreePath;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.*;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * GUI for creating new packages.
  */
 public class PackageWizard extends JDialog {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	private LocalPackage lPackage;
 	private FileShareFileChooser fileChooser;
 	private SwingWorker<LocalPackage, Object> packageWorker;
@@ -95,14 +68,14 @@ public class PackageWizard extends JDialog {
 	private JPanel controlsPanel;
 	private JButton okButton;
 	private JButton cancelButton;
-	
+
 	/**
 	 * Creates a new PackageWizard GUI.
 	 */
 	public PackageWizard(final FileShareFrame frame, final WizardListener<LocalPackage> wizardListener) {
 		this(frame, null, wizardListener);
 	}
-	
+
 	PackageWizard(final FileShareFrame frame, final LocalPackage pack, final WizardListener<LocalPackage> wizardListener) {
 		super(frame);
 		this.largerFont = Fonts.GLOBAL.deriveFont(Fonts.GLOBAL.getSize() + 1.0F);
@@ -111,7 +84,7 @@ public class PackageWizard extends JDialog {
 
         this.initComponents();
 	}
-	
+
 	private void toggleControls(final boolean enabled) {
         this.nameField.setEnabled(enabled);
         this.addFilesButton.setEnabled(enabled);
@@ -125,7 +98,7 @@ public class PackageWizard extends JDialog {
         this.okButton.setEnabled(enabled);
         this.cancelButton.setEnabled(enabled);
 	}
-	
+
 	private void setCursor(final int cursor) {
 		final Cursor cur = Cursor.getPredefinedCursor(cursor);
 		for (final Component comp : this.getComponents()) {
@@ -135,7 +108,7 @@ public class PackageWizard extends JDialog {
 		}
         this.setCursor(cur);
 	}
-	
+
 	private void deleteSelectedNodes() {
 		final TreePath[] tps = this.fileTree.getSelectionPaths();
         if (tps != null) {
@@ -148,7 +121,7 @@ public class PackageWizard extends JDialog {
             }
         }
     }
-	
+
 	/**
 	 * Notifies the wizard listener with a 'null' value and disposes of this dialog window.
 	 */
@@ -156,7 +129,7 @@ public class PackageWizard extends JDialog {
         this.wizardListener.wizardFinished(null);
         this.dispose();
 	}
-	
+
 	private void initComponents() {
         this.setModalityType(ModalityType.APPLICATION_MODAL);
         this.addWindowListener(new WindowAdapter() {
@@ -220,7 +193,7 @@ public class PackageWizard extends JDialog {
 		);
         contentPane.setLayout(gl_canvas);
 	}
-	
+
 	public JLabel getNameLabel() {
 		if (this.nameLabel == null) {
             this.nameLabel = new JLabel("Name:");
@@ -228,7 +201,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.nameLabel;
 	}
-	
+
 	public JTextField getNameField() {
 		if (this.nameField == null) {
             this.nameField = new JTextField();
@@ -240,7 +213,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.nameField;
 	}
-	
+
 	public JToolBar getFilesToolbar() {
 		if (this.filesToolbar == null) {
             this.filesToolbar = new JToolBar();
@@ -250,7 +223,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.filesToolbar;
 	}
-	
+
 	public JButton getAddFilesButton() {
 		if (this.addFilesButton == null) {
             this.addFilesButton = new JButton("Add files");
@@ -283,22 +256,18 @@ public class PackageWizard extends JDialog {
 		}
 		return this.addFilesButton;
 	}
-	
+
 	public JButton getDeleteFilesButton() {
 		if (this.deleteFilesButton == null) {
             this.deleteFilesButton = new JButton("Delete");
-            this.deleteFilesButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent ae) {
-                    PackageWizard.this.deleteSelectedNodes();
-				}
-			});
+            this.deleteFilesButton.addActionListener(ae -> this.deleteSelectedNodes());
             this.deleteFilesButton.setFocusable(false);
             this.deleteFilesButton.setFont(Fonts.GLOBAL);
             this.deleteFilesButton.setIcon(new ImageIcon(Images.PAGE_DELETE));
 		}
 		return this.deleteFilesButton;
 	}
-	
+
 	public JScrollPane getFileScrollPane() {
 		if (this.fileScrollPane == null) {
             this.fileScrollPane = new JScrollPane();
@@ -306,13 +275,13 @@ public class PackageWizard extends JDialog {
 		}
 		return this.fileScrollPane;
 	}
-	
+
 	public JTree getFileTree() {
 		if (this.fileTree == null) {
             this.fileTree = new JTree();
 			this.fileTreeModel = new FileNodeTreeModel<>(this.fileTree);
 			if (this.lPackage != null) {
-				for (LocalFileNode n : this.lPackage.getRoots()) {
+				for (final LocalFileNode n : this.lPackage.getRoots()) {
 					this.fileTreeModel.addRoot(n.clone());
 				}
 			}
@@ -323,12 +292,12 @@ public class PackageWizard extends JDialog {
 		}
 		return this.fileTree;
 	}
-	
+
 	public JPanel getVisibilityPanel() {
 		if (this.visibilityPanel == null) {
             this.visibilityPanel = new JPanel();
             this.visibilityPanel.setBorder(new TitledBorder(null, "Visibility", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-			GroupLayout gl_visibilityPanel = new GroupLayout(this.visibilityPanel);
+			final GroupLayout gl_visibilityPanel = new GroupLayout(this.visibilityPanel);
 			gl_visibilityPanel.setHorizontalGroup(
 				gl_visibilityPanel.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_visibilityPanel.createSequentialGroup()
@@ -351,130 +320,124 @@ public class PackageWizard extends JDialog {
 		}
 		return this.visibilityPanel;
 	}
-	
+
 	public JComboBox<Visibility.Type> getVisibilityComboBox() {
 		if (this.visibilityComboBox == null) {
             this.visibilityComboBox = new JComboBox<>();
             this.visibilityComboBox.setFont(Fonts.GLOBAL);
-            this.visibilityComboBox.addItemListener(new ItemListener() {
-				public void itemStateChanged(ItemEvent ie) {
-					switch ((Visibility.Type) PackageWizard.this.visibilityComboBox.getSelectedItem()) {
-						case CHANNEL:
-						case USER:
-                            PackageWizard.this.getVisibilityEditButton().setVisible(true);
-							break;
-						default:
-                            PackageWizard.this.getVisibilityEditButton().setVisible(false);
-					}
-                    PackageWizard.this.getVisibilityPanel().revalidate();
-				}
-			});
+            this.visibilityComboBox.addItemListener(ie -> {
+                final Visibility.Type vType = (Visibility.Type) this.visibilityComboBox.getSelectedItem();
+                if (vType == null) {
+                    throw new IllegalStateException("Visibility type is null.");
+                }
+                switch (vType) {
+                    case CHANNEL:
+                    case USER:
+                        this.getVisibilityEditButton().setVisible(true);
+                        break;
+                    default:
+                        this.getVisibilityEditButton().setVisible(false);
+                }
+                this.getVisibilityPanel().revalidate();
+            });
             this.visibilityComboBox.setFocusable(false);
             this.visibilityComboBox.setModel(new DefaultComboBoxModel<>(Visibility.Type.values()));
-			if (this.lPackage != null) {
+            if (this.lPackage != null) {
                 this.visibilityComboBox.setSelectedItem(this.lPackage.getVisibility().getType());
-			}
-		}
+            }
+        }
 		return this.visibilityComboBox;
 	}
-	
+
 	public JButton getVisibilityEditButton() {
 		if (this.visibilityEditButton == null) {
             this.visibilityEditButton = new JButton("...");
             this.visibilityEditButton.setVisible(false);
-            this.visibilityEditButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					if (PackageWizard.this.visibilityDialog == null) {
-						final MainFrame mainFrame = Application.getInstance().getMainFrame();
-						switch ((Visibility.Type) PackageWizard.this.visibilityComboBox.getSelectedItem()) {
-							case CHANNEL:
-                                PackageWizard.this.visibilityDialog = new VisibilityDialog<>(PackageWizard.this, Arrays.asList(mainFrame.getChatContainer().getAllAsStrings()), PackageWizard.this.visibilityChannelData,
-                                        new EventListener<ArrayList<String>>() {
-                                            public void eventReceived(ArrayList<String> event) {
-                                                if (event != null) {
-                                                    PackageWizard.this.visibilityChannelData = event;
-                                                }
-                                                PackageWizard.this.visibilityDialog = null;
-                                            }
-                                        }, new InputVerifier<String>() {
-                                    public String verify(String str) {
+            this.visibilityEditButton.addActionListener(e -> {
+                if (this.visibilityDialog == null) {
+                    final MainFrame mainFrame = Application.getInstance().getMainFrame();
+                    final Visibility.Type vType = (Visibility.Type) this.visibilityComboBox.getSelectedItem();
+                    if (vType == null) {
+                        throw new IllegalStateException("Visibility type is null.");
+                    }
+                    switch (vType) {
+                        case CHANNEL:
+                            this.visibilityDialog = new VisibilityDialog<>(
+                                    this,
+                                    Arrays.asList(mainFrame.getChatContainer().getAllAsStrings()),
+                                    this.visibilityChannelData,
+                                    event -> {
+                                        if (event != null) {
+                                            this.visibilityChannelData = event;
+                                        }
+                                        this.visibilityDialog = null;
+                                    }, str -> {
                                         if (str == null) {
                                             return null;
                                         }
                                         str = str.trim();
                                         return str.isEmpty() || str.startsWith("#") ? str : "#" + str;
-                                    }
-                                }, new ObjectToStringConverter() {
-                                    public String getPreferredStringForItem(Object item) {
-                                        if (item == null) {
-                                            return null;
-                                        }
-                                        String str = item.toString();
-                                        if (str == null) {
-                                            return null;
-                                        }
-                                        str = str.trim();
-                                        return str.isEmpty() || str.startsWith("#") ? str : "#" + str;
-                                    }
-
-                                    @Override
-                                    public String[] getPossibleStringsForItem(Object item) {
-                                        if (item == null) {
-                                            return new String[0];
-                                        }
-                                        String str = item.toString();
-                                        if (str == null) {
-                                            return new String[0];
-                                        }
-                                        str = str.trim();
-                                        if (str.isEmpty()) {
-                                            return new String[0];
-                                        }
-                                        return new String[]{str, str.startsWith("#") ?
-                                                str.substring(1, str.length()) : "#" + str};
-                                    }
-                                }, false);
-								break;
-							case USER:
-								final IObjectConverter<Identifiable> converter = new IObjectConverter<Identifiable>() {
-									public String convert(Identifiable obj) {
-										if (obj == null) {
-                                            return null;
-                                        }
-										return obj.getNick();
-									}
-								};
-                                PackageWizard.this.visibilityDialog = new VisibilityDialog<>(PackageWizard.this,
-                                        ObjectConverter.wrap(converter, new ArrayList<>(mainFrame.getUsers().getUserCollection())),
-                                        ObjectConverter.wrap(converter, PackageWizard.this.visibilityUserData),
-                                        new EventListener<ArrayList<ObjectConverter<Identifiable>>>() {
-                                            public void eventReceived(ArrayList<ObjectConverter<Identifiable>> event) {
-                                                if (event != null) {
-                                                    PackageWizard.this.visibilityUserData = ObjectConverter.unwrap(event);
-                                                }
-                                                PackageWizard.this.visibilityDialog = null;
+                                    }, new ObjectToStringConverter() {
+                                        public String getPreferredStringForItem(final Object item) {
+                                            if (item == null) {
+                                                return null;
                                             }
-                                        }, new InputVerifier<ObjectConverter<Identifiable>>() {
-                                    public ObjectConverter<Identifiable> verify(ObjectConverter<Identifiable> i) {
-                                        return i;
-                                    }
-                                }, null, true);
-								break;
-							default: break;
-						}
-						if (PackageWizard.this.visibilityDialog != null) {
-                            PackageWizard.this.visibilityDialog.setVisible(true);
-						}
-					}
-				}
-			});
+                                            String str = item.toString();
+                                            if (str == null) {
+                                                return null;
+                                            }
+                                            str = str.trim();
+                                            return str.isEmpty() || str.startsWith("#") ? str : "#" + str;
+                                        }
+                                        public String[] getPossibleStringsForItem(final Object item) {
+                                            if (item == null) {
+                                                return new String[0];
+                                            }
+                                            String str = item.toString();
+                                            if (str == null) {
+                                                return new String[0];
+                                            }
+                                            str = str.trim();
+                                            if (str.isEmpty()) {
+                                                return new String[0];
+                                            }
+                                            return new String[]{str, str.startsWith("#") ?
+                                                    str.substring(1, str.length()) : "#" + str};
+                                        }
+                                    }, false);
+                            break;
+                        case USER:
+                            final IObjectConverter<Identifiable> converter = obj -> {
+                                if (obj == null) {
+                                    return null;
+                                }
+                                return obj.getNick();
+                            };
+                            this.visibilityDialog = new VisibilityDialog<>(this,
+                                    ObjectConverter.wrap(converter, new ArrayList<>(mainFrame.getUsers().getUserCollection())),
+                                    ObjectConverter.wrap(converter, this.visibilityUserData),
+                                    event -> {
+                                        if (event != null) {
+                                            this.visibilityUserData = ObjectConverter.unwrap(event);
+                                        }
+                                        this.visibilityDialog = null;
+                                    }, i -> i, null, true);
+                            break;
+                        default:
+                            break;
+                    }
+                    if (this.visibilityDialog != null) {
+                        this.visibilityDialog.setVisible(true);
+                    }
+                }
+            });
             this.visibilityEditButton.setToolTipText("Edit visibility arguments");
 			if (this.lPackage != null) {
 				// load visibility arguments from package
 				final Object data = this.lPackage.getVisibility().getData();
 				if (data != null) {
-					String[] split = data.toString().split(Pattern.quote(","));
-					for (String s : split) {
+					final String[] split = data.toString().split(Pattern.quote(","));
+					for (final String s : split) {
 						switch (this.lPackage.getVisibility().getType()) {
 							case CHANNEL:
                                 this.visibilityChannelData.add(s);
@@ -526,12 +489,12 @@ public class PackageWizard extends JDialog {
 		}
 		return this.visibilityEditButton;
 	}
-	
+
 	public JPanel getPasswordPanel() {
 		if (this.passwordPanel == null) {
             this.passwordPanel = new JPanel();
             this.passwordPanel.setBorder(new TitledBorder(null, "Password protection", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-			GroupLayout gl_passwordPanel = new GroupLayout(this.passwordPanel);
+			final GroupLayout gl_passwordPanel = new GroupLayout(this.passwordPanel);
 			gl_passwordPanel.setHorizontalGroup(
 				gl_passwordPanel.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_passwordPanel.createSequentialGroup()
@@ -553,17 +516,15 @@ public class PackageWizard extends JDialog {
 		}
 		return this.passwordPanel;
 	}
-	
+
 	public JCheckBox getPasswordProtect() {
 		if (this.passwordProtect == null) {
             this.passwordProtect = new JCheckBox("");
             this.passwordProtect.setFocusable(false);
-            this.passwordProtect.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-                    PackageWizard.this.getPasswordField().setVisible(PackageWizard.this.passwordProtect.isSelected());
-                    PackageWizard.this.getPasswordPanel().revalidate();
-				}
-			});
+            this.passwordProtect.addActionListener(e -> {
+                this.getPasswordField().setVisible(this.passwordProtect.isSelected());
+                this.getPasswordPanel().revalidate();
+            });
             this.passwordProtect.setFont(Fonts.GLOBAL);
 			if (this.lPackage != null) {
                 this.passwordProtect.setSelected(this.lPackage.isPasswordProtected());
@@ -571,7 +532,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.passwordProtect;
 	}
-	
+
 	public JTextField getPasswordField() {
 		if (this.passwordField == null) {
             this.passwordField = new JTextField();
@@ -585,7 +546,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.passwordField;
 	}
-	
+
 	public JScrollPane getDescriptionScrollPane() {
 		if (this.descriptionScrollPane == null) {
             this.descriptionScrollPane = new JScrollPane();
@@ -594,7 +555,7 @@ public class PackageWizard extends JDialog {
 		}
 		return this.descriptionScrollPane;
 	}
-	
+
 	public JTextPane getDescriptionPane() {
 		if (this.descriptionPane == null) {
             this.descriptionPane = new JTextPane();
@@ -607,12 +568,12 @@ public class PackageWizard extends JDialog {
 		}
 		return this.descriptionPane;
 	}
-	
+
 	public JPanel getControlsPanel() {
 		if (this.controlsPanel == null) {
             this.controlsPanel = new JPanel();
             this.controlsPanel.setBorder(new MatteBorder(1, 1, 1, 1, Color.LIGHT_GRAY));
-			GroupLayout gl_controlsPanel = new GroupLayout(this.controlsPanel);
+			final GroupLayout gl_controlsPanel = new GroupLayout(this.controlsPanel);
 			gl_controlsPanel.setHorizontalGroup(
 				gl_controlsPanel.createParallelGroup(Alignment.TRAILING)
 					.addGroup(gl_controlsPanel.createSequentialGroup()
@@ -635,33 +596,41 @@ public class PackageWizard extends JDialog {
 		}
 		return this.controlsPanel;
 	}
-	
+
 	public JButton getOkButton() {
 		if (this.okButton == null) {
             this.okButton = new JButton("OK");
             this.okButton.setFocusable(false);
             this.okButton.setFont(Fonts.GLOBAL);
             this.okButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent ae) {
+				public void actionPerformed(final ActionEvent ae) {
 					if (PackageWizard.this.packageWorker == null) {
                         PackageWizard.this.toggleControls(false);
                         PackageWizard.this.setCursor(Cursor.WAIT_CURSOR);
 						final LocalFileNode[] nodes = PackageWizard.this.fileTreeModel.getRoots(new LocalFileNode[PackageWizard.this.fileTreeModel.getRootCount()]);
                         PackageWizard.this.packageWorker = new SwingWorker<LocalPackage, Object>() {
-							protected LocalPackage doInBackground() throws Exception {
-								if (PackageWizard.this.lPackage != null) {
-									// edit package data
+							protected LocalPackage doInBackground() {
+							    if (PackageWizard.this.lPackage == null) {
+                                    // Create new package
+                                    PackageWizard.this.lPackage = new LocalPackage(
+                                            PackageWizard.this.getNameField().getText(),
+                                            PackageWizard.this.getDescriptionPane().getText(),
+                                            Calendar.getInstance(),
+                                            null);
+                                } else {
+							        // Edit required package data
                                     PackageWizard.this.lPackage.setName(PackageWizard.this.getNameField().getText());
                                     PackageWizard.this.lPackage.setDescription(PackageWizard.this.getDescriptionPane().getText());
-                                    PackageWizard.this.lPackage.setPassword(PackageWizard.this.getPasswordProtect().isSelected() && !PackageWizard.this.getPasswordField().getText().isEmpty() ? PackageWizard.this.getPasswordField().getText() : null);
-                                    PackageWizard.this.lPackage.setRoots(nodes);
-								} else {
-									// create new package
-                                    PackageWizard.this.lPackage = new LocalPackage(PackageWizard.this.getNameField().getText(), PackageWizard.this.getDescriptionPane().getText(), Calendar.getInstance(), null,
-                                            PackageWizard.this.getPasswordProtect().isSelected() && !PackageWizard.this.getPasswordField().getText().isEmpty() ? PackageWizard.this.getPasswordField().getText() : null, nodes);
-								}
+                                }
+                                // Edit package data
+                                PackageWizard.this.lPackage.setPassword(PackageWizard.this.getPasswordProtect().isSelected() && !PackageWizard.this.getPasswordField().getText().isEmpty() ? PackageWizard.this.getPasswordField().getText() : null);
+                                PackageWizard.this.lPackage.setRoots(nodes);
+                                // Configure visibility of local package
 								final Visibility.Type vType = (Visibility.Type) PackageWizard.this.getVisibilityComboBox().getSelectedItem();
-								StringBuilder sb = vType != Visibility.Type.PUBLIC ? new StringBuilder() : null;
+								if (vType == null) {
+								    throw new IllegalStateException("Visibility type is null.");
+                                }
+                                final StringBuilder sb = vType != Visibility.Type.PUBLIC ? new StringBuilder() : null;
 								switch (vType) {
 									case CHANNEL:
 										for (int i = 0; i < PackageWizard.this.visibilityChannelData.size(); i++) {
@@ -684,7 +653,8 @@ public class PackageWizard extends JDialog {
 									case PRIVATE:
 										sb.append(PackageWizard.this.lPackage.getPrivateKey());
 										break;
-									default: break;
+									default:
+									    break;
 								}
                                 PackageWizard.this.lPackage.setVisibility(new Visibility(vType, sb));
 								return PackageWizard.this.lPackage;
@@ -707,19 +677,15 @@ public class PackageWizard extends JDialog {
 		}
 		return this.okButton;
 	}
-	
+
 	public JButton getCancelButton() {
 		if (this.cancelButton == null) {
             this.cancelButton = new JButton("Cancel");
             this.cancelButton.setFocusable(false);
             this.cancelButton.setFont(Fonts.GLOBAL);
-            this.cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent ae) {
-                    PackageWizard.this.close();
-				}
-			});
+            this.cancelButton.addActionListener(ae -> this.close());
 		}
 		return this.cancelButton;
 	}
-	
+
 }

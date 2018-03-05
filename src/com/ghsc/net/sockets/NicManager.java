@@ -5,51 +5,44 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NicManager {
 	
-	private LinkedHashMap<String, String> currentInterfaces;
+	private Map<String, String> currentInterfaces;
 	
 	public NicManager() {
         this.currentInterfaces = this.enumInterfaces();
 	}
 	
 	public Set<String> getInterfaces() {
-		if (this.currentInterfaces == null) {
-            this.currentInterfaces = this.enumInterfaces();
-		}
 		return this.currentInterfaces.keySet();
 	}
 	
-	private LinkedHashMap<String, String> enumInterfaces() {
+	private Map<String, String> enumInterfaces() {
 		final LinkedHashMap<String, String> newInterfaces = new LinkedHashMap<>();
-		Enumeration<NetworkInterface> interfaces = null;
+		final Enumeration<NetworkInterface> interfaces;
 		try {
 			interfaces = NetworkInterface.getNetworkInterfaces();
-		} catch (SocketException e) {
+		} catch (final SocketException e) {
 			System.err.println(e + ":  " + e.getMessage());
-			return null;
+			return Collections.emptyMap();
 		}
-		for (NetworkInterface xface : Collections.list(interfaces)) {
+		for (final NetworkInterface xface : Collections.list(interfaces)) {
 			//printNetworkInterface(xface);
 			boolean isUp = false;
 			try {
 				isUp = xface.isUp();
-			} catch (SocketException e) {
+			} catch (final SocketException e) {
 				System.err.println(e + ":  " + e.getMessage());
 			}
 			if (isUp) {
 				printNetworkInterface(xface);
-				for (InterfaceAddress interfaceAddress : xface.getInterfaceAddresses()) {
-					InetAddress inetAddress = interfaceAddress.getAddress();
+				for (final InterfaceAddress interfaceAddress : xface.getInterfaceAddresses()) {
+					final InetAddress inetAddress = interfaceAddress.getAddress();
 					if ((inetAddress instanceof Inet4Address) &&
 						(!inetAddress.isLoopbackAddress())) {
-						boolean isReachable = true;
+						final boolean isReachable = true;
 //						boolean isReachable = false;
 //						try {
 //							isReachable = inetAddress.isReachable(3000);
@@ -69,7 +62,7 @@ public class NicManager {
 	}
 	
 	public Set<String> updateInterfaces() {
-		LinkedHashMap<String, String> newInterfaces = this.enumInterfaces();
+		final Map<String, String> newInterfaces = this.enumInterfaces();
 		if (this.currentInterfaces.keySet().equals(newInterfaces.keySet())) {
 			return null;
 		}
@@ -77,7 +70,7 @@ public class NicManager {
 		return newInterfaces.keySet();
 	}
 	
-	public String getIp(String interfaceName) {
+	public String getIp(final String interfaceName) {
 		if (interfaceName != null) {
 			return this.currentInterfaces.get(interfaceName);
 		}
@@ -85,17 +78,15 @@ public class NicManager {
 	}
 	
 	public static void printNetworkInterface(final NetworkInterface networkInterface) {
-		boolean isUp;
-		boolean supportsMulticast;
-		
+		final boolean isUp;
+		final boolean supportsMulticast;
 		try {
 			isUp = networkInterface.isUp();
 			supportsMulticast = networkInterface.supportsMulticast();
-		} catch (SocketException e) {
+		} catch (final SocketException e) {
 			System.err.println(e + ":  " + e.getMessage());
 			return;
 		}
-		
 		System.out.println("Name: " + networkInterface.getName());
 		System.out.println("Display name: " + networkInterface.getDisplayName());
 		System.out.println("Up: " + isUp);
@@ -104,7 +95,7 @@ public class NicManager {
 		System.out.println("Interface Addresses:");
 		final List<InterfaceAddress> interfaceAddresses = networkInterface.getInterfaceAddresses();
 		if (!interfaceAddresses.isEmpty()) {
-			for (InterfaceAddress interfaceAddress : interfaceAddresses) {
+			for (final InterfaceAddress interfaceAddress : interfaceAddresses) {
 				System.out.print("\tIP: ");
 				System.out.print(interfaceAddress.getAddress());
 				System.out.print(" - Broadcast: ");
@@ -115,4 +106,5 @@ public class NicManager {
 			System.out.println("\tNone");
 		}
 	}
+
 }

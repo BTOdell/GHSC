@@ -6,12 +6,13 @@ import javax.swing.JPanel;
 
 public class Flasher extends Thread {
 	
-	final JPanel contentPane;
+	private final JPanel contentPane;
 	public boolean run = true;
-	private Color[] colors = { Color.BLUE, Color.RED, Color.YELLOW, Color.ORANGE, Color.BLACK, Color.CYAN, Color.DARK_GRAY, Color.GRAY, Color.GREEN, Color.MAGENTA, Color.WHITE, Color.PINK };
-	private int colorIndex, sleep = 50;
+	private final Color[] colors = { Color.BLUE, Color.RED, Color.YELLOW, Color.ORANGE, Color.BLACK, Color.CYAN, Color.DARK_GRAY, Color.GRAY, Color.GREEN, Color.MAGENTA, Color.WHITE, Color.PINK };
+	private int colorIndex;
+	private int sleep = 50;
 	
-	public Flasher(JPanel contentPane) {
+	public Flasher(final JPanel contentPane) {
 		this.contentPane = contentPane;
 		this.start();
 	}
@@ -20,7 +21,7 @@ public class Flasher extends Thread {
 		return this.colorIndex >= this.colors.length - 1 ? this.colors[this.colorIndex = 0] : this.colors[this.colorIndex++];
 	}
 	
-	public void setSleep(int sleep) {
+	public void setSleep(final int sleep) {
 		this.sleep = sleep;
 	}
 	
@@ -30,7 +31,7 @@ public class Flasher extends Thread {
             this.contentPane.setBackground(this.getNext());
 			try {
 				Thread.sleep(this.sleep);
-			} catch (InterruptedException ignored) {}
+			} catch (final InterruptedException ignored) {}
 		}
 	}
 	

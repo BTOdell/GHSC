@@ -20,7 +20,7 @@ import com.ghsc.util.TimeStamp;
  */
 public class Channel extends Chat {
 	
-	public Channel(ChatContainer container, String name) {
+	public Channel(final ChatContainer container, final String name) {
 		super(container, name);
 		
 		this.addElement(new ChannelElement(this.elements, TimeStamp.newInstance(), this.name, "Welcome!", null), false);
@@ -31,7 +31,7 @@ public class Channel extends Chat {
 		this.panel = new JPanel();
 		this.scrollPane = new JScrollPane();
 		this.scrollPane.addComponentListener(new ComponentAdapter() {
-			public void componentResized(ComponentEvent ce) {
+			public void componentResized(final ComponentEvent ce) {
 				Channel.this.elements.invalidate();
 			}
 		});
@@ -39,7 +39,7 @@ public class Channel extends Chat {
 		this.scrollPane.getVerticalScrollBar().setUnitIncrement(8);
 		this.scrollPane.setViewportView(this.elements = new ChatElementList(this));
 		
-		GroupLayout gl_panel = new GroupLayout(this.panel);
+		final GroupLayout gl_panel = new GroupLayout(this.panel);
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
 				.addComponent(this.scrollPane, GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
@@ -56,7 +56,7 @@ public class Channel extends Chat {
 	 * @param element - the ChannelElement to add.
 	 * @param scroll - whether to scroll this element into view after it appears.
 	 */
-	synchronized public final void addElement(ChannelElement element, boolean scroll) {
+	synchronized public final void addElement(final ChannelElement element, final boolean scroll) {
 		if (element == null) {
 			return;
 		}
@@ -70,10 +70,10 @@ public class Channel extends Chat {
 	 * Refreshes the chat display.
 	 * @param u - the user to refresh.
 	 */
-	public void refreshUser(User u) {
+	public void refreshUser(final User u) {
 		boolean changed = false;
 		for (int i = 0; i < this.elements.getCount(); i++) {
-			ChannelElement element = (ChannelElement) this.elements.get(i);
+			final ChannelElement element = (ChannelElement) this.elements.get(i);
 			if (u == null) {
 				if (element.isMe()) {
 					element.refreshAll();
@@ -94,7 +94,7 @@ public class Channel extends Chat {
 	 */
 	public int getUserCount() {
 		int count = 0;
-		for (User u : this.container.frame.getUsers().getUserCollection()) {
+		for (final User u : this.container.frame.getUsers().getUserCollection()) {
 			if (u.inChannel(this.name)) {
 				count++;
 			}

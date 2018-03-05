@@ -175,8 +175,7 @@ public class PackagePanelList extends JPanel {
 
 		private void setSizes(final Container parent) {
 			final int nComps = parent.getComponentCount();
-			Dimension d = null;
-			
+
 			// reset widths and heights
 			this.prefWidth = this.prefHeight = this.minWidth = this.minHeight = 0;
 			
@@ -190,7 +189,7 @@ public class PackagePanelList extends JPanel {
 			for (int i = 0; i < nComps; i++) {
 				final Component c = parent.getComponent(i);
 				if (c.isVisible()) {
-					d = c.getPreferredSize();
+					Dimension d = c.getPreferredSize();
 					if (d == null) {
 						d = c.getMinimumSize();
 					}

@@ -62,7 +62,7 @@ public abstract class FrameTitleManager {
 		}
 	}
 	
-	private void restartTimer(int delay) {
+	private void restartTimer(final int delay) {
         this.stopTimer();
 		this.timer.setInitialDelay(delay);
 		this.timer.restart();

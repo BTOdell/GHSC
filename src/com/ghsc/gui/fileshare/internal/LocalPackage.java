@@ -1,11 +1,5 @@
 package com.ghsc.gui.fileshare.internal;
 
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.UUID;
-
 import com.ghsc.gui.Application;
 import com.ghsc.gui.fileshare.FileShare;
 import com.ghsc.impl.EndTaggable;
@@ -14,9 +8,15 @@ import com.ghsc.net.encryption.SHA2;
 import com.ghsc.util.Tag;
 import com.ghsc.util.Utilities;
 
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.UUID;
+
 public class LocalPackage extends FilePackage {
 	
 	private final String privateKey;
+
 	private LocalFileNode[] roots;
 	private String password;
 	private byte[] passwordHash;
@@ -24,26 +24,19 @@ public class LocalPackage extends FilePackage {
 	/**
 	 * Creates a new package.
 	 */
-	public LocalPackage(final String name, final String description, final Calendar creationDate, final Visibility visibility, final String password, final LocalFileNode[] nodes) {
-		super(name, description, creationDate, visibility);
+	public LocalPackage(final String name, final String description, final Calendar creationDate, final Visibility visibility) {
+		super(UUID.randomUUID(), name, description, creationDate, visibility);
 		this.privateKey = FileShare.generatePrivateKey();
-		this.setPassword(password);
-		this.roots = nodes;
 	}
-	
-	/**
-	 * Parse constructor.
-	 */
-	private LocalPackage(final String name, final String description, final String creationDateS, final Visibility visibility, final String uuid, final String privateKey, final String password, final boolean active) {
-		super(name, description, parseCalendar(new SimpleDateFormat(DATE_FORMAT), creationDateS), visibility);
-		try {
-			this.uuid = UUID.fromString(uuid);
-		} catch (IllegalArgumentException iae) {
-			this.uuid = null;
-		}
+
+    /**
+     * Create from existing package data.
+     */
+	public LocalPackage(final UUID uuid, final String name, final String description,
+						final Calendar creationDate, final Visibility visibility,
+						final String privateKey) {
+		super(uuid, name, description, creationDate, visibility);
 		this.privateKey = privateKey;
-		this.setPassword(password);
-		this.active = active;
 	}
 	
 	@Override
@@ -51,7 +44,7 @@ public class LocalPackage extends FilePackage {
 		return Application.getInstance().getPreferredName();
 	}
 	
-	public LocalFileNode getFile(String relativePath) {
+	public LocalFileNode getFile(final String relativePath) {
 		return LocalFileNode.findFile(relativePath, Arrays.asList(this.roots));
 	}
 	
@@ -68,12 +61,12 @@ public class LocalPackage extends FilePackage {
 		return this.password;
 	}
 	
-	public void setPassword(String password) {
+	public void setPassword(final String password) {
 		this.password = password;
 		this.passwordHash = password != null ? SHA2.hash512Bytes(password) : null;
 	}
 	
-	public boolean verifyPassword(String password) {
+	public boolean verifyPassword(final String password) {
 		return !this.isPasswordProtected() || SHA2.verify(this.passwordHash, SHA2.hash512Bytes(password));
 	}
 	
@@ -121,27 +114,6 @@ public class LocalPackage extends FilePackage {
 		return this.size;
 	}
 	
-	/**
-	 * Calculates the UUID (universally unique identification) for this Package.
-	 * @return the latest UUID.
-	 */
-	@Override
-	public UUID getUUID() {
-		if (this.uuid == null) {
-			/*
-			final StringBuilder sb = new StringBuilder();
-			sb.append(Application.getLocalAddress().getHostAddress());
-			sb.append(name);
-			for (LocalFileNode f : getRoots()) {
-				sb.append(f.concat());
-			}
-			uuid = UUID.nameUUIDFromBytes(sb.toString().getBytes(Application.CHARSET));
-			*/
-			this.uuid = UUID.randomUUID();
-		}
-		return this.uuid;
-	}
-	
 	/*
 	 * Remote package related methods
 	 */
@@ -151,18 +123,19 @@ public class LocalPackage extends FilePackage {
 	 * @return the meta data for a RemotePackage.
 	 */
 	public String toRemoteMeta() {
-		final LinkedList<Object> ll = new LinkedList<Object>();
+		final LinkedList<Object> ll = new LinkedList<>();
 		ll.add(ATT_NAME);
-		ll.add(this.name);
-		if (this.description != null) {
+		ll.add(this.getName());
+		final String description = this.getDescription();
+		if (description != null) {
 			ll.add(ATT_DESCRIPTION);
-			ll.add(this.description);
+			ll.add(description);
 		}
 		ll.add(ATT_CREATIONDATE);
 		ll.add(this.getCreationDateString());
 		ll.add(ATT_DOWNLOADCOUNT);
 		ll.add(this.getDownloadCount());
-		if (this.active) {
+		if (this.isActive()) {
 			ll.add(ATT_ACTIVE);
 			ll.add(Utilities.resolveToBoolean(true));
 		}
@@ -174,7 +147,7 @@ public class LocalPackage extends FilePackage {
 		ll.add(this.getVisibility());
 		ll.add(ATT_UUID);
 		ll.add(this.getUUID());
-		StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
+		final StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
 		for (final LocalFileNode root : this.roots) {
             build.append(root.toRemoteMeta());
         }
@@ -193,18 +166,19 @@ public class LocalPackage extends FilePackage {
 	 */
 	
 	public String toSaveMeta() {
-		final LinkedList<Object> ll = new LinkedList<Object>();
+		final LinkedList<Object> ll = new LinkedList<>();
 		ll.add(ATT_NAME);
-		ll.add(this.name);
-		if (this.description != null) {
+		ll.add(this.getName());
+        final String description = this.getDescription();
+		if (description != null) {
 			ll.add(ATT_DESCRIPTION);
-			ll.add(this.description);
+			ll.add(description);
 		}
 		ll.add(ATT_CREATIONDATE);
 		ll.add(this.getCreationDateString());
 		ll.add(ATT_DOWNLOADCOUNT);
 		ll.add(this.getDownloadCount());
-		if (this.active) {
+		if (this.isActive()) {
 			ll.add(ATT_ACTIVE);
 			ll.add(Utilities.resolveToBoolean(true));
 		}
@@ -218,7 +192,7 @@ public class LocalPackage extends FilePackage {
 		ll.add(this.getVisibility());
 		ll.add(ATT_UUID);
 		ll.add(this.getUUID());
-		StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
+		final StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
 		for (final LocalFileNode root : this.roots) {
             build.append(root.toSaveMeta());
         }
@@ -227,23 +201,40 @@ public class LocalPackage extends FilePackage {
 		return build.toString();
 	}
 	
-	public static LocalPackage parseSaveMeta(String meta) {
+	public static LocalPackage parseSaveMeta(final String meta) {
 		final Tag pTag = Tag.parse(meta);
-		if (pTag == null) {
+		if (pTag == null || !pTag.getName().equals(TAGNAME)) {
             return null;
         }
-		String name = null, uuid = null, vA = null, cD = null;
-		if ((!pTag.getName().equals(TAGNAME)) || (name = pTag.getAttribute(ATT_NAME)) == null || 
-			(uuid = pTag.getAttribute(ATT_UUID)) == null || (vA = pTag.getAttribute(ATT_VISIBILITY)) == null ||
-			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null) {
+        final String uuidString = pTag.getAttribute(ATT_UUID);
+        final String name = pTag.getAttribute(ATT_NAME);
+        final String visibilityString = pTag.getAttribute(ATT_VISIBILITY);
+        final String creationDateString = pTag.getAttribute(ATT_CREATIONDATE);
+        final String privateKey = pTag.getAttribute(ATT_PRIVATEKEY);
+        if (uuidString == null || name == null || visibilityString == null || creationDateString == null || privateKey == null) {
             return null;
         }
-		final LocalPackage lp = new LocalPackage(name, pTag.getAttribute(ATT_DESCRIPTION), cD, new Visibility(vA), uuid, 
-				pTag.getAttribute(ATT_PRIVATEKEY), pTag.getAttribute(ATT_PASSWORDPROTECTED), pTag.getAttribute(ATT_ACTIVE) != null);
-		lp.setDownloadCount(Long.parseLong(pTag.getAttribute(ATT_DOWNLOADCOUNT)));
-		
+        final UUID uuid = UUID.fromString(uuidString);
+        final Visibility visibility = Visibility.parse(visibilityString);
+        final Calendar creationDate = parseCalendar(creationDateString);
+        if (visibility == null || creationDate == null) {
+            return null;
+        }
+        final LocalPackage parsedLocalPackage = new LocalPackage(uuid, name, pTag.getAttribute(ATT_DESCRIPTION), creationDate, visibility, privateKey);
+        parsedLocalPackage.setPassword(pTag.getAttribute(ATT_PASSWORDPROTECTED));
+        parsedLocalPackage.setActive(pTag.getAttribute(ATT_ACTIVE) != null);
+        // Load download count
+        final long downloadCount;
+        final String downloadCountString = pTag.getAttribute(ATT_DOWNLOADCOUNT);
+        if (downloadCountString != null) {
+            downloadCount = Long.parseLong(downloadCountString);
+        } else {
+            downloadCount = 0;
+        }
+        parsedLocalPackage.setDownloadCount(downloadCount);
+        // Load files
 		final LocalFileNodeChildren lChildren = new LocalFileNodeChildren(null);
-		final LinkedList<EndTaggable> tagStack = new LinkedList<EndTaggable>();
+		final LinkedList<EndTaggable> tagStack = new LinkedList<>();
 		tagStack.push(lChildren);
 		final StringBuilder content = new StringBuilder(pTag.getPost());
 		EndTaggable peek = lChildren;
@@ -271,9 +262,9 @@ public class LocalPackage extends FilePackage {
 				return null;
 			}
 		}
-		LocalFileNode[] nodes = lChildren.toArray(new LocalFileNode[lChildren.size()]);
-		lp.setRoots(nodes);
-		return lp;
+		final LocalFileNode[] nodes = lChildren.toArray(new LocalFileNode[lChildren.size()]);
+        parsedLocalPackage.setRoots(nodes);
+		return parsedLocalPackage;
 	}
 	
 }

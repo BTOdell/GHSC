@@ -9,8 +9,11 @@ import com.ghsc.impl.EndTaggable;
 
 public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	
-	public static final String TAGNAME_DIR = "d", TAGNAME_FILE = "f", 
-			ATT_NAME = "n", ATT_SIZE = "s", ATT_PATH = "p";
+	public static final String TAGNAME_DIR = "d";
+	public static final String TAGNAME_FILE = "f";
+	public static final String ATT_NAME = "n";
+	public static final String ATT_SIZE = "s";
+	public static final String ATT_PATH = "p";
 	
 	FileNode parent;
 	FileNodeChildren<?> container;

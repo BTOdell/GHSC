@@ -56,7 +56,10 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 		
 	}
 	
-	public static final String ATT_HOSTNAME = "h", ATT_NICK = "n", ATT_ID = "i", ATT_CHANNEL = "c";
+	public static final String ATT_HOSTNAME = "h";
+    public static final String ATT_NICK = "n";
+    public static final String ATT_ID = "i";
+    public static final String ATT_CHANNEL = "c";
 	
 	private final UserContainer container;
 	

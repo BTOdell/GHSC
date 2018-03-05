@@ -9,8 +9,8 @@ public abstract class ObjectToStringConverter {
 	 *            the item to convert
 	 * @return possible <tt>String</tt> representation for the given item.
 	 */
-	public String[] getPossibleStringsForItem(Object item) {
-		String preferred = this.getPreferredStringForItem(item);
+	public String[] getPossibleStringsForItem(final Object item) {
+		final String preferred = this.getPreferredStringForItem(item);
 		return preferred == null ? new String[0] : new String[] { preferred };
 	}
 
@@ -29,7 +29,7 @@ public abstract class ObjectToStringConverter {
 	public static final ObjectToStringConverter DEFAULT = new DefaultObjectToStringConverter();
 
 	private static class DefaultObjectToStringConverter extends ObjectToStringConverter {
-		public String getPreferredStringForItem(Object item) {
+		public String getPreferredStringForItem(final Object item) {
 			return item == null ? null : item.toString();
 		}
 	}

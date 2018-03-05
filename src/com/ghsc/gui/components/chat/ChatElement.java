@@ -1,10 +1,7 @@
 package com.ghsc.gui.components.chat;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -20,15 +17,11 @@ import javax.swing.text.StyledDocument;
 import com.ghsc.common.Colors;
 import com.ghsc.common.Fonts;
 import com.ghsc.gui.Application;
-import com.ghsc.gui.components.popup.Popup;
-import com.ghsc.gui.components.popup.PopupBuilder;
-import com.ghsc.gui.components.popup.PopupManager;
 import com.ghsc.gui.components.users.User;
 import com.ghsc.util.TimeStamp;
 
 /**
  * Used to display a message/element in a Chat list model.
- * @author Odell
  */
 public class ChatElement extends JTextPane {
 	
@@ -38,9 +31,13 @@ public class ChatElement extends JTextPane {
 	
 	protected TimeStamp time;
 	protected User sender;
-	protected String sender_name, message, title;
+	protected String sender_name;
+	protected String message;
+	protected String title;
 	protected Color color;
-	protected boolean automated, me, show = true;
+	protected boolean automated;
+	protected boolean me;
+	protected boolean show = true;
 	
 	private int textLength;
 	
@@ -48,9 +45,11 @@ public class ChatElement extends JTextPane {
 	 * Styles
 	 */
 	private static final float LEFT_INDENT = 10.0F;
-	MutableAttributeSet emptyStyle, boldStyle, indentStyle;
+	private MutableAttributeSet emptyStyle;
+	private MutableAttributeSet boldStyle;
+	private MutableAttributeSet indentStyle;
 	
-	protected ChatElement(ChatElementList container, TimeStamp time, String title, String message, boolean me) {
+	protected ChatElement(final ChatElementList container, final TimeStamp time, final String title, final String message, final boolean me) {
 		super();
 		this.container = container;
 		this.time = time;
@@ -62,7 +61,7 @@ public class ChatElement extends JTextPane {
 	/**
 	 * Creates for my messages.
 	 */
-	public ChatElement(ChatElementList container, TimeStamp time, String title, String message) {
+	public ChatElement(final ChatElementList container, final TimeStamp time, final String title, final String message) {
 		this(container, time, title, message, true);
 
 		this.init();
@@ -71,11 +70,11 @@ public class ChatElement extends JTextPane {
 	/**
 	 * Creates for automated message.
 	 */
-	public ChatElement(ChatElementList container, TimeStamp time, String sender, String title, String message) {
+	public ChatElement(final ChatElementList container, final TimeStamp time, final String sender, final String title, final String message) {
 		this(container, time, sender, title, message, Colors.MESSAGE_BLUE);
 	}
 	
-	public ChatElement(ChatElementList container, TimeStamp time, String sender, String title, String message, Color color) {
+	public ChatElement(final ChatElementList container, final TimeStamp time, final String sender, final String title, final String message, final Color color) {
 		this(container, time, title, message, false);
 		this.color = color;
 		this.automated = true;
@@ -87,7 +86,7 @@ public class ChatElement extends JTextPane {
 	/**
 	 * Creates for actual user.
 	 */
-	public ChatElement(ChatElementList container, TimeStamp time, User sender, String title, String message, boolean show, Color color) {
+	public ChatElement(final ChatElementList container, final TimeStamp time, final User sender, final String title, final String message, final boolean show, final Color color) {
 		this(container, time, title, message, false);
 		
 		this.sender = sender;
@@ -101,7 +100,7 @@ public class ChatElement extends JTextPane {
 	 * Hides this ChannelElement's text.
 	 * @param hidden - whether to hide the text, or show it.
 	 */
-	public void setHidden(boolean hidden) {
+	public void setHidden(final boolean hidden) {
 		this.show = !hidden;
 		this.select(0,0);
 		this.refreshText();
@@ -135,43 +134,33 @@ public class ChatElement extends JTextPane {
 		this.refreshAll();
 
 		this.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
+			public void mousePressed(final MouseEvent e) {
 				ChatElement.this.container.getChat().setSelection(ChatElement.this);
 			}
 		});
-		
-		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
-			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-				final String selection = ChatElement.this.getSelectedText();
-				if (selection != null) {
-					JMenuItem fi = menu.createItem("Copy", new ActionListener() {
-						public void actionPerformed(ActionEvent ae) {
-							ChatElement.this.copy();
-						}
-					});
-					fi.setFont(Fonts.GLOBAL);
-					menu.add(fi);
-					if (ChatElement.this.message != null) {
-                        menu.addSeparator();
-                    }
+
+		Application.getInstance().getPopupManager().submit((menu, popupManager, sender, x, y) -> {
+			final String selection = this.getSelectedText();
+			if (selection != null) {
+				final JMenuItem fi = menu.createItem("Copy", ae -> this.copy());
+				fi.setFont(Fonts.GLOBAL);
+				menu.add(fi);
+				if (this.message != null) {
+					menu.addSeparator();
 				}
-				if (ChatElement.this.message != null) {
-					JMenuItem fi = menu.createItem(ChatElement.this.isHidden() ? "Show" : "Hide", new ActionListener() {
-						public void actionPerformed(ActionEvent ae) {
-							ChatElement.this.setHidden(!ChatElement.this.isHidden());
-						}
-					});
-					fi.setFont(Fonts.GLOBAL);
-					menu.add(fi);
-				}
-				return menu.getComponentCount() > 0;
 			}
+			if (this.message != null) {
+				final JMenuItem fi = menu.createItem(this.isHidden() ? "Show" : "Hide", ae -> this.setHidden(!this.isHidden()));
+				fi.setFont(Fonts.GLOBAL);
+				menu.add(fi);
+			}
+			return menu.getComponentCount() > 0;
 		}, this);
 	}
 	
-	public void insertImage(Image img, int pos) {
+	public void insertImage(final Image img, int pos) {
 		pos = Math.max(0, Math.min(this.textLength - 1, pos));
-		int prev = this.getCaretPosition();
+		final int prev = this.getCaretPosition();
 		this.setCaretPosition(pos);
 		this.insertIcon(new ImageIcon(img));
 		this.setCaretPosition(prev);
@@ -186,7 +175,7 @@ public class ChatElement extends JTextPane {
 	}
 	
 	protected void refreshText() {
-		StringBuilder build = new StringBuilder();
+		final StringBuilder build = new StringBuilder();
 		build.append("[");
 		build.append(this.time.print(TimeStamp.Style.Hour12));
 		build.append("] ");
@@ -195,13 +184,13 @@ public class ChatElement extends JTextPane {
             build.append(" says");
         }
 		build.append(":");
-		int bSize = build.length();
+		final int bSize = build.length();
 		if (this.title != null) {
 			build.append(" ");
 			build.append(this.title);
 		}
-		int lSize = build.length();
-		boolean valid = this.show && this.message != null;
+		final int lSize = build.length();
+		final boolean valid = this.show && this.message != null;
 		if (valid) {
 			build.append("\n");
 			build.append(this.message);
@@ -209,7 +198,7 @@ public class ChatElement extends JTextPane {
 		this.textLength = build.length();
 		this.setText(build.toString());
 		
-		StyledDocument sDoc = this.getStyledDocument();
+		final StyledDocument sDoc = this.getStyledDocument();
 		// apply styles
 		sDoc.setCharacterAttributes(0, build.length(), this.emptyStyle, true);
 		sDoc.setCharacterAttributes(0, bSize, this.boldStyle, true);
@@ -225,7 +214,7 @@ public class ChatElement extends JTextPane {
 	}
 	
 	private void configureStyles() {
-		StyledDocument sDoc = this.getStyledDocument();
+		final StyledDocument sDoc = this.getStyledDocument();
 
 		this.indentStyle = sDoc.addStyle("li_style", sDoc.getStyle(StyleContext.DEFAULT_STYLE));
 		StyleConstants.setLeftIndent(this.indentStyle, LEFT_INDENT);

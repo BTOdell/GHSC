@@ -1,28 +1,17 @@
 package com.ghsc.gui.components.status;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JLabel;
-import javax.swing.Timer;
+import javax.swing.*;
 
 public class StatusLabel extends JLabel {
 	
 	private static final long serialVersionUID = 1L;
 	
-	Timer timer;
-	ActionListener event = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			StatusLabel.this.setDefaultStatus();
-		}
-	};
-	
-	public StatusLabel(boolean initTimer) {
+	private final Timer timer;
+
+	public StatusLabel() {
 		super();
-		if (initTimer) {
-			this.timer = new Timer(0, this.event);
-			this.timer.setRepeats(false);
-		}
+		this.timer = new Timer(0, e -> this.setDefaultStatus());
+		this.timer.setRepeats(false);
 	}
 	
 	private void stopTimer() {
@@ -31,13 +20,13 @@ public class StatusLabel extends JLabel {
         }
 	}
 	
-	private void restartTimer(int delay) {
+	private void restartTimer(final int delay) {
 		this.stopTimer();
 		this.timer.setInitialDelay(delay);
 		this.timer.restart();
 	}
 	
-	public void setStatus(String status) {
+	public void setStatus(final String status) {
 		if (status == null) {
 			this.setDefaultStatus();
 		} else {
@@ -49,7 +38,7 @@ public class StatusLabel extends JLabel {
 		this.setStatus("Idle");
 	}
 	
-	public void submit(String status, int period) {
+	public void submit(final String status, final int period) {
 		this.setStatus(status);
 		this.stopTimer();
 		if (status != null) {

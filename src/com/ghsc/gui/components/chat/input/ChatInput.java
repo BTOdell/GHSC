@@ -40,9 +40,9 @@ public class ChatInput extends JTextArea {
 		this.setTransferHandler(new TransferHandler());
 		this.setDropMode(DropMode.INSERT);
 		this.setEnabled(false);
-		this.setFont(Fonts.GLOBAL.deriveFont(11));
+		this.setFont(Fonts.GLOBAL);
 		this.addKeyListener(new KeyAdapter() {
-			public void keyPressed(KeyEvent e) {
+			public void keyPressed(final KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					if (e.isShiftDown()) {
 						ChatInput.this.insert("\n", ChatInput.this.getCaretPosition());
@@ -58,17 +58,17 @@ public class ChatInput extends JTextArea {
 		new PromptHandler(this, "Type something...", Color.GRAY, JLabel.TOP);
 
 		this.getDocument().addDocumentListener(new DocumentListener() {
-			public void changedUpdate(DocumentEvent arg0) {
+			public void changedUpdate(final DocumentEvent arg0) {
 				this.updateLineCount();
 			}
-			public void insertUpdate(DocumentEvent arg0) {
+			public void insertUpdate(final DocumentEvent arg0) {
 				this.updateLineCount();
 			}
-			public void removeUpdate(DocumentEvent arg0) {
+			public void removeUpdate(final DocumentEvent arg0) {
 				this.updateLineCount();
 			}
 			private void updateLineCount() {
-                int lineCount = ChatInput.this.getLineCount();
+                final int lineCount = ChatInput.this.getLineCount();
                 if (lineCount <= 5) {
 					ChatInput.this.setRows(lineCount);
                     ChatInput.this.frame.getChatPanel().revalidate();
@@ -96,27 +96,27 @@ public class ChatInput extends JTextArea {
 			super();
 		}
 		
-		public boolean canImport(TransferHandler.TransferSupport support) {
+		public boolean canImport(final TransferHandler.TransferSupport support) {
 			//chatFocusGained();
 			return support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor);
 		}
 		
-		public boolean importData(TransferHandler.TransferSupport support) {
+		public boolean importData(final TransferHandler.TransferSupport support) {
 			try {
-				DataFlavor[] supportedFlavors = support.getDataFlavors();
-				for (DataFlavor flavor : supportedFlavors) {
+				final DataFlavor[] supportedFlavors = support.getDataFlavors();
+				for (final DataFlavor flavor : supportedFlavors) {
 					System.out.println("Flavor: " + flavor);
 					if (DataFlavor.stringFlavor.equals(flavor)) {
-						BufferedReader read = new BufferedReader(flavor.getReaderForText(support.getTransferable()));
-						StringBuilder build = new StringBuilder();
+						final BufferedReader read = new BufferedReader(flavor.getReaderForText(support.getTransferable()));
+						final StringBuilder build = new StringBuilder();
 						String line;
 						while ((line = read.readLine()) != null) {
 							build.append(line);
 						}
-						String text = build.toString();
-						JTextComponent.DropLocation dLoc = ChatInput.this.getDropLocation();
+						final String text = build.toString();
+						final JTextComponent.DropLocation dLoc = ChatInput.this.getDropLocation();
 						if (dLoc != null) {
-							int index = dLoc.getIndex();
+							final int index = dLoc.getIndex();
 							ChatInput.this.insert(text, index);
 							ChatInput.this.setCaretPosition(index + text.length());
 						} else {
@@ -136,7 +136,7 @@ public class ChatInput extends JTextArea {
             return false;
 		}
 		
-		public int getSourceActions(JComponent c) {
+		public int getSourceActions(final JComponent c) {
 		    return COPY;
 		}
 		

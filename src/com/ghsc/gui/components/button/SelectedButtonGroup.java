@@ -1,6 +1,5 @@
 package com.ghsc.gui.components.button;
 
-import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -13,35 +12,33 @@ import javax.swing.AbstractButton;
  * @author Odell
  */
 public class SelectedButtonGroup {
-	
-	private final ItemListener iL = new ItemListener() {
-		public void itemStateChanged(ItemEvent ie) {
-			Object src = ie.getSource();
-			if (src == null || !(src instanceof AbstractButton)) {
-                return;
-            }
-			final AbstractButton ab = (AbstractButton) src;
-			if (SelectedButtonGroup.this.getSelected().length < 1) {
-				ab.setSelected(true);
-			}
+
+	private final ItemListener itemListener = ie -> {
+		Object src = ie.getSource();
+		if (src == null || !(src instanceof AbstractButton)) {
+			return;
+		}
+		final AbstractButton ab = (AbstractButton) src;
+		if (this.getSelected().length < 1) {
+			ab.setSelected(true);
 		}
 	};
 	
 	protected Vector<AbstractButton> buttons;
 	
 	public SelectedButtonGroup() {
-		this.buttons = new Vector<AbstractButton>();
+		this.buttons = new Vector<>();
 	}
 	
 	public SelectedButtonGroup(final int buttonCount) {
-		this.buttons = new Vector<AbstractButton>(buttonCount);
+		this.buttons = new Vector<>(buttonCount);
 	}
 	
 	public boolean add(final AbstractButton button) {
 		if (this.buttons.size() < 1 && !button.isSelected()) {
             button.setSelected(true);
         }
-		button.addItemListener(this.iL);
+		button.addItemListener(this.itemListener);
 		return this.buttons.add(button);
 	}
 	
@@ -54,7 +51,7 @@ public class SelectedButtonGroup {
 	}
 	
 	public AbstractButton[] getSelected() {
-		final ArrayList<AbstractButton> temp = new ArrayList<AbstractButton>(this.getButtonCount());
+		final ArrayList<AbstractButton> temp = new ArrayList<>(this.getButtonCount());
 		final Enumeration<AbstractButton> enumeration = this.getElements();
 		while (enumeration.hasMoreElements()) {
 			final AbstractButton ab = enumeration.nextElement();
@@ -66,7 +63,7 @@ public class SelectedButtonGroup {
 	}
 	
 	public boolean remove(final AbstractButton button) {
-		button.removeItemListener(this.iL);
+		button.removeItemListener(this.itemListener);
 		return this.buttons.remove(button);
 	}
 	

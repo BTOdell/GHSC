@@ -33,12 +33,22 @@ import java.util.regex.Pattern;
 
 /**
  * Handles the internal file sharing operations.
- * @author Odell
  */
 public class FileShare {
 	
-	public static final String ATT_TYPE = "t", TYPE_NEW = "n", TYPE_EDIT = "e", TYPE_UPDATE = "u", TYPE_REMOVE = "r", 
-			TYPE_ENCRYPTION = "e", TYPE_UUID = "u", TYPE_PASSWORD = "p", TYPE_REQUEST = "r", ATT_UUID = "u", ATT_PATH = "p", ATT_STATUS = "s";
+	public static final String ATT_TYPE = "t";
+    public static final String TYPE_NEW = "n";
+    public static final String TYPE_EDIT = "e";
+    public static final String TYPE_UPDATE = "u";
+    public static final String TYPE_REMOVE = "r";
+    public static final String TYPE_ENCRYPTION = "e";
+    public static final String TYPE_UUID = "u";
+    public static final String TYPE_PASSWORD = "p";
+    public static final String TYPE_REQUEST = "r";
+    public static final String ATT_UUID = "u";
+    public static final String ATT_PATH = "p";
+    public static final String ATT_STATUS = "s";
+
 	public static final int TRANSFER_BUFFER_SIZE = 8192;
 	
 	private FileShareFrame frame;
@@ -73,9 +83,9 @@ public class FileShare {
             if (!this.packages.isEmpty()) {
                 final ArrayList<Node> localPackageNodes = new ArrayList<>();
                 synchronized (this.packages) {
-                    for (FilePackage p : this.packages.values()) {
+                    for (final FilePackage p : this.packages.values()) {
                         if (p instanceof LocalPackage) {
-                            LocalPackage lp = (LocalPackage) p;
+                            final LocalPackage lp = (LocalPackage) p;
                             localPackageNodes.add(new Node(Tag.construct("lp"), lp.toSaveMeta()));
                         }
                     }
@@ -241,7 +251,7 @@ public class FileShare {
 		if (!application.getMainFrame().getUsers().containsUser(remoteAddress)) {
 			try {
 				s.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 			return;
