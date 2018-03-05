@@ -54,8 +54,8 @@ public class Images {
 	public static final Image X = get("X.png");
 	public static final Image CHECK = get("check.png");
 			
-	private static final Image get(String path) {
-		return Toolkit.getDefaultToolkit().getImage(Images.class.getResource("/com/ghsc/resources/images/" + path));
+	private static Image get(String path) {
+		return Toolkit.getDefaultToolkit().getImage(Images.class.getResource("/images/" + path));
 	}
 	
 }
