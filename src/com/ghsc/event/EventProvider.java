@@ -11,12 +11,12 @@ public class EventProvider<E> implements IEventProvider<E> {
 
 	@Override
 	public boolean subscribe(EventListener<E> listener) {
-		return listener != null && listeners.add(listener);
+		return listener != null && this.listeners.add(listener);
 	}
 
 	@Override
 	public boolean unsubscribe(EventListener<E> listener) {
-		return listener != null && listeners.remove(listener);
+		return listener != null && this.listeners.remove(listener);
 	}
 
 	/**

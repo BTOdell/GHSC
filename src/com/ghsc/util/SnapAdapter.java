@@ -17,18 +17,18 @@ public class SnapAdapter extends ComponentAdapter {
 	private final Magnet[][] mags;
 	@SuppressWarnings("unused")
 	private int pLastX, pLastY, wLastX, wLastY;
-	private boolean snapped = false;
+	private boolean snapped;
 	
 	public SnapAdapter(final Window to, final Window win, final Magnet[][] mags) {
 		this.parent = to;
 		this.win = win;
 		this.mags = mags;
 		Point tmp = this.parent.getLocation();
-		pLastX = tmp.x;
-		pLastY = tmp.y;
+		this.pLastX = tmp.x;
+		this.pLastY = tmp.y;
 		tmp = this.win.getLocation();
-		wLastX = tmp.x;
-		wLastY = tmp.y;
+		this.wLastX = tmp.x;
+		this.wLastY = tmp.y;
 	}
 	
 	public void setEnabled(boolean enabled) {
@@ -42,18 +42,19 @@ public class SnapAdapter extends ComponentAdapter {
 	}
 	
 	public boolean snap(final int magIndex, final boolean align) {
-		if (magIndex < 0 || magIndex >= mags.length)
-			throw new IndexOutOfBoundsException("magIndex (" + magIndex + ") is out of bounds: 0 to " + (mags.length - 1));
-		Rectangle parentRect = parent.getBounds(), compRect = win.getBounds();
-		switch (mags[magIndex][0].side.type) { // parent
+		if (magIndex < 0 || magIndex >= this.mags.length) {
+            throw new IndexOutOfBoundsException("magIndex (" + magIndex + ") is out of bounds: 0 to " + (this.mags.length - 1));
+        }
+		Rectangle parentRect = this.parent.getBounds(), compRect = this.win.getBounds();
+		switch (this.mags[magIndex][0].side.type) { // parent
 			case TOP: // finished!
-				switch (mags[magIndex][1].side.type) { // comp
+				switch (this.mags[magIndex][1].side.type) { // comp
 					case TOP:
-						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y);
-						return snapped = true;
+						this.win.setLocation(align ? this.mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y);
+						return this.snapped = true;
 					case BOTTOM:
-						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y + compRect.height);
-						return snapped = true;
+						this.win.setLocation(align ? this.mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y + compRect.height);
+						return this.snapped = true;
 					case LEFT:
 						break;
 					case RIGHT:
@@ -61,15 +62,15 @@ public class SnapAdapter extends ComponentAdapter {
 					default:
 						break;
 				}
-				return snapped = false;
+				return this.snapped = false;
 			case RIGHT: // finished!
-				switch (mags[magIndex][1].side.type) {
+				switch (this.mags[magIndex][1].side.type) {
 					case LEFT:
-						win.setLocation(parentRect.x + parentRect.width, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
-						return snapped = true;
+						this.win.setLocation(parentRect.x + parentRect.width, align ? this.mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
+						return this.snapped = true;
 					case RIGHT:
-						win.setLocation((parentRect.x + parentRect.width) - compRect.width, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
-						return snapped = true;
+						this.win.setLocation((parentRect.x + parentRect.width) - compRect.width, align ? this.mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
+						return this.snapped = true;
 					case BOTTOM:
 						break;
 					case TOP:
@@ -77,15 +78,15 @@ public class SnapAdapter extends ComponentAdapter {
 					default:
 						break;
 				}
-				return snapped = false;
+				return this.snapped = false;
 			case BOTTOM: // finished!
-				switch (mags[magIndex][1].side.type) { // comp
+				switch (this.mags[magIndex][1].side.type) { // comp
 					case TOP:
-						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y + parentRect.height);
-						return snapped = true;
+						this.win.setLocation(align ? this.mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, parentRect.y + parentRect.height);
+						return this.snapped = true;
 					case BOTTOM:
-						win.setLocation(align ? mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, (parentRect.y + parentRect.height) - compRect.height);
-						return snapped = true;
+						this.win.setLocation(align ? this.mags[magIndex][1].side.alignX(parentRect, compRect) : compRect.x, (parentRect.y + parentRect.height) - compRect.height);
+						return this.snapped = true;
 					case LEFT:
 						break;
 					case RIGHT:
@@ -93,15 +94,15 @@ public class SnapAdapter extends ComponentAdapter {
 					default:
 						break;
 				}
-				return snapped = false;
+				return this.snapped = false;
 			case LEFT: // finished!
-				switch (mags[magIndex][1].side.type) {
+				switch (this.mags[magIndex][1].side.type) {
 					case LEFT:
-						win.setLocation(parentRect.x, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
-						return snapped = true;
+						this.win.setLocation(parentRect.x, align ? this.mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
+						return this.snapped = true;
 					case RIGHT:
-						win.setLocation(parentRect.x - compRect.width, align ? mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
-						return snapped = true;
+						this.win.setLocation(parentRect.x - compRect.width, align ? this.mags[magIndex][1].side.alignY(parentRect, compRect) : compRect.y);
+						return this.snapped = true;
 					case BOTTOM:
 						break;
 					case TOP:
@@ -109,9 +110,9 @@ public class SnapAdapter extends ComponentAdapter {
 					default:
 						break;
 				}
-				return snapped = false;
+				return this.snapped = false;
 		}
-		return snapped = false;
+		return this.snapped = false;
 	}
 	
 	@Override
@@ -121,18 +122,19 @@ public class SnapAdapter extends ComponentAdapter {
 			final Rectangle rect = source.getBounds();
 			//System.out.println("Component: " + comp.hasFocus());
 			//System.out.println("Parent: " + parent.hasFocus());
-			if (source.equals(win)) {
-				if (!win.isFocused())
-					return;
+			if (source.equals(this.win)) {
+				if (!this.win.isFocused()) {
+                    return;
+                }
 				// component moved
-				final Rectangle parentRect = parent.getBounds();
+				final Rectangle parentRect = this.parent.getBounds();
 				Rectangle parentHitRect;
 				boolean tempSnap = false;
-				loop: for (int i = 0; i < mags.length; i++) {
+				loop: for (int i = 0; i < this.mags.length; i++) {
 					/*
 					 * If magnet succeeds break from for loop.
 					 */
-					final Magnet[] pair = mags[i];
+					final Magnet[] pair = this.mags[i];
 					final Magnet parentMagnet = pair[0], compMagnet = pair[1];
 					final Line2D compLine = compMagnet.side.createLine(rect);
 					switch (parentMagnet.side.type) { // parent
@@ -144,7 +146,7 @@ public class SnapAdapter extends ComponentAdapter {
 										parentHitRect.contains(compLine.getP1())) {
 									// check align distance
 									final Region reg = compMagnet.side.createAlignmentRegion(parentRect, rect);
-									tempSnap = snap(i, reg != null && reg.contains(rect.getLocation()));
+									tempSnap = this.snap(i, reg != null && reg.contains(rect.getLocation()));
 									break loop;
 								}
 							}
@@ -157,7 +159,7 @@ public class SnapAdapter extends ComponentAdapter {
 										parentHitRect.contains(compLine.getP1())) {
 									// check align distance
 									final Region reg = compMagnet.side.createAlignmentRegion(parentRect, rect);
-									tempSnap = snap(i, reg != null && reg.contains(rect.getLocation()));
+									tempSnap = this.snap(i, reg != null && reg.contains(rect.getLocation()));
 									break loop;
 								}
 							}
@@ -170,7 +172,7 @@ public class SnapAdapter extends ComponentAdapter {
 										parentHitRect.contains(compLine.getP1())) {
 									// check align distance
 									final Region reg = compMagnet.side.createAlignmentRegion(parentRect, rect);
-									tempSnap = snap(i, reg != null && reg.contains(rect.getLocation()));
+									tempSnap = this.snap(i, reg != null && reg.contains(rect.getLocation()));
 									break loop;
 								}
 							}
@@ -183,23 +185,24 @@ public class SnapAdapter extends ComponentAdapter {
 										parentHitRect.contains(compLine.getP1())) {
 									// check align distance
 									final Region reg = compMagnet.side.createAlignmentRegion(parentRect, rect);
-									tempSnap = snap(i, reg != null && reg.contains(rect.getLocation()));
+									tempSnap = this.snap(i, reg != null && reg.contains(rect.getLocation()));
 									break loop;
 								}
 							}
 							break;
 					}
 				}
-				snapped = tempSnap;
-				wLastX = rect.x;
-				wLastY = rect.y;
+				this.snapped = tempSnap;
+				this.wLastX = rect.x;
+				this.wLastY = rect.y;
 				//System.out.println("Component moved: {" + rect.x + ", " + rect.y + "}");
-			} else if (source.equals(parent)) {
+			} else if (source.equals(this.parent)) {
 				// parent moved
-				if (snapped)
-					win.setLocation(win.getX() + (rect.x - pLastX), win.getY() + (rect.y - pLastY));
-				pLastX = rect.x;
-				pLastY = rect.y;
+				if (this.snapped) {
+					this.win.setLocation(this.win.getX() + (rect.x - this.pLastX), this.win.getY() + (rect.y - this.pLastY));
+                }
+				this.pLastX = rect.x;
+				this.pLastY = rect.y;
 				//System.out.println("Parent moved: {" + rect.x + ", " + rect.y + "}");
 			}
 		}
@@ -258,7 +261,7 @@ public class SnapAdapter extends ComponentAdapter {
 		}
 		
 		private Line2D createLine(final Rectangle rect) {
-			switch (type) {
+			switch (this.type) {
 				case TOP:
 					return new Line2D.Double(rect.x, rect.y, rect.x + rect.width, rect.y);
 				case RIGHT:
@@ -273,21 +276,21 @@ public class SnapAdapter extends ComponentAdapter {
 		
 		// create function for alignment
 		private Region createAlignmentRegion(final Rectangle parentRect, final Rectangle compRect) {
-			switch (type) {
+			switch (this.type) {
 				case TOP:
 				case BOTTOM:
-					final int alignX = alignX(parentRect, compRect);
+					final int alignX = this.alignX(parentRect, compRect);
 					return new Region() {
 						public boolean contains(final Point orig) {
-							return alignDist > Math.abs(orig.x - alignX);
+							return Side.this.alignDist > Math.abs(orig.x - alignX);
 						}
 					};
 				case LEFT:
 				case RIGHT:
-					final int alignY = alignY(parentRect, compRect);
+					final int alignY = this.alignY(parentRect, compRect);
 					return new Region() {
 						public boolean contains(final Point orig) {
-							return alignDist > Math.abs(orig.y - alignY);
+							return Side.this.alignDist > Math.abs(orig.y - alignY);
 						}
 					};
 			}
@@ -295,7 +298,7 @@ public class SnapAdapter extends ComponentAdapter {
 		}
 		
 		private int alignX(final Rectangle parentRect, final Rectangle compRect) {
-			switch (align) {
+			switch (this.align) {
 				case LEFT:
 					return parentRect.x;
 				case CENTER:
@@ -313,7 +316,7 @@ public class SnapAdapter extends ComponentAdapter {
 		}
 		
 		private int alignY(final Rectangle parentRect, final Rectangle compRect) {
-			switch (align) {
+			switch (this.align) {
 				case UP:
 					return parentRect.y;
 				case CENTER:
@@ -333,7 +336,7 @@ public class SnapAdapter extends ComponentAdapter {
 	}
 	
 	private interface Region {
-		public boolean contains(Point p);
+		boolean contains(Point p);
 	}
 	
 }

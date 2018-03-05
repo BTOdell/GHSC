@@ -22,10 +22,7 @@ public class UserSocketListener implements ISocketController {
 	
 	/**
 	 * Initializes a new UserSocketListener.
-	 * 
-	 * @param application
-	 *            - the main application.
-	 * @throws IOException
+	 * @throws IOException If an error occurs when creating the underlying server socket.
 	 */
 	public UserSocketListener() throws IOException {
 		this.listenSocket = new ServerSocket(0, 10, null);
@@ -74,11 +71,12 @@ public class UserSocketListener implements ISocketController {
 	
 	/**
 	 * Closes the user socket listener, thus stops listening.
-	 * @throws IOException
 	 */
 	@Override
-	public void close() throws IOException {
-		this.listenSocket.close();
+	public void close() {
+		try {
+			this.listenSocket.close();
+		} catch (final IOException ignored) { }
 	}
 	
 }

@@ -13,7 +13,8 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 			ATT_NAME = "n", ATT_SIZE = "s", ATT_PATH = "p";
 	
 	FileNode parent;
-	FileNodeChildren<?> container, children;
+	FileNodeChildren<?> container;
+	FileNodeChildren<?> children;
 	
 	FileNode(final FileNodeChildren<?> container) {
 		this.container = container;
@@ -21,19 +22,19 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	}
 	
 	public FileNode getParent() {
-		return parent;
+		return this.parent;
 	}
 	
 	public FileNodeChildren<?> getContainer() {
-		return (FileNodeChildren<?>) container;
+		return this.container;
 	}
 	
-	public void setContainer(FileNodeChildren<?> container) {
+	public void setContainer(final FileNodeChildren<?> container) {
 		this.container = container;
 	}
 	
 	public FileNodeChildren<?> getChildren() {
-		return children;
+		return this.children;
 	}
 	
 	public void setChildren(final FileNodeChildren<?> nodes) {
@@ -41,11 +42,11 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	}
 	
 	public boolean isRoot() {
-		return parent == null;
+		return this.parent == null;
 	}
 	
 	public boolean isLeaf() {
-		return children == null || children.size() == 0;
+		return this.children == null || this.children.isEmpty();
 	}
 	
 	public abstract long getFileCount();
@@ -75,11 +76,12 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	public abstract long getFileSize();
 	
 	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof FileNode))
-			return false;
-		final String thisPath = getPath();
-		return thisPath == null ? o == null : thisPath.equals(((FileNode) o).getPath());
+	public boolean equals(final Object o) {
+		if (!(o instanceof FileNode)) {
+            return false;
+        }
+		final String thisPath = this.getPath();
+		return thisPath != null && thisPath.equals(((FileNode) o).getPath());
 	}
 	
 	/*
@@ -89,12 +91,12 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	@Override
 	public Enumeration<Object> children() {
 		return new Enumeration<Object>() {
-			int index = 0;
+			int index;
 			public boolean hasMoreElements() {
-				return children != null && index < children.size();
+				return FileNode.this.children != null && this.index < FileNode.this.children.size();
 			}
 			public Object nextElement() {
-				return children.get(index++);
+				return FileNode.this.children.get(this.index++);
 			}
 		};
 	}
@@ -105,59 +107,60 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	}
 
 	@Override
-	public TreeNode getChildAt(int index) {
-		if (index < 0 || children == null || index >= children.size())
-			return null;
-		return (TreeNode) children.get(index);
+	public TreeNode getChildAt(final int index) {
+		if (index < 0 || this.children == null || index >= this.children.size()) {
+            return null;
+        }
+		return this.children.get(index);
 	}
 
 	@Override
 	public int getChildCount() {
-		return children != null ? children.size() : 0;
+		return this.children != null ? this.children.size() : 0;
 	}
 
 	@Override
-	public int getIndex(TreeNode node) {
-		return children != null ? children.indexOf(node) : -1;
+	public int getIndex(final TreeNode node) {
+		return this.children != null ? this.children.indexOf(node) : -1;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void insert(MutableTreeNode node, int index) {
-		if (index >= 0 && children != null && index < children.size() + 1) {
-			((FileNodeChildren<FileNode>) children).add(index, (FileNode) node);
+	public void insert(final MutableTreeNode node, final int index) {
+		if (index >= 0 && this.children != null && index < this.children.size() + 1) {
+			((FileNodeChildren<FileNode>) this.children).add(index, (FileNode) node);
 			node.setParent(this);
 		}
 	}
 
 	@Override
-	public void remove(int index) {
-		if (index >= 0 && children != null && index < children.size()) {
-			children.remove(index);
+	public void remove(final int index) {
+		if (index >= 0 && this.children != null && index < this.children.size()) {
+			this.children.remove(index);
 		}
 	}
 
 	@Override
-	public void remove(MutableTreeNode node) {
-		remove(getIndex(node));
+	public void remove(final MutableTreeNode node) {
+		this.remove(this.getIndex(node));
 		node.setParent(null);
 	}
 
 	@Override
 	public void removeFromParent() {
-		if (parent != null) {
-			parent.remove(this);
+		if (this.parent != null) {
+			this.parent.remove(this);
 		}
 	}
 
 	@Override
-	public void setParent(MutableTreeNode node) {
+	public void setParent(final MutableTreeNode node) {
 		if (node == null || node instanceof FileNode) {
 			this.parent = (FileNode) node;
 		}
 	}
 
 	@Override
-	public void setUserObject(Object arg0) {}
+	public void setUserObject(final Object arg0) {}
 	
 }

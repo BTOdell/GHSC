@@ -18,7 +18,7 @@ public class Boot {
 		System.out.println("Starting up...");
 		try {
 			System.setSecurityManager(null);
-		} catch (SecurityException se) {}
+		} catch (SecurityException ignored) {}
 		Profile.getProfile();
 		Settings settings = Settings.getSettings();
 		System.out.println("GHSC folder: " + settings.getStorageDirectory());

@@ -32,14 +32,14 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 	}
 	
 	public int getRootCount() {
-		return roots.size();
+		return this.roots.size();
 	}
 	
 	public boolean addRoot(N root) {
-		if (roots.add(root)) {
-			insertNodeInto(root, invisibleRoot, invisibleRoot.getChildCount());
-			if (invisibleRoot.getChildCount() > 0) {
-				tree.expandPath(new TreePath(invisibleRoot.getPath()));
+		if (this.roots.add(root)) {
+			this.insertNodeInto(root, this.invisibleRoot, this.invisibleRoot.getChildCount());
+			if (this.invisibleRoot.getChildCount() > 0) {
+				this.tree.expandPath(new TreePath(this.invisibleRoot.getPath()));
 			}
 			return true;
 		}
@@ -47,49 +47,54 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 	}
 	
 	public boolean removeRoot(N root) {
-		final int index = roots.indexOf(root);
-		if (index < 0)
-			return false;
-		roots.remove(index);
-		invisibleRoot.remove(index);
-		nodesWereRemoved(this.invisibleRoot, new int[] { index }, new Object[] { root });
+		final int index = this.roots.indexOf(root);
+		if (index < 0) {
+            return false;
+        }
+		this.roots.remove(index);
+		this.invisibleRoot.remove(index);
+		this.nodesWereRemoved(this.invisibleRoot, new int[] { index }, new Object[] { root });
 		return true;
 	}
 
 	public void insertNodeInto(N root, MutableTreeNode parent, int index) {
-		if (parent == null)
-			parent = this.invisibleRoot;
+		if (parent == null) {
+            parent = this.invisibleRoot;
+        }
 		parent.insert(root, index);
-		nodesWereInserted(parent, new int[] { index });
+		this.nodesWereInserted(parent, new int[] { index });
 	}
 
 	public void removeNodeFromParent(N ln) {
 		FileNode parent = ln.getParent();
 		if (parent == null) {
-			removeRoot(ln);
+			this.removeRoot(ln);
 			return;
 		}
-		int[] indicies = new int[] { parent.getIndex(ln) };
+		int[] indicies = { parent.getIndex(ln) };
 		parent.remove(ln);
-		nodesWereRemoved(parent, indicies, new Object[] { ln });
+		this.nodesWereRemoved(parent, indicies, new Object[] { ln });
 	}
 
 	public void nodesWereInserted(MutableTreeNode parent, int[] indicies) {
-		if (treeModelListeners != null && indicies != null && indicies.length > 0) {
-			if (parent == null)
-				parent = this.invisibleRoot;
+		if (this.treeModelListeners != null && indicies != null && indicies.length > 0) {
+			if (parent == null) {
+                parent = this.invisibleRoot;
+            }
 			Object[] objs = new Object[indicies.length];
-			for (int i = 0; i < indicies.length; i++)
-				objs[i] = parent.getChildAt(indicies[i]);
-			fireTreeNodesInserted(this, getPathToRoot(parent), indicies, objs);
+			for (int i = 0; i < indicies.length; i++) {
+                objs[i] = parent.getChildAt(indicies[i]);
+            }
+			this.fireTreeNodesInserted(this, this.getPathToRoot(parent), indicies, objs);
 		}
 	}
 
 	public void nodesWereRemoved(MutableTreeNode parent, int[] indices, Object[] objs) {
 		if (indices != null) {
-			if (parent == null)
-				parent = this.invisibleRoot;
-			fireTreeNodesRemoved(this, getPathToRoot(parent), indices, objs);
+			if (parent == null) {
+                parent = this.invisibleRoot;
+            }
+			this.fireTreeNodesRemoved(this, this.getPathToRoot(parent), indices, objs);
 		}
 	}
 
@@ -98,35 +103,37 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 			if (indicies != null) {
 				if (indicies.length > 0) {
 					Object[] objs = new Object[indicies.length];
-					for (int i = 0; i < indicies.length; i++)
-						objs[i] = node.getChildAt(indicies[i]);
-					fireTreeNodesChanged(this, getPathToRoot(node), indicies, objs);
+					for (int i = 0; i < indicies.length; i++) {
+                        objs[i] = node.getChildAt(indicies[i]);
+                    }
+					this.fireTreeNodesChanged(this, this.getPathToRoot(node), indicies, objs);
 				}
-			} else if (node == getRoot()) {
-				fireTreeNodesChanged(this, getPathToRoot(node), null, null);
+			} else if (node == this.getRoot()) {
+				this.fireTreeNodesChanged(this, this.getPathToRoot(node), null, null);
 			}
 		}
 	}
 
 	public void nodeStructureChanged(MutableTreeNode node) {
 		if (node != null) {
-			fireTreeStructureChanged(this, getPathToRoot(node), null, null);
+			this.fireTreeStructureChanged(this, this.getPathToRoot(node), null, null);
 		}
 	}
 
 	public Object[] getPathToRoot(MutableTreeNode node) {
-		return getPathToRoot(node, 0);
+		return this.getPathToRoot(node, 0);
 	}
 
 	protected Object[] getPathToRoot(MutableTreeNode node, int i) {
 		i++;
 		Object[] path;
-		if (node == null)
-			node = invisibleRoot;
-		if (node == invisibleRoot) {
+		if (node == null) {
+            node = this.invisibleRoot;
+        }
+		if (node == this.invisibleRoot) {
 			path = new Object[i];
 		} else {
-			path = getPathToRoot((MutableTreeNode) node.getParent(), i);
+			path = this.getPathToRoot((MutableTreeNode) node.getParent(), i);
 		}
 		path[path.length - i] = node;
 		return path;
@@ -134,50 +141,55 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 
 	protected void fireTreeNodesInserted(Object source, Object[] parentPath, int[] indices, Object[] objs) {
 		TreeModelEvent e = null;
-		for (TreeModelListener tml : treeModelListeners) {
-			if (e == null)
-				e = new TreeModelEvent(source, parentPath, indices, objs);
+		for (TreeModelListener tml : this.treeModelListeners) {
+			if (e == null) {
+                e = new TreeModelEvent(source, parentPath, indices, objs);
+            }
 			tml.treeNodesInserted(e);
 		}
 	}
 	
 	protected void fireTreeNodesRemoved(Object source, Object[] parentPath, int[] indices, Object[] objs) {
 		TreeModelEvent e = null;
-		for (TreeModelListener tml : treeModelListeners) {
-			if (e == null)
-				e = new TreeModelEvent(source, parentPath, indices, objs);
+		for (TreeModelListener tml : this.treeModelListeners) {
+			if (e == null) {
+                e = new TreeModelEvent(source, parentPath, indices, objs);
+            }
 			tml.treeNodesRemoved(e);
 		}
 	}
 	
 	protected void fireTreeNodesChanged(Object source, Object[] parentPath, int[] indices, Object[] objs) {
 		TreeModelEvent e = null;
-		for (TreeModelListener tml : treeModelListeners) {
-			if (e == null)
-				e = new TreeModelEvent(source, parentPath, indices, objs);
+		for (TreeModelListener tml : this.treeModelListeners) {
+			if (e == null) {
+                e = new TreeModelEvent(source, parentPath, indices, objs);
+            }
 			tml.treeNodesChanged(e);
 		}
 	}
 	
-	protected void fireTreeStructureChanged(Object source, Object[] parentPath, int[] indices, Object[] objs) {
+	protected void fireTreeStructureChanged(final Object source, final Object[] parentPath, int[] indices, Object[] objs) {
 		TreeModelEvent e = null;
-		for (TreeModelListener tml : treeModelListeners) {
-			if (e == null)
-				e = new TreeModelEvent(source, parentPath, indices, objs);
+		for (final TreeModelListener tml : this.treeModelListeners) {
+			if (e == null) {
+                e = new TreeModelEvent(source, parentPath, indices, objs);
+            }
 			tml.treeStructureChanged(e);
 		}
 	}
 	
 	public N[] getRoots(N[] array) {
-		return roots.toArray(array);
+		return this.roots.toArray(array);
 	}
 
 	@Override
 	public Object getChild(Object parent, int index) {
-		if (parent == null)
-			return null;
+		if (parent == null) {
+            return null;
+        }
 		if (parent instanceof DefaultMutableTreeNode) {
-			return roots.get(index);
+			return this.roots.get(index);
 		} else if (parent instanceof FileNode) {
 			FileNode node = (FileNode) parent;
 			FileNodeChildren<?> c = node.getChildren();
@@ -190,10 +202,11 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 
 	@Override
 	public int getChildCount(Object parent) {
-		if (parent == null)
-			return 0;
+		if (parent == null) {
+            return 0;
+        }
 		if (parent instanceof DefaultMutableTreeNode) {
-			return roots.size();
+			return this.roots.size();
 		} else if (parent instanceof FileNode) {
 			FileNode node = (FileNode) parent;
 			FileNodeChildren<?> c = node.getChildren();
@@ -206,10 +219,11 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
-		if (parent == null || child == null)
-			return -1;
+		if (parent == null || child == null) {
+            return -1;
+        }
 		if (parent instanceof DefaultMutableTreeNode) {
-			return roots.indexOf(child);
+			return this.roots.indexOf(child);
 		} else if (parent instanceof FileNode) {
 			FileNode node = (FileNode) parent;
 			return node.getIndex((MutableTreeNode) child);
@@ -219,22 +233,22 @@ public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 
 	@Override
 	public boolean isLeaf(Object node) {
-		return getChildCount(node) <= 0;
+		return this.getChildCount(node) <= 0;
 	}
 	
 	@Override
 	public Object getRoot() {
-		return invisibleRoot;
+		return this.invisibleRoot;
 	}
 	
 	@Override
 	public void addTreeModelListener(TreeModelListener l) {
-		treeModelListeners.add(l);
+		this.treeModelListeners.add(l);
 	}
 
 	@Override
 	public void removeTreeModelListener(TreeModelListener l) {
-		treeModelListeners.remove(l);
+		this.treeModelListeners.remove(l);
 	}
 
 	@Override

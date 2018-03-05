@@ -35,14 +35,14 @@ public class Updater {
 	 * @return a String URL path to the latest JAR file.
 	 */
 	public String getLatestJarPath() {
-		return Paths.WEBHOST + version + "/GHSC.jar";
+		return Paths.WEBHOST + this.version + "/GHSC.jar";
 	}
 	
 	/**
 	 * @return the latest known version of GHSC.
 	 */
 	public Version getVersion() {
-		return version;
+		return this.version;
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class Updater {
 			try {
 				//stream latest version to file system
 				out = new FileOutputStream(new File(currentRunningPath), false);
-				in = new URL(getLatestJarPath()).openStream();
+				in = new URL(this.getLatestJarPath()).openStream();
 				application.getMainFrame().setStatus("Update found. Downloading...");
 				byte[] buf = new byte[DOWNLOAD_BUFFER_SIZE];
 				int read;
@@ -102,30 +102,35 @@ public class Updater {
 		final Application application = Application.getInstance();
 		Version latestVersion = refresh ? application.getVersionController().refresh(false) : application.getVersionController().getLatest();
 		if (latestVersion != null) {
-			int updateStatus = latestVersion.compareTo(version);
+			int updateStatus = latestVersion.compareTo(this.version);
 			if (updateStatus < 0) {
-				if (debug)
-					System.out.println("Application is out of date and needs update!");
+				if (debug) {
+                    System.out.println("Application is out of date and needs update!");
+                }
 				if (Application.isJar()) {
 					final boolean required = application.getVersionController().isRequired(latestVersion),
 							forced = application.getVersionController().isForced(latestVersion);
 					if (forced || JOptionPane.showOptionDialog(null, "An update has been found for GHSC.\nWould you like to update now?", "Update found!", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new String[] { "Update", required ? "Exit" : "Cancel" }, "Update") == 0) {
-						version = latestVersion;
-						update();
+						this.version = latestVersion;
+						this.update();
 						return;
 					}
-					if (required)
-						System.exit(0);
+					if (required) {
+                        System.exit(0);
+                    }
 				} else {
-					if (debug)
-						System.out.println("Can't update, not running from jar.");
+					if (debug) {
+                        System.out.println("Can't update, not running from jar.");
+                    }
 				}
 			} else if (updateStatus == 0) {
-				if (debug)
-					System.out.println("Application is up to date!");
+				if (debug) {
+                    System.out.println("Application is up to date!");
+                }
 			} else {
-				if (debug)
-					System.out.println("Wow, you have a prototype version!");
+				if (debug) {
+                    System.out.println("Wow, you have a prototype version!");
+                }
 			}
 		}
 	}

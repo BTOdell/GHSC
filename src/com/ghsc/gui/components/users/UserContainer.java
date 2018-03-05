@@ -31,150 +31,138 @@ import com.ghsc.impl.Filter;
 import com.ghsc.util.Tag;
 
 /**
- * UserContainer is used to show current users in a channel.</br>
- * Not only that, but it also containers all users currently running GHSC.</br>
+ * UserContainer is used to show current users in a channel.
+ * Not only that, but it also containers all users currently running the application.
  * It also sorts users by their status and names. Friends at the top, ignored users at the bottom.
- * 
- * @author Odell
  */
 public class UserContainer extends JList<User> {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private MainFrame frame;
-	private DefaultListModel<User> model;
-	private HashMap<InetSocketAddress, User> users;
-	private HashMap<InetSocketAddress, User> usersPending;
-	private ArrayList<InetSocketAddress> knownMulticasters;
-	private ArrayList<UUID> friends;
-	private ArrayList<UUID> ignored;
+	private final MainFrame frame;
+	private final DefaultListModel<User> model;
+
+	private final HashMap<InetSocketAddress, User> users;
+	private final HashMap<InetSocketAddress, User> usersPending;
+	private final ArrayList<InetSocketAddress> knownMulticasters;
+	private final ArrayList<UUID> friends;
+	private final ArrayList<UUID> ignored;
 	
 	/**
-	 * Default constructor. :/
+	 * Private helper constructor.
 	 */
-	public UserContainer() {
-		super();
+	private UserContainer(final MainFrame frame, final DefaultListModel<User> model,
+                          final String[] allFriends, final String[] allIgnored) {
+	    super(model);
+        this.frame = frame;
+        this.model = model;
+        this.users = new HashMap<>();
+        this.usersPending = new HashMap<>();
+        this.knownMulticasters = new ArrayList<>();
+        if (allFriends != null) {
+            this.friends = new ArrayList<>(allFriends.length);
+            for (final String friendItem : allFriends) {
+                if (friendItem == null) {
+                    continue;
+                }
+                this.friends.add(UUID.fromString(friendItem));
+            }
+        } else {
+            this.friends = new ArrayList<>();
+        }
+        if (allIgnored != null) {
+            this.ignored = new ArrayList<>(allIgnored.length);
+            for (final String ignoreItem : allIgnored) {
+                if (ignoreItem == null) {
+                    continue;
+                }
+                this.ignored.add(UUID.fromString(ignoreItem));
+            }
+        } else {
+            this.ignored = new ArrayList<>();
+        }
+
+        this.setCellRenderer(new UserCellRenderer());
+        this.setDoubleBuffered(true);
+        this.setDragEnabled(true);
+        this.setTransferHandler(new TransferHandler());
 	}
 	
 	/**
 	 * Initializes a new UserContainer.
-	 * 
-	 * @param frame
-	 *            - the main frame that this UserContainer is visible from.
-	 * @param model
-	 *            - a model which can be used to provide easy access to the visual contents of the UserContainer.
+	 * @param frame The main frame that this UserContainer is visible from.
+	 * @param allFriends The friends list that was retrieved from an earlier save.
+	 * @param allIgnored The ignored list that was retrieved from an earlier save.
 	 */
-	private UserContainer(MainFrame frame, DefaultListModel<User> model) {
-		super(model);
-		this.frame = frame;
-		this.model = model;
+	public UserContainer(final MainFrame frame, final String[] allFriends, final String[] allIgnored) {
+	    this(frame, new DefaultListModel<>(), allFriends, allIgnored);
 	}
-	
-	/**
-	 * Initializes a new UserContainer.
-	 * 
-	 * @param frame
-	 *            - the main frame that this UserContainer is visible from.
-	 * @param allF
-	 *            - the friends list that was retrieved from an earlier save.
-	 * @param allI
-	 *            - the ignored list that was retrieved from an earlier save.
-	 */
-	public UserContainer(MainFrame frame, String[] allFriends, String[] allIgnored) {
-		this(frame, new DefaultListModel<User>());
-		users = new HashMap<>();
-		usersPending = new HashMap<>();
-		knownMulticasters = new ArrayList<>();
-		friends = (allFriends != null) ? new ArrayList<>(allFriends.length) : new ArrayList<>();
-		ignored = (allIgnored != null) ? new ArrayList<>(allIgnored.length) : new ArrayList<>();
-		
-		for (int n = 0; n < allFriends.length; n++) {
-			final String friendItem = allFriends[n];
-			if (friendItem == null)
-				continue;
-			try {
-				friends.add(UUID.fromString(friendItem));
-			} catch (IllegalArgumentException iae) {}
-		}
-		for (int n = 0; n < allIgnored.length; n++) {
-			final String ignoreItem = allIgnored[n];
-			if (ignoreItem == null)
-				continue;
-			try {
-				ignored.add(UUID.fromString(ignoreItem));
-			} catch (IllegalArgumentException iae) {}
-		}
-		
-		setCellRenderer(new UserCellRenderer());
-		setDoubleBuffered(true);
-		setDragEnabled(true);
-		setTransferHandler(new TransferHandler());
-	}
-	
+
+    /**
+     * Gets the parent main GUI frame of this user container.
+     */
 	public MainFrame getMainFrame() {
-		return frame;
+		return this.frame;
 	}
 	
 	/**
-	 * Refreshes the visual display of this UserContainer.</br>
+	 * Refreshes the visual display of this UserContainer.
 	 * This method is under a synchronized lock to prevent multiple refreshes at the same time.
 	 */
 	public void refresh() {
-		synchronized (users) {
-			model.clear();
-			final Chat currChat = frame.getChatContainer().getSelectedChat();
-			if (currChat != null) {
-				if (currChat instanceof Channel) {
-					boolean valid = false;
-					ArrayList<User> all = getUserCollection();
-					if (all.size() > 0) {
-						setEnabled(true);
-						Collections.sort(all);
-						for (User curr : all) {
-							if (curr.getPreferredName() != null) {
-								valid = true;
-								model.addElement(curr);
-							}
-						}
-					}
-					if (!valid) {
-						setEnabled(false);
-						model.addElement(null); // Should display "No users currently online."
-					}
-				} else {
-					// TODO: something here when PM'd?
-				}
-			}
+		synchronized (this.users) {
+			this.model.clear();
+			final Chat currChat = this.frame.getChatContainer().getSelectedChat();
+            if (currChat instanceof Channel) {
+                boolean valid = false;
+                final ArrayList<User> all = this.getUserCollection();
+                if (!all.isEmpty()) {
+                    this.setEnabled(true);
+                    Collections.sort(all);
+                    for (final User curr : all) {
+                        if (curr.getPreferredName() != null) {
+                            valid = true;
+                            this.model.addElement(curr);
+                        }
+                    }
+                }
+                if (!valid) {
+                    this.setEnabled(false);
+                    this.model.addElement(null); // Should display "No users currently online."
+                }
+            } else {
+                // TODO: something here when PM'd?
+            }
 		}
 	}
 	
 	public boolean containsUserPending(final InetSocketAddress remoteAddress) {
-		return usersPending.containsKey(remoteAddress);
+		return this.usersPending.containsKey(remoteAddress);
 	}
 	
 	public User getUserPending(final InetSocketAddress remoteAddress) {
-		synchronized (users) {
-			return usersPending.get(remoteAddress);
+		synchronized (this.users) {
+			return this.usersPending.get(remoteAddress);
 		}
 	}
 	
 	public boolean addUserPending(final InetSocketAddress remoteAddress, final User user) {
-		synchronized (users) {
-			if (usersPending.containsKey(remoteAddress)) {
+		synchronized (this.users) {
+			if (this.usersPending.containsKey(remoteAddress)) {
 				return false;
 			}
-			usersPending.put(remoteAddress, user);
+			this.usersPending.put(remoteAddress, user);
 		}
 		return true;
 	}
 	
 	public boolean removeUserPending(final InetSocketAddress remoteAddress) {
-		synchronized (users) {
-			if (!containsUserPending(remoteAddress)) {
+		synchronized (this.users) {
+			if (!this.containsUserPending(remoteAddress)) {
 				return false;
 			}
-			usersPending.remove(remoteAddress);
-			refresh();
+			this.usersPending.remove(remoteAddress);
+			this.refresh();
 		}
 		return true;
 	}
@@ -185,7 +173,7 @@ public class UserContainer extends JList<User> {
 	 * @return whether this UserContainer contains a User.
 	 */
 	public boolean containsUser(final InetSocketAddress remoteAddress) {
-		return users.containsKey(remoteAddress);
+		return this.users.containsKey(remoteAddress);
 	}
 	
 	/**
@@ -194,54 +182,54 @@ public class UserContainer extends JList<User> {
 	 * @return a User with the given ip.
 	 */
 	public User getUser(final InetSocketAddress remoteAddress) {
-		synchronized (users) {
-			return users.get(remoteAddress);
+		synchronized (this.users) {
+			return this.users.get(remoteAddress);
 		}
 	}
 	
 	/**
-	 * Creates a User object from the given Socket.</br>
-	 * Automatically refreshes the user list.</br>
+	 * Creates a User object from the given Socket.
+	 * Automatically refreshes the user list.
 	 * A user will not appear instantly in the list, because the socket has to populate the user's info.
-	 * @param remoteAddress the address of the user to check.
-	 * @param user
-	 * @return whether a new user was added to the list or <tt>false</tt> if a user already existed with the socket ip.
+	 * @param remoteAddress The address of the user to check.
+	 * @param user The user to add.
+	 * @return Whether a new user was added to the list or <tt>false</tt> if a user already existed with the socket ip.
 	 */
 	public boolean addUser(final InetSocketAddress remoteAddress, final User user) {
-		synchronized (users) {
-			if (containsUser(remoteAddress)) {
+		synchronized (this.users) {
+			if (this.containsUser(remoteAddress)) {
 				return false;
 			}
-			users.put(remoteAddress, user);
-			refresh();
+			this.users.put(remoteAddress, user);
+			this.refresh();
 		}
 		return true;
 	}
 	
 	/**
 	 * Removes the given user from this container if the user exists in the container.
-	 * @param remoteAddress the address of the user to check.
-	 * @return whether the user existed and removed, or didn't exist in the container.
+	 * @param remoteAddress The address of the user to check.
+	 * @return Whether the user existed and removed, or didn't exist in the container.
 	 */
 	public boolean removeUser(final InetSocketAddress remoteAddress) {
-		synchronized (users) {
-			final User user = users.remove(remoteAddress);
+		synchronized (this.users) {
+			final User user = this.users.remove(remoteAddress);
 			if (user == null) {
 				return false;
 			}
 			user.disconnect();
-			refresh();
+			this.refresh();
 		}
 		return true;
 	}
 	
 	/**
-	 * Finds a user with the given id (uuid).
-	 * @param id the user id.
-	 * @return a user with the given id.
+	 * Finds a user with the given ID (UUID).
+	 * @param id The user id.
+	 * @return A user with the given ID.
 	 */
 	public User findUser(final String id) {
-		return findUser(UUID.fromString(id));
+		return this.findUser(UUID.fromString(id));
 	}
 	
 	/**
@@ -251,8 +239,8 @@ public class UserContainer extends JList<User> {
 	 */
 	public User findUser(final UUID id) {
 		if (id != null) {
-			synchronized (users) {
-				for (User u : users.values()) {
+			synchronized (this.users) {
+				for (final User u : this.users.values()) {
 					if (u == null) {
 						continue;
 					}
@@ -267,30 +255,24 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Sends the given data to all users in the given channel.
-	 * @param data the data to send to the users.
+	 * @param tag The data to send to the users.
 	 * @param channel the channel to test.
 	 */
-	public void send(Tag tag, final String channel) {
-		send(tag, new Filter<User>() {
-			public boolean accept(User o) {
-				return o.getPreferredName() != null && o.inChannel(channel);
-			}
-		});
+	public void send(final Tag tag, final String channel) {
+		this.send(tag, o -> o.getPreferredName() != null && o.inChannel(channel));
 	}
 	
 	/**
 	 * Sends the given data to all users that qualify using the given Filter.
-	 * 
-	 * @param data
-	 *            - the data to send to the users.
-	 * @param filter
-	 *            - the filter to use to qualify users.
+	 * @param tag The data to send to the users.
+	 * @param filter The filter to use to qualify users.
 	 */
-	public void send(Tag tag, Filter<User> filter) {
-		synchronized (users) {
-			for (User u : users.values()) {
-				if (filter.accept(u))
-					u.send(tag);
+	public void send(final Tag tag, final Filter<User> filter) {
+		synchronized (this.users) {
+			for (final User u : this.users.values()) {
+				if (filter.accept(u)) {
+                    u.send(tag);
+                }
 			}
 		}
 	}
@@ -301,82 +283,70 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Checks to see if the user is known as a friend.
-	 * 
-	 * @param u
-	 *            - the user to check.
+	 * @param user The user to check.
 	 * @return whether the given user is known as a friend.
 	 */
-	public boolean isFriend(User u) {
-		return friends.contains(u.getID());
+	public boolean isFriend(final User user) {
+		return this.friends.contains(user.getID());
 	}
 	
 	/**
 	 * Sets the given user as a friend.
-	 * 
-	 * @param u
-	 *            - the user to set as a friend.
+	 * @param user The user to set as a friend.
 	 */
-	public void addFriend(User u) {
-		final UUID id = u.getID();
-		synchronized (friends) {
-			if (!friends.contains(id)) {
-				friends.add(id);
+	public void addFriend(final User user) {
+		final UUID id = user.getID();
+		synchronized (this.friends) {
+			if (!this.friends.contains(id)) {
+				this.friends.add(id);
 			}
 		}
 	}
 	
 	/**
 	 * Sets the friend status of the given user to false.
-	 * 
-	 * @param u
-	 *            - the user to change friend status of.
+	 * @param user The user to change friend status of.
 	 */
-	public void removeFriend(User u) {
-		final UUID id = u.getID();
-		synchronized (friends) {
-			if (friends.contains(id)) {
-				friends.remove(id);
+	public void removeFriend(final User user) {
+		final UUID id = user.getID();
+		synchronized (this.friends) {
+			if (this.friends.contains(id)) {
+				this.friends.remove(id);
 			}
 		}
 	}
 	
 	/**
 	 * Checks to see if the user is to be ignored.
-	 * 
-	 * @param u
-	 *            - the user to check.
+	 * @param user The user to check.
 	 * @return whether the given user is to be ignored.
 	 */
-	public boolean isIgnored(User u) {
-		return ignored.contains(u.getID());
+	public boolean isIgnored(final User user) {
+		return this.ignored.contains(user.getID());
 	}
 	
 	/**
 	 * Sets the given user to be ignored.
-	 * 
-	 * @param u
-	 *            - the user to ignore.
+	 * @param user The user to ignore.
 	 */
-	public void addIgnored(User u) {
-		final UUID id = u.getID();
-		synchronized (ignored) {
-			if (!ignored.contains(id)) {
-				ignored.add(id);
+	public void addIgnored(final User user) {
+		final UUID id = user.getID();
+		synchronized (this.ignored) {
+			if (!this.ignored.contains(id)) {
+				this.ignored.add(id);
 			}
 		}
 	}
 	
 	/**
 	 * Stops ignoring the given user.
-	 * 
-	 * @param u
-	 *            - the user to stop ignoring.
+	 * @param user The user to stop ignoring.
 	 */
-	public void removeIgnored(User u) {
-		final UUID id = u.getID();
-		synchronized (ignored) {
-			if (ignored.contains(id)) {
-				ignored.remove(id);
+	public void removeIgnored(final User user) {
+		final UUID id = user.getID();
+		synchronized (this.ignored) {
+			if (this.ignored.contains(id)) {
+				this.ignored.remove(id);
 			}
 		}
 	}
@@ -387,38 +357,34 @@ public class UserContainer extends JList<User> {
 	
 	/**
 	 * Checks if the given ip is contained in the pending list.
-	 * @param ip the ip to check if pending.
+	 * @param address The ip address to check if pending.
 	 * @return whether the pending list contains the given ip.
 	 */
 	public boolean isMulticaster(final InetSocketAddress address) {
-		synchronized (users) {
-			return knownMulticasters.contains(address);
+		synchronized (this.users) {
+			return this.knownMulticasters.contains(address);
 		}
 	}
 	
 	/**
-	 * Notifies this UserContainer that a connection with the given IP address is taking place.</br>
-	 * {@link #removePending(String)} should be called after the connection was successful.
-	 * @param ip the ip of the user that's in the process of being connected too.
+	 * Notifies this UserContainer that a connection with the given IP address is taking place.
+	 * @param address The IP address of the user that's in the process of being connected too.
 	 * @return <tt>true</tt> if the ip wasn't already pending and was added, otherwise <tt>false</tt>.
 	 */
 	public boolean addMulticaster(final InetSocketAddress address) {
-		synchronized (users) {
-			if (containsUser(address) || isMulticaster(address)) {
-				return false;
-			}
-			return knownMulticasters.add(address);
-		}
+		synchronized (this.users) {
+            return !this.containsUser(address) && !this.isMulticaster(address) && this.knownMulticasters.add(address);
+        }
 	}
 	
 	/**
 	 * Removes the given ip from the pending list.</br>
-	 * @param ip the ip to remove.
+	 * @param address The IP address to remove.
 	 * @return whether the list contained the given ip and was removed successfully.
 	 */
 	public boolean removeMulticaster(final InetSocketAddress address) {
-		synchronized (users) {
-			return knownMulticasters.remove(address);
+		synchronized (this.users) {
+			return this.knownMulticasters.remove(address);
 		}
 	}
 	
@@ -430,14 +396,14 @@ public class UserContainer extends JList<User> {
 	 * @return a collection of all users in this UserContainer.
 	 */
 	public ArrayList<User> getUserCollection() {
-		return new ArrayList<User>(users.values());
+		return new ArrayList<>(this.users.values());
 	}
 	
 	/**
 	 * @return an array of all users in this UserContainer.
 	 */
 	public User[] getUsers() {
-		Collection<User> vals = users.values();
+		final Collection<User> vals = this.users.values();
 		return vals.toArray(new User[vals.size()]);
 	}
 	
@@ -445,12 +411,13 @@ public class UserContainer extends JList<User> {
 	 * @return a String of user's ID who are known as friends. UUIDs are separated by ','.
 	 */
 	public String printFriends() {
-		StringBuilder build = new StringBuilder();
-		synchronized (friends) {
-			for (int i = 0; i < friends.size(); i++) {
-				build.append(friends.get(i));
-				if (i < friends.size() - 1)
-					build.append(',');
+		final StringBuilder build = new StringBuilder();
+		synchronized (this.friends) {
+			for (int i = 0; i < this.friends.size(); i++) {
+				build.append(this.friends.get(i));
+				if (i < this.friends.size() - 1) {
+                    build.append(',');
+                }
 			}
 		}
 		return build.toString();
@@ -460,12 +427,13 @@ public class UserContainer extends JList<User> {
 	 * @return a String of user's ID who are to be ignored. UUIDs are separated by ','.
 	 */
 	public String printIgnored() {
-		StringBuilder build = new StringBuilder();
-		synchronized (ignored) {
-			for (int i = 0; i < ignored.size(); i++) {
-				build.append(ignored.get(i));
-				if (i < ignored.size() - 1)
-					build.append(',');
+		final StringBuilder build = new StringBuilder();
+		synchronized (this.ignored) {
+			for (int i = 0; i < this.ignored.size(); i++) {
+				build.append(this.ignored.get(i));
+				if (i < this.ignored.size() - 1) {
+                    build.append(',');
+                }
 			}
 		}
 		return build.toString();
@@ -475,8 +443,8 @@ public class UserContainer extends JList<User> {
 	 * Disconnects all users in this container.
 	 */
 	public void disconnectAll() {
-		synchronized (users) {
-			for (User u : users.values()) {
+		synchronized (this.users) {
+			for (final User u : this.users.values()) {
 				u.disconnect();
 			}
 		}
@@ -497,14 +465,14 @@ public class UserContainer extends JList<User> {
 		/**
 		 * Initializes a new UserCellRenderer.
 		 */
-		public UserCellRenderer() {
+        UserCellRenderer() {
 			super();
-			userFont = Fonts.GLOBAL.deriveFont(Font.BOLD);
+			this.userFont = Fonts.GLOBAL.deriveFont(Font.BOLD);
 		}
 		
 		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object o, int index, boolean selected, boolean hasFocus) {
-			JLabel label = (JLabel) super.getListCellRendererComponent(list, o, index, selected, hasFocus);
+		public Component getListCellRendererComponent(final JList<?> list, final Object o, final int index, final boolean selected, final boolean hasFocus) {
+			final JLabel label = (JLabel) super.getListCellRendererComponent(list, o, index, selected, hasFocus);
 			if (o == null) {
 				label.setPreferredSize(new Dimension(label.getWidth(), 30));
 				label.setHorizontalAlignment(JLabel.CENTER);
@@ -513,7 +481,7 @@ public class UserContainer extends JList<User> {
 				label.setText("No users currently online.");
 				return label;
 			} else if (o instanceof User) {
-				User user = (User) o;
+				final User user = (User) o;
 				if (user.isIgnored) {
 					label.setForeground(Colors.CELLRENDER_RED);
 				} else if (user.isFriend) {
@@ -521,11 +489,11 @@ public class UserContainer extends JList<User> {
 				} else {
 					label.setForeground(Color.BLACK);
 				}
-				Chat selectedChat = frame.getChatContainer().getSelectedChat();
+				final Chat selectedChat = UserContainer.this.frame.getChatContainer().getSelectedChat();
 				label.setIcon(new ImageIcon(Status.getImage(user.getStatus(), selectedChat != null && user.inChannel(selectedChat.getName()))));
 				label.setPreferredSize(null);
 				label.setHorizontalAlignment(JLabel.LEADING);
-				label.setFont(userFont);
+				label.setFont(this.userFont);
 				label.setToolTipText(Application.getInstance().getAdminControl().isAdmin() ? user.getTooltip() : null);
 				label.setBackground(selected ? Colors.CELLRENDER_BACKGROUND : null);
 				label.setText(o.toString());
@@ -545,26 +513,26 @@ public class UserContainer extends JList<User> {
 		
 		private static final long serialVersionUID = 1L;
 		
-		public TransferHandler() {
+		TransferHandler() {
 			super();
 		}
 		
-		public boolean canImport(TransferHandler.TransferSupport support) {
+		public boolean canImport(final TransferHandler.TransferSupport support) {
 			return false;
 		}
 		
-		public int getSourceActions(JComponent c) {
+		public int getSourceActions(final JComponent c) {
 			return COPY;
 		}
 		
-		public Transferable createTransferable(JComponent c) {
+		public Transferable createTransferable(final JComponent c) {
 			if (c != null && c instanceof UserContainer) {
-				return new StringSelection(((User) ((UserContainer) c).getSelectedValue()).getPreferredName());
+				return new StringSelection(((UserContainer) c).getSelectedValue().getPreferredName());
 			}
 			return null;
 		}
 		
-		public void exportDone(JComponent c, Transferable t, int action) {
+		public void exportDone(final JComponent c, final Transferable t, final int action) {
 			if (c != null && c instanceof UserContainer) {
 				((UserContainer) c).clearSelection();
 			}

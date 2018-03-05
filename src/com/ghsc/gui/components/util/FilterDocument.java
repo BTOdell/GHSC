@@ -27,7 +27,7 @@ public class FilterDocument extends DefaultStyledDocument {
 		int i = 0;
 		while (i < sb.length()) {
 			char c = sb.charAt(i);
-			if (filter != null && !filter.accept(c)) {
+			if (this.filter != null && !this.filter.accept(c)) {
 				sb.deleteCharAt(i);
 				continue;
 			}

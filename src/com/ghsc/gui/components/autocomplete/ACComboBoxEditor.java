@@ -18,23 +18,22 @@ public class ACComboBoxEditor implements ComboBoxEditor {
 
 	@Override
 	public Component getEditorComponent() {
-		return wrapped.getEditorComponent();
+		return this.wrapped.getEditorComponent();
 	}
 
 	@Override
-	public void setItem(Object anObject) {
+	public void setItem(final Object anObject) {
 		this.lastSelected = anObject;
-		wrapped.setItem(converter.getPreferredStringForItem(anObject));
+		this.wrapped.setItem(this.converter.getPreferredStringForItem(anObject));
 	}
 
 	@Override
 	public Object getItem() {
-		final Object wrappedItem = wrapped.getItem();
-		final String[] oldAsStrings = converter.getPossibleStringsForItem(lastSelected);
-		for (int i = 0, n = oldAsStrings.length; i < n; i++) {
-			final String oldAsString = oldAsStrings[i];
+		final Object wrappedItem = this.wrapped.getItem();
+		final String[] oldAsStrings = this.converter.getPossibleStringsForItem(this.lastSelected);
+		for (final String oldAsString : oldAsStrings) {
 			if (oldAsString != null && oldAsString.equals(wrappedItem)) {
-				return lastSelected;
+				return this.lastSelected;
 			}
 		}
 		return null;
@@ -42,17 +41,17 @@ public class ACComboBoxEditor implements ComboBoxEditor {
 
 	@Override
 	public void selectAll() {
-		wrapped.selectAll();
+		this.wrapped.selectAll();
 	}
 
 	@Override
 	public void addActionListener(ActionListener l) {
-		wrapped.addActionListener(l);
+		this.wrapped.addActionListener(l);
 	}
 
 	@Override
 	public void removeActionListener(ActionListener l) {
-		wrapped.removeActionListener(l);
+		this.wrapped.removeActionListener(l);
 	}
 	
 }

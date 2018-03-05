@@ -63,13 +63,14 @@ public class MessageEvent extends Tag {
 		
 		@Override
 		public String toString() {
-			return match;
+			return this.match;
 		}
 		
 		public static Type from(String type) {
 			for (Type t : values()) {
-				if (t.match.equalsIgnoreCase(type))
-					return t;
+				if (t.match.equalsIgnoreCase(type)) {
+                    return t;
+                }
 			}
 			return null;
 		}
@@ -88,7 +89,7 @@ public class MessageEvent extends Tag {
 	 * @return the type of this MessageEvent.
 	 */
 	public final Type getType() {
-		return type;
+		return this.type;
 	}
 	
 	/**
@@ -136,9 +137,11 @@ public class MessageEvent extends Tag {
 		final MessageEvent event = new MessageEvent(data).parseBasic();
 		if (event != null) {
 			final Type t = Type.from(event.getName());
-			if (t != null)
-				event.type = t;
-			else return null;
+			if (t != null) {
+                event.type = t;
+            } else {
+                return null;
+            }
 		}
 		return event;
 	}

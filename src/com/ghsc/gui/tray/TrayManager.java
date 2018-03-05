@@ -16,23 +16,22 @@ import com.ghsc.gui.Application;
 public class TrayManager {
 	
 	private String tooltip = "GHSC";
-	private TrayIcon icon;
-	private TrayPopup popup;
-	
+	private final TrayIcon icon;
+
 	private boolean msgStillRunning = true;
 	
 	/**
 	 * Initializes a new TrayManager.
-	 * @param tooltip - a tooltip to place on the tray icon.
+	 * @param tooltip A tooltip to place on the tray icon.
 	 */
-	public TrayManager(String tooltip) {
-		if (!isSupported())
-			throw new UnsupportedOperationException("System tray is unavailable to this platform.");
-		popup = new TrayPopup();
-		icon = new TrayIcon(Images.ICON_16, tooltip == null ? this.tooltip : (this.tooltip = tooltip), popup);
-		icon.setImageAutoSize(true);
-		icon.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
+	public TrayManager(final String tooltip) {
+		if (!isSupported()) {
+            throw new UnsupportedOperationException("System tray is unavailable to this platform.");
+        }
+		this.icon = new TrayIcon(Images.ICON_16, tooltip == null ? this.tooltip : (this.tooltip = tooltip), new TrayPopup());
+		this.icon.setImageAutoSize(true);
+		this.icon.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(final MouseEvent e) {
 				if (e.getClickCount() > 1) {
 					Application.getInstance().getMainFrame().setVisible(true);
 				}
@@ -45,17 +44,19 @@ public class TrayManager {
 	 * @param t - the text to set as tooltip.
 	 */
 	public void updateTooltip(String t) {
-		if (t == null)
-			t = "";
-		tooltip = t;
-		if (icon != null)
-			icon.setToolTip(t);
+		if (t == null) {
+            t = "";
+        }
+		this.tooltip = t;
+		if (this.icon != null) {
+			this.icon.setToolTip(t);
+        }
 	}
 	
 	public void onFrameClosed() {
-		if (msgStillRunning) {
-			showInfoMessage("GHSC is still running in the background.\nRight click this icon and press 'Exit' to terminate this application.");
-			msgStillRunning = false;
+		if (this.msgStillRunning) {
+			this.showInfoMessage("GHSC is still running in the background.\nRight click this icon and press 'Exit' to terminate this application.");
+			this.msgStillRunning = false;
 		}
 	}
 	
@@ -63,28 +64,28 @@ public class TrayManager {
 	 * Message alerts
 	 */
 	
-	public void showInfoMessage(String text) {
-		showInfoMessage(null, text);
+	public void showInfoMessage(final String text) {
+		this.showInfoMessage(null, text);
 	}
 	
-	public void showInfoMessage(String caption, String text) {
-		icon.displayMessage(caption, text, MessageType.INFO);
+	public void showInfoMessage(final String caption, final String text) {
+		this.icon.displayMessage(caption, text, MessageType.INFO);
 	}
 	
-	public void showErrorMessage(String text) {
-		showInfoMessage(null, text);
+	public void showErrorMessage(final String text) {
+		this.showInfoMessage(null, text);
 	}
 	
-	public void showErrorMessage(String caption, String text) {
-		icon.displayMessage(caption, text, MessageType.ERROR);
+	public void showErrorMessage(final String caption, final String text) {
+		this.icon.displayMessage(caption, text, MessageType.ERROR);
 	}
 	
-	public void showWarningMessage(String text) {
-		showInfoMessage(null, text);
+	public void showWarningMessage(final String text) {
+		this.showInfoMessage(null, text);
 	}
 	
-	public void showWarningMessage(String caption, String text) {
-		icon.displayMessage(caption, text, MessageType.WARNING);
+	public void showWarningMessage(final String caption, final String text) {
+		this.icon.displayMessage(caption, text, MessageType.WARNING);
 	}
 	
 	/*
@@ -96,8 +97,8 @@ public class TrayManager {
 	 */
 	public boolean activate() {
 		try {
-			SystemTray.getSystemTray().add(icon);
-		} catch (Exception e) {
+			SystemTray.getSystemTray().add(this.icon);
+		} catch (final Exception e) {
 			return false;
 		}
 		return true;
@@ -108,8 +109,8 @@ public class TrayManager {
 	 */
 	public boolean deactivate() {
 		try {
-			SystemTray.getSystemTray().remove(icon);
-		} catch (Exception e) {
+			SystemTray.getSystemTray().remove(this.icon);
+		} catch (final Exception e) {
 			return false;
 		}
 		return true;

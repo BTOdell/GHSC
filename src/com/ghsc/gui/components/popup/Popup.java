@@ -24,8 +24,9 @@ public class Popup extends JPopupMenu {
 	 */
 	public JMenuItem createItem(String title, ActionListener listener) {
 		JMenuItem item = new JMenuItem(title);
-		if (listener != null)
-			item.addActionListener(listener);
+		if (listener != null) {
+            item.addActionListener(listener);
+        }
 		return item;
 	}
 	
@@ -36,7 +37,7 @@ public class Popup extends JPopupMenu {
 	 * @param listener - the listener to pass to {@link #createItem(String, ActionListener)}.
 	 */
 	public void addItem(String title, ActionListener listener) {
-		add(createItem(title, listener));
+        this.add(this.createItem(title, listener));
 	}
 	
 	public JMenu createMenu(String title) {

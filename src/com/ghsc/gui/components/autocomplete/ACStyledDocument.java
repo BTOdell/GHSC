@@ -25,7 +25,7 @@ public class ACStyledDocument extends ACDocument implements StyledDocument {
 	}
 	
 	StyledDocument getDelegate() {
-		return (StyledDocument) delegate;
+		return (StyledDocument) this.delegate;
 	}
 
 	@Override
@@ -35,62 +35,62 @@ public class ACStyledDocument extends ACDocument implements StyledDocument {
 
 	@Override
 	public Style addStyle(String nm, Style parent) {
-		return getDelegate().addStyle(nm, parent);
+		return this.getDelegate().addStyle(nm, parent);
 	}
 
 	@Override
 	public Color getBackground(AttributeSet attr) {
-		return getDelegate().getBackground(attr);
+		return this.getDelegate().getBackground(attr);
 	}
 	
 	@Override
 	public Element getCharacterElement(int pos) {
-		return getDelegate().getCharacterElement(pos);
+		return this.getDelegate().getCharacterElement(pos);
 	}
 	
 	@Override
 	public Font getFont(AttributeSet attr) {
-		return getDelegate().getFont(attr);
+		return this.getDelegate().getFont(attr);
 	}
 	
 	@Override
 	public Color getForeground(AttributeSet attr) {
-		return getDelegate().getForeground(attr);
+		return this.getDelegate().getForeground(attr);
 	}
 	
 	@Override
 	public Style getLogicalStyle(int p) {
-		return getDelegate().getLogicalStyle(p);
+		return this.getDelegate().getLogicalStyle(p);
 	}
 
 	@Override
 	public Element getParagraphElement(int pos) {
-		return getDelegate().getParagraphElement(pos);
+		return this.getDelegate().getParagraphElement(pos);
 	}
 
 	@Override
 	public Style getStyle(String nm) {
-		return getDelegate().getStyle(nm);
+		return this.getDelegate().getStyle(nm);
 	}
 	
 	@Override
 	public void removeStyle(String nm) {
-		getDelegate().removeStyle(nm);
+		this.getDelegate().removeStyle(nm);
 	}
 	
 	@Override
 	public void setCharacterAttributes(int offset, int length, AttributeSet s, boolean replace) {
-		getDelegate().setCharacterAttributes(offset, length, s, replace);
+		this.getDelegate().setCharacterAttributes(offset, length, s, replace);
 	}
 	
 	@Override
 	public void setLogicalStyle(int pos, Style s) {
-		getDelegate().setLogicalStyle(pos, s);
+		this.getDelegate().setLogicalStyle(pos, s);
 	}
 	
 	@Override
 	public void setParagraphAttributes(int offset, int length, AttributeSet s, boolean replace) {
-		getDelegate().setParagraphAttributes(offset, length, s, replace);
+		this.getDelegate().setParagraphAttributes(offset, length, s, replace);
 	}
 	
 }

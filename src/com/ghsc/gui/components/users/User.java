@@ -1,24 +1,6 @@
 package com.ghsc.gui.components.users;
 
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
 import com.ghsc.common.Images;
-import com.ghsc.event.EventListener;
-import com.ghsc.event.EventProvider;
-import com.ghsc.event.IEventProvider;
 import com.ghsc.event.message.MessageEvent;
 import com.ghsc.event.message.MessageEvent.Type;
 import com.ghsc.gui.Application;
@@ -34,22 +16,32 @@ import com.ghsc.net.sockets.input.MessageThread;
 import com.ghsc.util.Tag;
 import com.ghsc.util.TimeStamp;
 
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
 /**
  * Describes a connected user.
  */
-public class User implements ComplexIdentifiable, IEventProvider<User>, Transferable, Comparable<User> {
+public class User implements ComplexIdentifiable, Transferable, Comparable<User> {
 	
-	public static final Filter<User> ALL = new Filter<User>() {
-		public boolean accept(User user) {
-			return true;
-		}
-	};
+	public static final Filter<User> ALL = user -> true;
 	
 	public enum Status {
 		
 		AVAILABLE, AWAY, BUSY;
 		
-		public static Image getImage(Status status, boolean in) {
+		public static Image getImage(final Status status, final boolean in) {
 			switch (status) {
 				case AVAILABLE:
 					return in ? Images.STATUS_IN : Images.STATUS_OUT;
@@ -58,7 +50,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 				case BUSY:
 					return in ? Images.STATUS_IN_BUSY : Images.STATUS_OUT_BUSY;
 				default:
-					return null;
+					throw new IllegalArgumentException("Status is invalid: " + status);
 			}
 		}
 		
@@ -68,147 +60,149 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	private final UserContainer container;
 	
-	private EventProvider<User> userProvider = new EventProvider<>();
-	
 	private final Socket socket;
 	private final MessageThread messageThread;
 	
 	/**
 	 * Admin command states HashMap of (TAG, STATE)
 	 */
-	private HashMap<String, Object> commandStates = new HashMap<>();
+	private final HashMap<String, Object> commandStates = new HashMap<>();
 	
-	private String hostname = null;
-	private String nick = null;
-	private UUID userID = null;
-	private ArrayList<String> channels;
+	private String hostname;
+	private String nick;
+	private UUID userID;
+	private final ArrayList<String> channels;
 	private final Object channelLock = new Object();
 	private Status status = Status.AVAILABLE;
-	boolean isIgnored = false, isFriend = false;
+	boolean isIgnored;
+	boolean isFriend;
 	
 	/**
 	 * Initializes a new User by providing a Socket which will be used to dynamically populate the contents of this object.
-	 * @param c the container which this User object exists.
-	 * @param s the socket to populate this object.
+	 * @param container The container which this User object exists.
+	 * @param socket The socket to populate this object.
 	 */
-	public User(final UserContainer container, final Socket s) {
+	public User(final UserContainer container, final Socket socket) {
 		this.container = container;
-		this.channels = new ArrayList<String>();
-		this.socket = s;
+		this.channels = new ArrayList<>();
+		this.socket = socket;
 		this.messageThread = new MessageThread(new MessageThread.IOWrapper() {
 			public InputStream getInputStream() throws IOException {
-				return socket.getInputStream();
+				return User.this.socket.getInputStream();
 			}
 			public OutputStream getOutputStream() throws IOException {
-				return socket.getOutputStream();
+				return User.this.socket.getOutputStream();
 			}
-		}, new EventListener<MessageEvent>() {
-			public void eventReceived(MessageEvent msg) {
-				System.out.println(msg);
-				switch (msg.getType()) {
-					case IDENTIFY:
-						final InetSocketAddress remoteAddress = User.this.getRemoteSocketAddress();
-						if (!container.removeUserPending(remoteAddress)) {
-							break;
-						}
-						
-						if (container.addUser(remoteAddress, User.this)) {
-							container.removeMulticaster(remoteAddress);
-							User.this.sendIntro();
-						} else {
-							System.err.println("Unable to add " + remoteAddress.getAddress() + "@" + remoteAddress.getPort() + " to the users Hashmap.");
-						}
-						
-						String a;
-						if ((a = msg.getAttribute(ATT_HOSTNAME)) != null) {
-							setHostname(a);
-						}
-						if ((a = msg.getAttribute(ATT_NICK)) != null) {
-							setNick(a);
-						}
-						if ((a = msg.getAttribute(ATT_ID)) != null) {
-							setID(a);
-						}
-						setFriend(container.isFriend(User.this));
-						setIgnored(container.isIgnored(User.this));
-						container.getMainFrame().getChatContainer().refreshUser(User.this);
-						container.refresh();
-						break;
-					case JOIN:
-						final String jchannels = msg.getAttribute(ATT_CHANNEL);
-						if (jchannels != null) {
-							final String[] allChannels = jchannels.split(Pattern.quote(","));
-							addChannels(allChannels);
-						}
-						break;
-					case LEAVE:
-						String lchannel = msg.getAttribute(ATT_CHANNEL);
-						if (lchannel != null) {
-							removeChannel(lchannel);
-						}
-						break;
-					case MESSAGE:
-						final String mchannel = msg.getAttribute(ATT_CHANNEL);
-						if (mchannel != null) {
-							Chat cchat = container.getMainFrame().getChatContainer().getChat(mchannel);
-							if (cchat != null) {
-								Channel cchan = (Channel) cchat;
-								String message = msg.getPost();
-								cchan.addElement(new ChannelElement(cchan.getElements(), TimeStamp.newInstance(), User.this, null, message, !isIgnored, Color.BLACK), true);
-								final Application application = Application.getInstance();
-								if (message.contains(application.getPreferredName())) {
-									final StringBuilder titleBuild = new StringBuilder();
-									titleBuild.append(cchan.getName());;
-									titleBuild.append(": ");
-									titleBuild.append(User.this.getPreferredName());
-									titleBuild.append(" mentioned you!");
-									application.getTrayManager().showInfoMessage("GHSC\n" + titleBuild.toString());
-									titleBuild.insert(0, "- ");
-									application.getTitleManager().submitAppend(titleBuild.toString(), 8000);
-									application.flashTaskbar();
-								}
-							}
-						} else {
-							// TODO: channel will be null if message should be sent to PM
-						}
-						break;
-					case ADMIN:
-						final Tag me = Application.getInstance().getAdminControl().process(User.this, msg);
-						if (me != null) {
-							send(me);
-						}
-						break;
-					case FILE_SHARE:
-						FileShare fs = Application.getInstance().getFileShare();
-						if (fs != null) {
-							String type = msg.getAttribute(FileShare.ATT_TYPE);
-							if (type == null)
-								break;
-							if (type.equals(FileShare.TYPE_NEW)) {
-								final RemotePackage rp = RemotePackage.parse(User.this, msg.getPost());
-								if (rp == null) {
-									break;
-								}
-								fs.addPackages(rp);
-							} else if (type.equals(FileShare.TYPE_EDIT)) {
-							
-							} else if (type.equals(FileShare.TYPE_UPDATE)) {
-							
-							} else if (type.equals(FileShare.TYPE_REMOVE)) {
-							
-							}
-						}
-						break;
-					default:
-						break; // other cases (not normal)
-				}
-			}
-		}, new Runnable() {
-			public void run() {
-				System.out.println("We have lost connection with " + User.this.getPreferredName());
-				container.removeUser(User.this.getRemoteSocketAddress());
-			}
-		});
+		}, msg -> {
+            System.out.println(msg);
+            label:
+            switch (msg.getType()) {
+                case IDENTIFY:
+                    final InetSocketAddress remoteAddress = this.getRemoteSocketAddress();
+                    if (!container.removeUserPending(remoteAddress)) {
+                        break;
+                    }
+
+                    if (container.addUser(remoteAddress, this)) {
+                        container.removeMulticaster(remoteAddress);
+                        this.sendIntro();
+                    } else {
+                        System.err.println("Unable to add " + remoteAddress.getAddress() + "@" + remoteAddress.getPort() + " to the users Hashmap.");
+                    }
+
+                    String attributeValue;
+                    if ((attributeValue = msg.getAttribute(ATT_HOSTNAME)) != null) {
+                        this.setHostname(attributeValue);
+                    }
+                    if ((attributeValue = msg.getAttribute(ATT_NICK)) != null) {
+                        this.setNick(attributeValue);
+                    }
+                    if ((attributeValue = msg.getAttribute(ATT_ID)) != null) {
+                        this.setID(attributeValue);
+                    }
+                    this.setFriend(container.isFriend(this));
+                    this.setIgnored(container.isIgnored(this));
+                    container.getMainFrame().getChatContainer().refreshUser(this);
+                    container.refresh();
+                    break;
+                case JOIN:
+                    final String jchannels = msg.getAttribute(ATT_CHANNEL);
+                    if (jchannels != null) {
+                        final String[] allChannels = jchannels.split(Pattern.quote(","));
+                        this.addChannels(allChannels);
+                    }
+                    break;
+                case LEAVE:
+                    final String lchannel = msg.getAttribute(ATT_CHANNEL);
+                    if (lchannel != null) {
+                        this.removeChannel(lchannel);
+                    }
+                    break;
+                case MESSAGE:
+                    final String mchannel = msg.getAttribute(ATT_CHANNEL);
+                    if (mchannel != null) {
+                        final Chat cchat = container.getMainFrame().getChatContainer().getChat(mchannel);
+                        if (cchat != null) {
+                            final Channel cchan = (Channel) cchat;
+                            final String message = msg.getPost();
+                            cchan.addElement(new ChannelElement(cchan.getElements(), TimeStamp.newInstance(), this, null, message, !this.isIgnored, Color.BLACK), true);
+                            final Application application = Application.getInstance();
+                            if (message.contains(application.getPreferredName())) {
+                                final StringBuilder titleBuild = new StringBuilder();
+                                titleBuild.append(cchan.getName());
+                                titleBuild.append(": ");
+                                titleBuild.append(this.getPreferredName());
+                                titleBuild.append(" mentioned you!");
+                                application.getTrayManager().showInfoMessage("GHSC\n" + titleBuild.toString());
+                                titleBuild.insert(0, "- ");
+                                application.getTitleManager().submitAppend(titleBuild.toString(), 8000);
+                                application.flashTaskbar();
+                            }
+                        }
+                    } else {
+                        // TODO: channel will be null if message should be sent to PM
+                    }
+                    break;
+                case ADMIN:
+                    final Tag me = Application.getInstance().getAdminControl().process(this, msg);
+                    if (me != null) {
+                        this.send(me);
+                    }
+                    break;
+                case FILE_SHARE:
+                    final FileShare fs = Application.getInstance().getFileShare();
+                    if (fs != null) {
+                        final String type = msg.getAttribute(FileShare.ATT_TYPE);
+                        if (type == null) {
+                            break;
+                        }
+                        switch (type) {
+                            case FileShare.TYPE_NEW:
+                                final RemotePackage rp = RemotePackage.parse(this, msg.getPost());
+                                if (rp == null) {
+                                    break label;
+                                }
+                                fs.addPackages(rp);
+                                break;
+                            case FileShare.TYPE_EDIT:
+
+                                break;
+                            case FileShare.TYPE_UPDATE:
+
+                                break;
+                            case FileShare.TYPE_REMOVE:
+
+                                break;
+                        }
+                    }
+                    break;
+                default:
+                    break; // other cases (not normal)
+            }
+        }, () -> {
+            System.out.println("We have lost connection with " + this.getPreferredName());
+            container.removeUser(this.getRemoteSocketAddress());
+        });
 	}
 	
 	public void start() {
@@ -218,15 +212,15 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	public void sendIntro() {
 		final Application application = Application.getInstance();
-		send(MessageEvent.construct(Type.IDENTIFY, ATT_HOSTNAME, application.getHostname(), ATT_NICK, application.getPreferredName(), ATT_ID, application.getID()));
-		final String channels = container.getMainFrame().getChatContainer().printChannels();
+		this.send(MessageEvent.construct(Type.IDENTIFY, ATT_HOSTNAME, application.getHostname(), ATT_NICK, application.getPreferredName(), ATT_ID, application.getID()));
+		final String channels = this.container.getMainFrame().getChatContainer().printChannels();
 		if (channels != null && !channels.isEmpty()) {
-			send(MessageEvent.construct(Type.JOIN, ATT_CHANNEL, channels));
+			this.send(MessageEvent.construct(Type.JOIN, ATT_CHANNEL, channels));
 		}
 	}
 	
 	public UserContainer getContainer() {
-		return container;
+		return this.container;
 	}
 	
 	public InetSocketAddress getLocalSocketAddress() {
@@ -239,70 +233,60 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	
 	@Override
 	public String getHostname() {
-		return hostname;
+		return this.hostname;
 	}
 	
 	@Override
-	public void setHostname(String hostname) {
+	public void setHostname(final String hostname) {
 		this.hostname = hostname;
 	}
 	
 	@Override
 	public String getNick() {
-		return nick;
+		return this.nick;
 	}
 	
 	@Override
-	public void setNick(String nick) {
+	public void setNick(final String nick) {
 		this.nick = nick;
 	}
 	
 	@Override
 	public String getPreferredName() {
-		final String temp = getNick();
-		if (temp != null)
+		final String temp = this.getNick();
+		if (temp != null) {
 			return temp;
-		return getHostname();
+		}
+		return this.getHostname();
 	}
 	
 	@Override
 	public UUID getID() {
-		return userID;
+		return this.userID;
 	}
 	
 	@Override
-	public void setID(UUID uuid) {
+	public void setID(final UUID uuid) {
 		this.userID = uuid;
 	}
 	
 	@Override
-	public void setID(String uuid) {
-		try {
-			setID(UUID.fromString(uuid));
-		} catch (IllegalArgumentException iae) {}
-	}
-	
-	@Override
-	public boolean subscribe(EventListener<User> listener) {
-		return userProvider.subscribe(listener);
-	}
-	
-	@Override
-	public boolean unsubscribe(EventListener<User> listener) {
-		return userProvider.unsubscribe(listener);
+	public void setID(final String uuid) {
+		this.setID(UUID.fromString(uuid));
 	}
 	
 	/**
-	 * @return the status
+     * Gets the online status of the user.
 	 */
 	public Status getStatus() {
-		return status;
+		return this.status;
 	}
 	
 	/**
-	 * @param status
+     * Sets the online status of the user.
+	 * @param status The new status of the user.
 	 */
-	public void setStatus(Status status) {
+	public void setStatus(final Status status) {
 		this.status = status;
 	}
 	
@@ -310,108 +294,102 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	 * @return whether this user is marked as ignored.
 	 */
 	public boolean isIgnored() {
-		return isIgnored;
+		return this.isIgnored;
 	}
 	
 	/**
 	 * Changes the ignore status of this user.
-	 * 
-	 * @param ignored
-	 *            - whether the user should be ignored or not.
+	 * @param ignored Whether the user should be ignored or not.
 	 */
-	public void setIgnored(boolean ignored) {
-		if (isIgnored = ignored)
-			container.addIgnored(this);
-		else
-			container.removeIgnored(this);
-		container.refresh();
+	public void setIgnored(final boolean ignored) {
+		this.isIgnored = ignored;
+		if (ignored) {
+			this.container.addIgnored(this);
+		} else {
+			this.container.removeIgnored(this);
+		}
+		this.container.refresh();
 	}
 	
 	/**
 	 * @return whether this user is marked as a friend.
 	 */
 	public boolean isFriend() {
-		return isFriend;
+		return this.isFriend;
 	}
 	
 	/**
 	 * Changes the friend status of this user.
-	 * 
-	 * @param friend
-	 *            - whether the user should be marked as a friend or not.
+	 * @param friend Whether the user should be marked as a friend or not.
 	 */
-	public void setFriend(boolean friend) {
-		if (isFriend = friend)
-			container.addFriend(this);
-		else
-			container.removeFriend(this);
-		container.refresh();
+	public void setFriend(final boolean friend) {
+		this.isFriend = friend;
+		if (friend) {
+			this.container.addFriend(this);
+		} else {
+			this.container.removeFriend(this);
+		}
+		this.container.refresh();
 	}
 	
 	/**
 	 * Checks if the user is in the given channel.
-	 * 
-	 * @param chan
-	 *            - the channel to check if the user is in.
-	 * @return whether the user is in the given channel.
+	 * @param channel The channel to check if the user is in.
+	 * @return Whether the user is in the given channel.
 	 */
-	public boolean inChannel(String chan) {
-		return channels.contains(chan);
+	public boolean inChannel(final String channel) {
+		return this.channels.contains(channel);
 	}
 	
 	/**
 	 * Removes the given channel from the user's active channel list.
-	 * 
-	 * @param chan
-	 *            - the channel to remove.
+	 * @param channel The channel to remove.
 	 */
-	public void removeChannel(String chan) {
-		synchronized (channelLock) {
-			channels.remove(chan);
+	public void removeChannel(final String channel) {
+		synchronized (this.channelLock) {
+			this.channels.remove(channel);
 		}
-		container.refresh();
+		this.container.refresh();
 	}
 	
 	/**
 	 * Adds all the provided channels to the user's active channel list.
-	 * 
-	 * @param chans
-	 *            - all the channels to add.
+	 * @param channels All the channels to add.
 	 */
-	public void addChannels(String... chans) {
-		synchronized (channelLock) {
-			for (String chan : chans) {
-				if (chan.trim().isEmpty())
+	public void addChannels(final String... channels) {
+		synchronized (this.channelLock) {
+			for (final String channel : channels) {
+				if (channel.trim().isEmpty()) {
 					continue;
-				if (!channels.contains(chan)) {
-					channels.add(chan);
+				}
+				if (!this.channels.contains(channel)) {
+					this.channels.add(channel);
 				}
 			}
 		}
-		container.refresh();
+		this.container.refresh();
 	}
 	
 	/*
 	 * Admin commands methods
 	 */
 	
-	public Object getCommandState(String tag) {
-		return commandStates.get(tag);
+	public Object getCommandState(final String tag) {
+		return this.commandStates.get(tag);
 	}
 	
-	public Object setCommandState(String tag, Object state) {
-		return commandStates.put(tag, state);
+	public Object setCommandState(final String tag, final Object state) {
+		return this.commandStates.put(tag, state);
 	}
 	
 	/**
 	 * Sends the given data to the user (by using it's MessageWrapper).
-	 * 
-	 * @param data
-	 *            - the data to send.
+	 * @param tag The data to send.
 	 */
-	public void send(Tag tag) {
-		if (messageThread != null)
-			messageThread.send(tag);
+	public void send(final Tag tag) {
+		if (this.messageThread != null) {
+			this.messageThread.send(tag);
+		}
 	}
 	
 	/**
@@ -419,19 +397,19 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	 * The user will automatically be notified of the disconnect and should take appropriate actions.
 	 */
 	public void disconnect() {
-		if (socket != null) {
+		if (this.socket != null) {
 			try {
-				socket.close();
+				this.socket.close();
 				System.gc();
-			} catch (IOException e) {}
+			} catch (final IOException ignored) {}
 		}
 	}
 	
 	public String getTooltip() {
-		StringBuilder build = new StringBuilder().append("<html>").append("Nick: ").append(getPreferredName()).append("<br>");
-		String[] channels;
-		synchronized (channelLock) {
-			channels = User.this.channels.toArray(new String[User.this.channels.size()]);
+		final StringBuilder build = new StringBuilder().append("<html>").append("Nick: ").append(this.getPreferredName()).append("<br>");
+		final String[] channels;
+		synchronized (this.channelLock) {
+			channels = this.channels.toArray(new String[this.channels.size()]);
 		}
 		final int perLine = 5;
 		for (int i = 0; i < channels.length; i++) {
@@ -449,37 +427,33 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	@Override
 	public String toString() {
 		final InetSocketAddress remoteAddress = this.getRemoteSocketAddress();
-		return new StringBuilder()
-				.append(getPreferredName())
-				.append(" - ")
-				.append(remoteAddress.getAddress().getHostAddress()).append("@").append(remoteAddress.getPort()).toString();
+		return this.getPreferredName() + " - " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort();
 	}
 	
 	@Override
-	public boolean equals(Object o) {
-		if (o == null || !(o instanceof Identifiable))
-			return false;
-		return this == o || getID().equals(((Identifiable) o).getID());
+	public boolean equals(final Object o) {
+		return o != null && o instanceof Identifiable && (this == o || this.getID().equals(((Identifiable) o).getID()));
 	}
 	
 	@Override
-	public int compareTo(User u) {
-		Chat selectedChat = container.getMainFrame().getChatContainer().getSelectedChat();
+	public int compareTo(final User u) {
+		final Chat selectedChat = this.container.getMainFrame().getChatContainer().getSelectedChat();
 		if (selectedChat != null) {
-			String name = selectedChat.getName();
-			boolean in = inChannel(name), uIn = u.inChannel(name);
-			if (in != uIn) {
+			final String name = selectedChat.getName();
+			final boolean in = this.inChannel(name);
+            final boolean uIn = u.inChannel(name);
+            if (in != uIn) {
 				return in ? -1 : 1;
 			}
 		}
-		int diff = (u.isIgnored ? -1 : (u.isFriend ? 1 : 0)) - (isIgnored ? -1 : (isFriend ? 1 : 0));
-		return diff == 0 ? toString().compareToIgnoreCase(u.toString()) : diff;
+		final int diff = (u.isIgnored ? -1 : (u.isFriend ? 1 : 0)) - (this.isIgnored ? -1 : (this.isFriend ? 1 : 0));
+		return diff == 0 ? this.toString().compareToIgnoreCase(u.toString()) : diff;
 	}
 	
 	@Override
-	public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+	public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException {
 		if (flavor.equals(DataFlavor.stringFlavor)) {
-			return getPreferredName();
+			return this.getPreferredName();
 		} else {
 			throw new UnsupportedFlavorException(flavor);
 		}
@@ -491,7 +465,7 @@ public class User implements ComplexIdentifiable, IEventProvider<User>, Transfer
 	}
 	
 	@Override
-	public boolean isDataFlavorSupported(DataFlavor arg0) {
+	public boolean isDataFlavorSupported(final DataFlavor arg0) {
 		return DataFlavor.stringFlavor.equals(arg0);
 	}
 	

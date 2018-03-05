@@ -10,7 +10,7 @@ public abstract class ObjectToStringConverter {
 	 * @return possible <tt>String</tt> representation for the given item.
 	 */
 	public String[] getPossibleStringsForItem(Object item) {
-		String preferred = getPreferredStringForItem(item);
+		String preferred = this.getPreferredStringForItem(item);
 		return preferred == null ? new String[0] : new String[] { preferred };
 	}
 

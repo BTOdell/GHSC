@@ -16,27 +16,27 @@ final class ACDocumentEvent implements DocumentEvent {
 
 	@Override
 	public ElementChange getChange(Element elem) {
-		return event.getChange(elem);
+		return this.event.getChange(elem);
 	}
 	
 	@Override
 	public Document getDocument() {
-		return wrapped;
+		return this.wrapped;
 	}
 	
 	@Override
 	public int getLength() {
-		return event.getLength();
+		return this.event.getLength();
 	}
 	
 	@Override
 	public int getOffset() {
-		return event.getOffset();
+		return this.event.getOffset();
 	}
 	
 	@Override
 	public EventType getType() {
-		return event.getType();
+		return this.event.getType();
 	}
 	
 }

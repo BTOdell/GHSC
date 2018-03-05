@@ -13,17 +13,17 @@ import java.util.Set;
 
 public class NicManager {
 	
-	private LinkedHashMap<String, String> currentInterfaces = null;
+	private LinkedHashMap<String, String> currentInterfaces;
 	
 	public NicManager() {
-		currentInterfaces = enumInterfaces();
+        this.currentInterfaces = this.enumInterfaces();
 	}
 	
 	public Set<String> getInterfaces() {
-		if (currentInterfaces == null) {
-			currentInterfaces = enumInterfaces();
+		if (this.currentInterfaces == null) {
+            this.currentInterfaces = this.enumInterfaces();
 		}
-		return currentInterfaces.keySet();
+		return this.currentInterfaces.keySet();
 	}
 	
 	private LinkedHashMap<String, String> enumInterfaces() {
@@ -69,17 +69,17 @@ public class NicManager {
 	}
 	
 	public Set<String> updateInterfaces() {
-		LinkedHashMap<String, String> newInterfaces = enumInterfaces();
-		if (currentInterfaces.keySet().equals(newInterfaces.keySet())) {
+		LinkedHashMap<String, String> newInterfaces = this.enumInterfaces();
+		if (this.currentInterfaces.keySet().equals(newInterfaces.keySet())) {
 			return null;
 		}
-		currentInterfaces = newInterfaces;
+        this.currentInterfaces = newInterfaces;
 		return newInterfaces.keySet();
 	}
 	
 	public String getIp(String interfaceName) {
 		if (interfaceName != null) {
-			return currentInterfaces.get(interfaceName);
+			return this.currentInterfaces.get(interfaceName);
 		}
 		return null;
 	}
@@ -103,7 +103,7 @@ public class NicManager {
 		System.out.println("Multicast: " + supportsMulticast);
 		System.out.println("Interface Addresses:");
 		final List<InterfaceAddress> interfaceAddresses = networkInterface.getInterfaceAddresses();
-		if (interfaceAddresses.size() > 0) {
+		if (!interfaceAddresses.isEmpty()) {
 			for (InterfaceAddress interfaceAddress : interfaceAddresses) {
 				System.out.print("\tIP: ");
 				System.out.print(interfaceAddress.getAddress());

@@ -18,11 +18,11 @@ public class ValidationResult<V,R> {
 	}
 	
 	public final V getValue() {
-		return value;
+		return this.value;
 	}
 	
 	public final R getResult() {
-		return result;
+		return this.result;
 	}
 	
 }

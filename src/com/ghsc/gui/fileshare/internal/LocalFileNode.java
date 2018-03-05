@@ -22,27 +22,27 @@ public class LocalFileNode extends FileNode {
 	public LocalFileNode(final LocalFileNodeChildren container, final File file) {
 		super(container);
 		this.file = file;
-		this.endTag = new StringBuilder("</").append(getTagName()).append(">").toString();
+		this.endTag = "</" + this.getTagName() + ">";
 	}
 	
 	public final File getFile() {
-		return file;
+		return this.file;
 	}
 	
 	public LocalFileNode getParent() {
-		return (LocalFileNode) parent;
+		return (LocalFileNode) this.parent;
 	}
 	
 	public LocalFileNodeChildren getContainer() {
-		return (LocalFileNodeChildren) container;
+		return (LocalFileNodeChildren) this.container;
 	}
 	
-	public void setContainer(LocalFileNodeChildren container) {
+	public void setContainer(final LocalFileNodeChildren container) {
 		this.container = container;
 	}
 	
 	public LocalFileNodeChildren getChildren() {
-		return (LocalFileNodeChildren) children;
+		return (LocalFileNodeChildren) this.children;
 	}
 	
 	public void setChildren(final LocalFileNodeChildren children) {
@@ -51,68 +51,72 @@ public class LocalFileNode extends FileNode {
 
 	@Override
 	public String getName() {
-		return file != null ? file.getName() : null;
+		return this.file != null ? this.file.getName() : null;
 	}
 	
 	@Override
 	public String getPath() {
-		return file != null ? file.getPath() : null;
+		return this.file != null ? this.file.getPath() : null;
 	}
 	
 	@Override
 	public boolean isDirectory() {
-		return file != null ? file.isDirectory() : false;
+		return this.file != null && this.file.isDirectory();
 	}
 	
 	@Override
 	public long getFileSize() {
-		return file != null ? file.length() : 0;
+		return this.file != null ? this.file.length() : 0;
 	}
 	
 	@Override
 	public long getSize() {
-		long temp = getFileSize();
-		if (!isLeaf()) {
-			for (LocalFileNode node : getChildren())
+		long temp = this.getFileSize();
+		if (!this.isLeaf()) {
+			for (final LocalFileNode node : this.getChildren()) {
 				temp += node.getSize();
+			}
 		}
 		return temp;
 	}
 	
 	@Override
 	public long getFileCount() {
-		long temp = isDirectory() ? 0 : 1;
-		if (!isLeaf()) {
-			for (LocalFileNode node : getChildren())
+		long temp = this.isDirectory() ? 0 : 1;
+		if (!this.isLeaf()) {
+			for (final LocalFileNode node : this.getChildren()) {
 				temp += node.getFileCount();
+			}
 		}
 		return temp;
 	}
 
 	@Override
 	public long getDirectoryCount() {
-		long temp = isDirectory() ? 1 : 0;
-		if (!isLeaf()) {
-			for (LocalFileNode node : getChildren())
+		long temp = this.isDirectory() ? 1 : 0;
+		if (!this.isLeaf()) {
+			for (final LocalFileNode node : this.getChildren()) {
 				temp += node.getDirectoryCount();
+			}
 		}
 		return temp;
 	}
 	
 	protected String concat() {
-		final StringBuilder build = new StringBuilder(toString());
-		if (!isLeaf()) {
-			for (final LocalFileNode node : getChildren())
+		final StringBuilder build = new StringBuilder(this.toString());
+		if (!this.isLeaf()) {
+			for (final LocalFileNode node : this.getChildren()) {
 				build.append(node.concat());
+			}
 		}
 		return build.toString();
 	}
 	
 	public InputStream openInputStream() {
-		if (file != null) {
+		if (this.file != null) {
 			try {
-				return new FileInputStream(file);
-			} catch (FileNotFoundException e) {}
+				return new FileInputStream(this.file);
+			} catch (final FileNotFoundException ignored) {}
 		}
 		return null;
 	}
@@ -124,19 +128,20 @@ public class LocalFileNode extends FileNode {
 	public String toRemoteMeta() {
 		final StringBuilder build = new StringBuilder();
 		{
-			final LinkedList<Object> objs = new LinkedList<Object>();
+			final LinkedList<Object> objs = new LinkedList<>();
 			objs.add(FileNode.ATT_NAME);
-			objs.add(getName());
-			boolean isDir = isDirectory();
+			objs.add(this.getName());
+			final boolean isDir = this.isDirectory();
 			if (!isDir) {
 				objs.add(FileNode.ATT_SIZE);
-				objs.add(getSize());
+				objs.add(this.getSize());
 			}
-			final String tagName = getTagName();
+			final String tagName = this.getTagName();
 			build.append(Tag.construct(tagName, objs.toArray()).getEncodedString());
-			if (isDir && !isLeaf()) {
-				for (final LocalFileNode lc : getChildren())
+			if (isDir && !this.isLeaf()) {
+				for (final LocalFileNode lc : this.getChildren()) {
 					build.append(lc.toRemoteMeta());
+				}
 			}
 			build.append("</").append(tagName).append(">");
 		}
@@ -150,14 +155,15 @@ public class LocalFileNode extends FileNode {
 	public String toSaveMeta() {
 		final StringBuilder build = new StringBuilder();
 		{
-			final LinkedList<Object> objs = new LinkedList<Object>();
+			final LinkedList<Object> objs = new LinkedList<>();
 			objs.add(FileNode.ATT_PATH);
-			objs.add(getPath());
-			final String tagName = getTagName();
+			objs.add(this.getPath());
+			final String tagName = this.getTagName();
 			build.append(Tag.construct(tagName, objs.toArray()).getEncodedString());
-			if (isDirectory() && !isLeaf()) {
-				for (final LocalFileNode lc : getChildren())
+			if (this.isDirectory() && !this.isLeaf()) {
+				for (final LocalFileNode lc : this.getChildren()) {
 					build.append(lc.toSaveMeta());
+				}
 			}
 			build.append("</").append(tagName).append(">");
 		}
@@ -167,20 +173,20 @@ public class LocalFileNode extends FileNode {
 	/**
 	 * Finds the LocalFile given a path relative to the node.
 	 */
-	public LocalFileNode findFile(String relativePath) {
-		return findFile(relativePath, getChildren());
+	public LocalFileNode findFile(final String relativePath) {
+		return findFile(relativePath, this.getChildren());
 	}
 	
 	/**
 	 * Finds the LocalFile given a relative path and nodes.
 	 * Example: \pictures\2012\image.png
 	 */
-	static LocalFileNode findFile(String relativePath, List<LocalFileNode> nodes) {
+	static LocalFileNode findFile(String relativePath, final List<LocalFileNode> nodes) {
 		relativePath = relativePath.substring(1, relativePath.length());
-		int index = relativePath.indexOf(File.separatorChar);
-		String nodeName = relativePath.substring(0, index >= 0 ? index : relativePath.length());
-		String newRelativePath = relativePath.substring(index);
-		for (LocalFileNode node : nodes) {
+		final int index = relativePath.indexOf(File.separatorChar);
+		final String nodeName = relativePath.substring(0, index >= 0 ? index : relativePath.length());
+		final String newRelativePath = relativePath.substring(index);
+		for (final LocalFileNode node : nodes) {
 			if (nodeName.equals(node.getFile().getName())) {
 				return node.findFile(newRelativePath);
 			}
@@ -188,15 +194,15 @@ public class LocalFileNode extends FileNode {
 		return null;
 	}
 	
-	public static LocalFileNode generateRoot(File file) {
+	public static LocalFileNode generateRoot(final File file) {
 		return generate(null, file);
 	}
 	
-	private static LocalFileNode generate(LocalFileNodeChildren container, File file) {
+	private static LocalFileNode generate(final LocalFileNodeChildren container, final File file) {
 		final LocalFileNode node = new LocalFileNode(container, file);
 		if (node.isDirectory()) {
 			final File[] files = file.listFiles();
-			if (files.length > 0) {
+			if (files != null && files.length > 0) {
 				final LocalFileNodeChildren nodes = new LocalFileNodeChildren(node);
 				for (final File checkFile : files) {
 					nodes.add(LocalFileNode.generate(nodes, checkFile));
@@ -215,39 +221,39 @@ public class LocalFileNode extends FileNode {
 	
 	@Override
 	public String getTagName() {
-		return isDirectory() ? TAGNAME_DIR : TAGNAME_FILE;
+		return this.isDirectory() ? TAGNAME_DIR : TAGNAME_FILE;
 	}
 	
 	@Override
 	public String getEndTag() {
-		return endTag;
+		return this.endTag;
 	}
 	
 	@Override
-	public void receive(Object o) {
+	public void receive(final Object o) {
 		if (o instanceof Taggable) {
-			Taggable t = (Taggable) o;
-			String tName = t.getTagName();
+			final Taggable t = (Taggable) o;
+			final String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
-				if (children == null) {
-					setChildren(new LocalFileNodeChildren(this));
+				if (this.children == null) {
+					this.setChildren(new LocalFileNodeChildren(this));
 				}
-				getChildren().add((LocalFileNode) t);
+				this.getChildren().add((LocalFileNode) t);
 			}
 		}
 	}
 
 	@Override
-	public EndTaggable createForTag(Tag tag) {
-		String tName = tag.getName();
+	public EndTaggable createForTag(final Tag tag) {
+		final String tName = tag.getName();
 		if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
 			final String path = tag.getAttribute(FileNode.ATT_PATH);
 			if (path != null) {
-				if (children == null) {
-					setChildren(new LocalFileNodeChildren(this));
+				if (this.children == null) {
+					this.setChildren(new LocalFileNodeChildren(this));
 				}
 				final File file = new File(path);
-				return new LocalFileNode(getChildren(), file.exists() ? file : null);
+				return new LocalFileNode(this.getChildren(), file.exists() ? file : null);
 			}
 		}
 		return null;
@@ -258,17 +264,17 @@ public class LocalFileNode extends FileNode {
 	 */
 	@Override
 	public LocalFileNode clone() {
-		return clone(null);
+		return this.clone(null);
 	}
 	
 	/**
 	 * Clones the entire node tree.
 	 */
-	public LocalFileNode clone(LocalFileNodeChildren container) {
-		final LocalFileNode node = new LocalFileNode(container, file);
-		if (!isLeaf()) {
+	public LocalFileNode clone(final LocalFileNodeChildren container) {
+		final LocalFileNode node = new LocalFileNode(container, this.file);
+		if (!this.isLeaf()) {
 			final LocalFileNodeChildren nodes = new LocalFileNodeChildren(node);
-			for (final LocalFileNode n : getChildren()) {
+			for (final LocalFileNode n : this.getChildren()) {
 				nodes.add(n.clone(nodes));
 			}
 			node.setChildren(nodes);
@@ -277,13 +283,13 @@ public class LocalFileNode extends FileNode {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		return this == o;
 	}
 	
 	@Override
 	public String toString() {
-		return isRoot() ? getPath() : getName();
+		return this.isRoot() ? this.getPath() : this.getName();
 	}
 	
 }

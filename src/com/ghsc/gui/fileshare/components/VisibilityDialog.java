@@ -1,49 +1,37 @@
 package com.ghsc.gui.fileshare.components;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.LayoutStyle.ComponentPlacement;
-
 import com.ghsc.common.Fonts;
 import com.ghsc.event.EventListener;
 import com.ghsc.gui.components.autocomplete.AutoComplete;
 import com.ghsc.gui.components.autocomplete.ObjectToStringConverter;
 import com.ghsc.impl.InputVerifier;
 
+import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * TODO
+ * @param <E>
  */
 public class VisibilityDialog<E> extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private final PackageWizard wizard;
-	private final Collection<E> available, contents;
+	private final Collection<E> available;
+    private final Collection<E> contents;
 	private final EventListener<ArrayList<E>> callback;
 	private final InputVerifier<E> inputVerifier;
 	private final ObjectToStringConverter converter;
 	private final boolean strict;
-	
-	private JPanel canvas;
-	private ACComboBox entryBox;
+
+    private ACComboBox entryBox;
 	private DefaultComboBoxModel<E> comboModel;
 	private JScrollPane scrollPane;
 	private JList<E> list;
@@ -54,8 +42,9 @@ public class VisibilityDialog<E> extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public VisibilityDialog(PackageWizard wizard, Collection<E> available, Collection<E> contents, 
-			EventListener<ArrayList<E>> callback, InputVerifier<E> inputVerifier, ObjectToStringConverter converter, boolean strict) {
+	public VisibilityDialog(final PackageWizard wizard, final Collection<E> available, final Collection<E> contents,
+                            final EventListener<ArrayList<E>> callback, final InputVerifier<E> inputVerifier,
+                            final ObjectToStringConverter converter, final boolean strict) {
 		super(wizard);
 		this.wizard = wizard;
 		this.available = available;
@@ -67,181 +56,174 @@ public class VisibilityDialog<E> extends JDialog {
 		
 		Iterator<E> it = this.contents.iterator();
 		while (it.hasNext()) {
-			getListModel().addElement(it.next());
+            this.getListModel().addElement(it.next());
 		}
 		it = this.available.iterator();
 		while (it.hasNext()) {
-			E e = it.next();
-			if (this.contents.contains(e))
-				continue;
-			getComboModel().addElement(e);
+			final E e = it.next();
+			if (this.contents.contains(e)) {
+                continue;
+            }
+            this.getComboModel().addElement(e);
 		}
-		
-		initComponents();
+
+        this.initComponents();
 	}
 	
 	private void close() {
-		callback.eventReceived(null);
-		dispose();
+        this.callback.eventReceived(null);
+        this.dispose();
 	}
 	
 	private void initComponents() {
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		setTitle(wizard.getTitle() + " - Edit visibility arguments");
-		setSize(325, 400);
-		setMinimumSize(getSize());
-		setLocationRelativeTo(wizard);
-		
-		canvas = new JPanel();
-		GroupLayout groupLayout = new GroupLayout(canvas);
+        this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        this.setTitle(this.wizard.getTitle() + " - Edit visibility arguments");
+        this.setSize(325, 400);
+        this.setMinimumSize(this.getSize());
+        this.setLocationRelativeTo(this.wizard);
+
+        final JPanel contentPane = new JPanel();
+		final GroupLayout groupLayout = new GroupLayout(contentPane);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(getScrollPane(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
-						.addComponent(getEntryBox(), Alignment.LEADING, 0, 264, Short.MAX_VALUE)
+						.addComponent(this.getScrollPane(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+						.addComponent(this.getEntryBox(), Alignment.LEADING, 0, 264, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(getOkButton(), GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
+							.addComponent(this.getOkButton(), GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(getCancelButton(), GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)))
+							.addComponent(this.getCancelButton(), GroupLayout.DEFAULT_SIZE, 129, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(getEntryBox(), GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+					.addComponent(this.getEntryBox(), GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(getScrollPane(), GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
+					.addComponent(this.getScrollPane(), GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(getCancelButton())
-						.addComponent(getOkButton()))
+						.addComponent(this.getCancelButton())
+						.addComponent(this.getOkButton()))
 					.addContainerGap())
 		);
-		canvas.setLayout(groupLayout);
-		setContentPane(canvas);
+        contentPane.setLayout(groupLayout);
+        this.setContentPane(contentPane);
 	}
 	
 	public ACComboBox getEntryBox() {
-		if (entryBox == null) {
-			entryBox = new ACComboBox(getComboModel());
+		if (this.entryBox == null) {
+            this.entryBox = new ACComboBox(this.getComboModel());
 		}
-		return entryBox;
+		return this.entryBox;
 	}
 	
 	public DefaultComboBoxModel<E> getComboModel() {
-		if (comboModel == null) {
-			comboModel = new DefaultComboBoxModel<E>();
+		if (this.comboModel == null) {
+            this.comboModel = new DefaultComboBoxModel<>();
 		}
-		return comboModel;
+		return this.comboModel;
 	}
 	
 	public JScrollPane getScrollPane() {
-		if (scrollPane == null) {
-			scrollPane = new JScrollPane();
-			scrollPane.setViewportView(getList());
+		if (this.scrollPane == null) {
+            this.scrollPane = new JScrollPane();
+            this.scrollPane.setViewportView(this.getList());
 		}
-		return scrollPane;
+		return this.scrollPane;
 	}
 	
 	public JList<E> getList() {
-		if (list == null) {
-			list = new JList<E>(getListModel());
-			list.addKeyListener(new KeyAdapter() {
-				public void keyPressed(KeyEvent e) {
+		if (this.list == null) {
+            this.list = new JList<>(this.getListModel());
+            this.list.addKeyListener(new KeyAdapter() {
+				public void keyPressed(final KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-						//@SuppressWarnings("unchecked")
-						final E selected = (E) getList().getSelectedValue();
+						final E selected = VisibilityDialog.this.getList().getSelectedValue();
 						if (selected != null) {
-							if (getListModel().removeElement(selected) &&
-									available.contains(selected)) {
-								getComboModel().addElement(selected);
+							if (VisibilityDialog.this.getListModel().removeElement(selected) &&
+                                    VisibilityDialog.this.available.contains(selected)) {
+                                VisibilityDialog.this.getComboModel().addElement(selected);
 							}
 						}
 					}
 				}
 			});
 		}
-		return list;
+		return this.list;
 	}
 	
 	public DefaultListModel<E> getListModel() {
-		if (listModel == null) {
-			listModel = new DefaultListModel<E>();
+		if (this.listModel == null) {
+            this.listModel = new DefaultListModel<>();
 		}
-		return listModel;
-	}
-	
-	public JButton getOkButton() {
-		if (okButton == null) {
-			okButton = new JButton("OK");
-			okButton.addActionListener(new ActionListener() {
-				//@SuppressWarnings("unchecked")
-				public void actionPerformed(ActionEvent e) {
-					final int size = getListModel().size();
-					final ArrayList<E> a = new ArrayList<E>(size);
-					for (int i = 0; i < size; i++) {
-						a.add((E) getListModel().get(i));
-					}
-					
-					callback.eventReceived(a);
-					dispose();
-				}
-			});
-		}
-		return okButton;
+        return this.listModel;
+    }
+
+    public JButton getOkButton() {
+        if (this.okButton == null) {
+            this.okButton = new JButton("OK");
+            this.okButton.addActionListener(e -> {
+                final int size = this.getListModel().size();
+                final ArrayList<E> a = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    a.add(this.getListModel().get(i));
+                }
+                this.callback.eventReceived(a);
+                this.dispose();
+            });
+        }
+		return this.okButton;
 	}
 	
 	public JButton getCancelButton() {
-		if (cancelButton == null) {
-			cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					close();
-				}
-			});
+		if (this.cancelButton == null) {
+            this.cancelButton = new JButton("Cancel");
+            this.cancelButton.addActionListener(e -> this.close());
 		}
-		return cancelButton;
+		return this.cancelButton;
 	}
 	
 	public class ACComboBox extends JComboBox<E> {
 		
 		private static final long serialVersionUID = 1L;
 		
-		private ACComboBox(ComboBoxModel<E> model) {
+		private ACComboBox(final ComboBoxModel<E> model) {
 			super(model);
-			initComponents();
-			AutoComplete.enable(this, converter, strict);
+            this.initComponents();
+			AutoComplete.enable(this, VisibilityDialog.this.converter, VisibilityDialog.this.strict);
 		}
 
 		private void initComponents() {
-			getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-				@SuppressWarnings("unchecked")
-				public void keyPressed(KeyEvent e) {
-					if (e.getKeyCode() != KeyEvent.VK_ENTER)
-						return;
+            this.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+				public void keyPressed(final KeyEvent e) {
+					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+                        return;
+                    }
+                    @SuppressWarnings("unchecked")
 					final E selected = (E) ACComboBox.this.getSelectedItem();
 					System.out.println("Selected: " + selected);
-					final E verified = inputVerifier.verify(selected);
+					final E verified = VisibilityDialog.this.inputVerifier.verify(selected);
 					System.out.println("Verified: " + selected);
-					getComboModel().removeElement(verified);
-					getListModel().addElement(verified);
+                    VisibilityDialog.this.getComboModel().removeElement(verified);
+                    VisibilityDialog.this.getListModel().addElement(verified);
 					ACComboBox.this.setSelectedItem(null);
-					getList().setSelectedValue(verified, true);
+                    VisibilityDialog.this.getList().setSelectedValue(verified, true);
 				}
 			});
-			setFont(Fonts.GLOBAL);
-			setEditable(true);
-			setDoubleBuffered(true);
+            this.setFont(Fonts.GLOBAL);
+            this.setEditable(true);
+            this.setDoubleBuffered(true);
 		}
 		
 		@Override
-		public void setModel(ComboBoxModel<E> model) {
+		public void setModel(final ComboBoxModel<E> model) {
 			super.setModel(model);
-			if (!strict) {
-				setSelectedIndex(-1);
+			if (!VisibilityDialog.this.strict) {
+                this.setSelectedIndex(-1);
 			}
 		}
 		

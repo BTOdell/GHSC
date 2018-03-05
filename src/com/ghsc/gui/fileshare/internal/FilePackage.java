@@ -31,7 +31,7 @@ public abstract class FilePackage {
 			}
 			
 			public String getIdentifier() {
-				return identifier;
+				return this.identifier;
 			}
 			
 			@Override
@@ -43,8 +43,9 @@ public abstract class FilePackage {
 			
 			public static Type match(String identifier) {
 				for (final Type v : values()) {
-					if (v.getIdentifier().equals(identifier))
-						return v;
+					if (v.getIdentifier().equals(identifier)) {
+                        return v;
+                    }
 				}
 				return null;
 			}
@@ -53,7 +54,7 @@ public abstract class FilePackage {
 		
 		private Type type;
 		private Object data;
-		private boolean privateDiscovered = false;
+		private boolean privateDiscovered;
 		
 		public Visibility(Object raw) {
 			if (raw != null) {
@@ -77,7 +78,7 @@ public abstract class FilePackage {
 		}
 		
 		public Type getType() {
-			return type;
+			return this.type;
 		}
 		
 		public void setType(Type t) {
@@ -85,7 +86,7 @@ public abstract class FilePackage {
 		}
 		
 		public Object getData() {
-			return data;
+			return this.data;
 		}
 		
 		public void setData(Object data) {
@@ -96,33 +97,37 @@ public abstract class FilePackage {
 		 * @return whether or not this private package has been discovered. Will return true if package is not private.
 		 */
 		public boolean isDiscovered() {
-			return type != Type.PRIVATE || privateDiscovered;
+			return this.type != Type.PRIVATE || this.privateDiscovered;
 		}
 		
 		/**
 		 * Sets whether this private package has been discovered. Only applies for private packages.
 		 */
-		public void setDiscovered(boolean pd) {
+		public void setDiscovered(final boolean pd) {
 			this.privateDiscovered = pd;
 		}
 
 		@Override
-		public boolean accept(FilePackage p) {
-			if (p instanceof LocalPackage || type == Type.PUBLIC || p.isActive()) // handles public packages
-				return true;
+		public boolean accept(final FilePackage p) {
+			if (p instanceof LocalPackage || this.type == Type.PUBLIC || p.isActive()) { // handles public packages
+                return true;
+            }
 			if (p instanceof RemotePackage) {
-				RemotePackage rp = (RemotePackage) p;
-				if (!isDiscovered()) // handles private packages
-					return false;
-				String[] dataStr = data.toString().split(Pattern.quote(","));
-				switch (type) {
+				final RemotePackage rp = (RemotePackage) p;
+				if (!this.isDiscovered()) { // handles private packages
+                    return false;
+                }
+				final String[] dataStr = this.data.toString().split(Pattern.quote(","));
+				switch (this.type) {
 					case CHANNEL: // handles channel packages
 						final Chat[] chats = rp.getHost().getContainer().getMainFrame().getChatContainer().getAll();
-						for (Chat chat : chats) {
-							if (chat == null)
-								continue;
-							if (chat instanceof Channel && Utilities.contains(((Channel) chat).getName(), dataStr))
-								return true;
+						for (final Chat chat : chats) {
+							if (chat == null) {
+                                continue;
+                            }
+							if (chat instanceof Channel && Utilities.contains(chat.getName(), dataStr)) {
+                                return true;
+                            }
 						}
 						
 						// TODO: Is this fall through intentional !
@@ -130,9 +135,8 @@ public abstract class FilePackage {
 						break;
 						
 					case USER: // handles user packages
-						final ArrayList<String> uuids = new ArrayList<String>();
-						for (int i = 0; i < dataStr.length; i++) {
-							final String d = dataStr[i];
+						final ArrayList<String> uuids = new ArrayList<>();
+						for (final String d : dataStr) {
 							final int dI = d.indexOf('|');
 							if (dI >= 0) {
 								uuids.add(d.substring(dI + 1, d.length()));
@@ -154,21 +158,21 @@ public abstract class FilePackage {
 		
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder(type.getIdentifier());
-			if (data != null) {
+			final StringBuilder sb = new StringBuilder(this.type.getIdentifier());
+			if (this.data != null) {
 				sb.append(":");
-				sb.append(data);
+				sb.append(this.data);
 			}
 			return sb.toString();
 		}
 		
 	}
 	
-	static Calendar parseCalendar(SimpleDateFormat sdf, String cal) {
-		Calendar c = Calendar.getInstance();
+	static Calendar parseCalendar(final SimpleDateFormat sdf, final String cal) {
+		final Calendar c = Calendar.getInstance();
 		try {
 			c.setTime(sdf.parse(cal));
-		} catch (ParseException e) {
+		} catch (final ParseException e) {
 			return null;
 		}
 		return c;
@@ -178,33 +182,33 @@ public abstract class FilePackage {
 			ATT_DOWNLOADCOUNT = "dc", ATT_ACTIVE = "a", ATT_PRIVATEKEY = "pk", ATT_PASSWORDPROTECTED = "p", ATT_VISIBILITY = "v", ATT_UUID = "u";
 	protected static final String DATE_FORMAT = "MM/dd/yy hh:mm aa";
 	
-	String name = null, description = null;
+	String name, description;
 	Calendar creationDate;
 	String creationDateString;
-	UUID uuid = null;
+	UUID uuid;
 	Visibility visibility;
-	Long size = null, fileCount = null, directoryCount = null, downloadCount = 0L;
+	Long size, fileCount, directoryCount, downloadCount = 0L;
 	boolean active = true;
 	
 	FilePackage(final String name, final String description, final Calendar creationDate, final Visibility visibility) {
 		this.name = name;
 		this.description = description;
-		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+		final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
 		this.creationDate = creationDate;
 		this.creationDateString = sdf.format(creationDate.getTime());
 		this.visibility = visibility;
 	}
 	
 	public String getName() {
-		return name;
+		return this.name;
 	}
 	
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 	
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 	
 	public void setDescription(String d) {
@@ -212,18 +216,18 @@ public abstract class FilePackage {
 	}
 	
 	public Calendar getCreationDate() {
-		return creationDate;
+		return this.creationDate;
 	}
 	
 	/**
 	 * MM/dd/yy hh:mm AM|PM
 	 */
 	public String getCreationDateString() {
-		return creationDateString;
+		return this.creationDateString;
 	}
 	
 	public Visibility getVisibility() {
-		return visibility;
+		return this.visibility;
 	}
 	
 	public void setVisibility(Visibility vis) {
@@ -231,7 +235,7 @@ public abstract class FilePackage {
 	}
 	
 	public boolean isActive() {
-		return active;
+		return this.active;
 	}
 	
 	public void setActive(boolean active) {
@@ -242,7 +246,7 @@ public abstract class FilePackage {
 	 * @return how many unique requests were made this this package.
 	 */
 	public long getDownloadCount() {
-		return downloadCount;
+		return this.downloadCount;
 	}
 	
 	public void setDownloadCount(long downloads) {
@@ -276,7 +280,7 @@ public abstract class FilePackage {
 	public abstract long getSize();
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (o != null) {
 			if (o instanceof FilePackage) {
 				return this == o;

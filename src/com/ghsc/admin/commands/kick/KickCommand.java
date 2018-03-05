@@ -42,7 +42,7 @@ public class KickCommand extends AdminCommand {
 				cc.remove(cc.getChat(channel));
 				return null;
 			}
-			return AdminCommand.composeResponse(TAG, true, false, getName() + ": User is not in this channel.");
+			return AdminCommand.composeResponse(TAG, true, false, this.getName() + ": User is not in this channel.");
 		}
 	}
 	

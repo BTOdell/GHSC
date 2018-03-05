@@ -24,35 +24,35 @@ public class ChatElementList extends JPanel {
 	public ChatElementList(Chat container) {
 		super();
 		this.container = container;
-		elements = new ArrayList<ChatElement>();
-		setBackground(Color.WHITE);
-		
-		setLayout(new ChatLayout());
+		this.elements = new ArrayList<ChatElement>();
+		this.setBackground(Color.WHITE);
+
+		this.setLayout(new ChatLayout());
 	}
 	
 	public Chat getChat() {
-		return container;
+		return this.container;
 	}
 	
 	public ChatElement get(int index) {
-		return elements.get(index);
+		return this.elements.get(index);
 	}
 	
 	public int getCount() {
-		return elements.size();
+		return this.elements.size();
 	}
 	
 	public void addElement(ChatElement element) {
-		add(element);
-		elements.add(element);
-		repaint();
-		revalidate();
+		this.add(element);
+		this.elements.add(element);
+		this.repaint();
+		this.revalidate();
 	}
 	
 	public void clear() {
-		removeAll();
-		elements.clear();
-		repaint();
+		this.removeAll();
+		this.elements.clear();
+		this.repaint();
 	}
 	
 	public class ChatLayout implements LayoutManager {
@@ -67,32 +67,34 @@ public class ChatElementList extends JPanel {
 			Dimension d = null;
 			
 			// reset widths and heights
-			prefWidth = prefHeight = minWidth = minHeight = 0;
+			this.prefWidth = this.prefHeight = this.minWidth = this.minHeight = 0;
 			
 			Insets insets = parent.getInsets();
-			
-			prefWidth = container.getScrollPane().getViewport().getWidth();
-			if (Debug.MAJOR.compareTo(Application.DEBUG) < 0)
-				System.out.println("Viewport width: " + prefWidth);
+
+			this.prefWidth = ChatElementList.this.container.getScrollPane().getViewport().getWidth();
+			if (Debug.MAJOR.compareTo(Application.DEBUG) < 0) {
+                System.out.println("Viewport width: " + this.prefWidth);
+            }
 			
 			for (int i = 0; i < nComps; i++) {
 				Component c = parent.getComponent(i);
 				if (c.isVisible()) {
 					d = c.getPreferredSize();
-					if (d == null) 
-						d = c.getMinimumSize();
-					prefHeight += d.height;
+					if (d == null) {
+                        d = c.getMinimumSize();
+                    }
+					this.prefHeight += d.height;
 				}
 			}
-			
-			prefHeight += (insets.top + insets.bottom);
-			minHeight = prefHeight;
-			minWidth = prefWidth;
+
+			this.prefHeight += (insets.top + insets.bottom);
+			this.minHeight = this.prefHeight;
+			this.minWidth = this.prefWidth;
 		}
 
 		@Override
 		public void layoutContainer(Container parent) {
-			setSizes(parent);
+			this.setSizes(parent);
 			
 			Insets insets = parent.getInsets();
 			int y = insets.top;
@@ -102,25 +104,26 @@ public class ChatElementList extends JPanel {
 				Component comp = parent.getComponent(i);
 				
 				Dimension d = comp.getPreferredSize();
-				if (d == null)
-					d = comp.getMinimumSize();
+				if (d == null) {
+                    d = comp.getMinimumSize();
+                }
 				
 				int h = (d != null) ? d.height : 0;
-				comp.setBounds(insets.left, y, prefWidth - insets.left - insets.right, h);
+				comp.setBounds(insets.left, y, this.prefWidth - insets.left - insets.right, h);
 				y += h;
 			}
 		}
 
 		@Override
 		public Dimension minimumLayoutSize(Container parent) {
-			setSizes(parent);
-			return new Dimension(minWidth, minHeight);
+			this.setSizes(parent);
+			return new Dimension(this.minWidth, this.minHeight);
 		}
 
 		@Override
 		public Dimension preferredLayoutSize(Container parent) {
-			setSizes(parent);
-			return new Dimension(prefWidth, prefHeight);
+			this.setSizes(parent);
+			return new Dimension(this.prefWidth, this.prefHeight);
 		}
 
 		@Override

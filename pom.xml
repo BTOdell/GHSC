@@ -21,7 +21,7 @@
         <finalName>${project.name}-${project.version}</finalName>
         <directory>${project.basedir}/bin</directory>
         <sourceDirectory>${project.basedir}/src</sourceDirectory>
-        <!--<testSourceDirectory>${project.basedir}/test</testSourceDirectory>-->
+        <testSourceDirectory>${project.basedir}/test</testSourceDirectory>
         <outputDirectory>${project.basedir}/bin/classes</outputDirectory>
         <testOutputDirectory>${project.basedir}/bin/test-classes</testOutputDirectory>
         <resources>

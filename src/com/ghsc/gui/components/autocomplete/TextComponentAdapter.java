@@ -17,27 +17,27 @@ public class TextComponentAdapter extends ACAdapter {
     
     @Override
     public Object getSelectedItem() {
-        return selectedItem;
+        return this.selectedItem;
     }
     
     @Override
     public int getItemCount() {
-        return items.size();
+        return this.items.size();
     }
     
     @Override
     public Object getItem(int index) {
-        return items.get(index);
+        return this.items.get(index);
     }
     
     @Override
     public void setSelectedItem(Object item) {
-        selectedItem = item;
+        this.selectedItem = item;
     }
     
     @Override
     public JTextComponent getTextComponent() {
-        return textComponent;
+        return this.textComponent;
     }
     
 }

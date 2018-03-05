@@ -39,7 +39,7 @@ public class InputWizard extends JDialog {
 	private WizardValidator<String, String, Boolean> validator;
 	private String title, label, pretext, join, tooltip;
 	
-	private Image dialogIcon = null;
+	private Image dialogIcon;
 	private ImageIcon check = new ImageIcon(Images.CHECK);
 	private ImageIcon x = new ImageIcon(Images.X);
 	
@@ -65,8 +65,8 @@ public class InputWizard extends JDialog {
 		this.tooltip = joinTooltip;
 		this.listener = listener;
 		this.validator = validator;
-		
-		initComponents();
+
+		this.initComponents();
 	}
 	
 	/**
@@ -83,22 +83,22 @@ public class InputWizard extends JDialog {
 		this.tooltip = joinTooltip;
 		this.listener = listener;
 		this.validator = validator;
-		
-		initComponents();
+
+		this.initComponents();
 	}
 	
 	/**
 	 * Validates the current input text, and makes appropriate changes the visual interface.
 	 */
 	private void doValidate() {
-		String current = InputNameField.getText();
-		ValidationResult<String, Boolean> validation = validator.validate(current);
+		String current = this.InputNameField.getText();
+		ValidationResult<String, Boolean> validation = this.validator.validate(current);
 		if (validation.getResult()) {
-			ValidationImage.setIcon(check);
-			ValidationImage.setToolTipText(validation.getValue());
+            this.ValidationImage.setIcon(this.check);
+            this.ValidationImage.setToolTipText(validation.getValue());
 		} else {
-			ValidationImage.setIcon(x);
-			ValidationImage.setToolTipText(validation.getValue());
+            this.ValidationImage.setIcon(this.x);
+            this.ValidationImage.setToolTipText(validation.getValue());
 		}
 	}
 	
@@ -106,124 +106,124 @@ public class InputWizard extends JDialog {
 	 * Notifies the wizard listener with a 'null' value and disposes of this dialog window.
 	 */
 	private void close() {
-		listener.wizardFinished(null);
-		dispose();
+        this.listener.wizardFinished(null);
+		this.dispose();
 	}
 	
 	/**
 	 * Creates the visual interface of this InputWizard.
 	 */
 	private void initComponents() {
-		addWindowListener(new WindowAdapter() {
+		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent arg0) {
-				close();
+				InputWizard.this.close();
 			}
 		});
-		setIconImage(dialogIcon);
-		setFont(Fonts.GLOBAL);
-		setTitle(title);
-		setAlwaysOnTop(true);
-		setResizable(false);
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		setSize(273, 130);
-		setLocationRelativeTo(frame);
-		
-		getContentPane().setLayout(null);
-		getContentPane().add(getChannelNameLabel());
-		getContentPane().add(getChannelNameField());
-		getContentPane().add(getValidationImage());
-		getContentPane().add(getJoinButton());
-		getContentPane().add(getCancelButton());
-		
-		doValidate();
+		this.setIconImage(this.dialogIcon);
+		this.setFont(Fonts.GLOBAL);
+		this.setTitle(this.title);
+		this.setAlwaysOnTop(true);
+		this.setResizable(false);
+		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		this.setSize(273, 130);
+		this.setLocationRelativeTo(this.frame);
+
+		this.getContentPane().setLayout(null);
+		this.getContentPane().add(this.getChannelNameLabel());
+		this.getContentPane().add(this.getChannelNameField());
+		this.getContentPane().add(this.getValidationImage());
+		this.getContentPane().add(this.getJoinButton());
+		this.getContentPane().add(this.getCancelButton());
+
+		this.doValidate();
 	}
 	
 	private JLabel getChannelNameLabel() {
-		if (InputNameLabel == null) {
-			InputNameLabel = new JLabel(label);
-			InputNameLabel.setFont(Fonts.GLOBAL);
-			InputNameLabel.setBounds(23, 11, 180, 20);
+		if (this.InputNameLabel == null) {
+            this.InputNameLabel = new JLabel(this.label);
+            this.InputNameLabel.setFont(Fonts.GLOBAL);
+            this.InputNameLabel.setBounds(23, 11, 180, 20);
 		}
-		return InputNameLabel;
+		return this.InputNameLabel;
 	}
 	
 	private JTextField getChannelNameField() {
-		if (InputNameField == null) {
-			InputNameField = new JTextField();
-			InputNameField.addFocusListener(new FocusAdapter() {
+		if (this.InputNameField == null) {
+            this.InputNameField = new JTextField();
+            this.InputNameField.addFocusListener(new FocusAdapter() {
 				public void focusGained(FocusEvent arg0) {
-					InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
 			});
-			InputNameField.addMouseListener(new MouseAdapter() {
+            this.InputNameField.addMouseListener(new MouseAdapter() {
 				public void mousePressed(MouseEvent arg0) {
-					InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
 			});
-			InputNameField.addKeyListener(new KeyAdapter() {
+            this.InputNameField.addKeyListener(new KeyAdapter() {
 				public void keyPressed(KeyEvent e) {
-					InputNameField.setBorder(UIManager.getBorder("TextField.border"));
+                    InputWizard.this.InputNameField.setBorder(UIManager.getBorder("TextField.border"));
 				}
 				public void keyReleased(KeyEvent e) {
-					doValidate();
+					InputWizard.this.doValidate();
 				}
 			});
-			InputNameField.setBounds(23, 31, 180, 20);
-			InputNameField.setColumns(10);
-			if (pretext != null && !pretext.isEmpty()) {
-				InputNameField.setText(pretext);
-				InputNameField.selectAll();
+            this.InputNameField.setBounds(23, 31, 180, 20);
+            this.InputNameField.setColumns(10);
+			if (this.pretext != null && !this.pretext.isEmpty()) {
+                this.InputNameField.setText(this.pretext);
+                this.InputNameField.selectAll();
 			}
 		}
-		return InputNameField;
+		return this.InputNameField;
 	}
 	
 	private JButton getJoinButton() {
-		if (JoinButton == null) {
-			JoinButton = new JButton(join);
-			JoinButton.addActionListener(new ActionListener() {
+		if (this.JoinButton == null) {
+            this.JoinButton = new JButton(this.join);
+            this.JoinButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					if (validator.validate(InputNameField.getText()).getResult()) {
-						listener.wizardFinished(InputNameField.getText());
-						dispose();
+					if (InputWizard.this.validator.validate(InputWizard.this.InputNameField.getText()).getResult()) {
+                        InputWizard.this.listener.wizardFinished(InputWizard.this.InputNameField.getText());
+						InputWizard.this.dispose();
 					} else {
-						InputNameField.setBorder(errorBorder);
+                        InputWizard.this.InputNameField.setBorder(InputWizard.this.errorBorder);
 					}
 				}
 			});
-			JoinButton.setFont(Fonts.GLOBAL);
-			JoinButton.setToolTipText(tooltip);
-			JoinButton.setActionCommand("OK");
-			JoinButton.setBounds(23, 62, 105, 23);
-			getRootPane().setDefaultButton(JoinButton);
+            this.JoinButton.setFont(Fonts.GLOBAL);
+            this.JoinButton.setToolTipText(this.tooltip);
+            this.JoinButton.setActionCommand("OK");
+            this.JoinButton.setBounds(23, 62, 105, 23);
+			this.getRootPane().setDefaultButton(this.JoinButton);
 		}
-		return JoinButton;
+		return this.JoinButton;
 	}
 	
 	private JButton getCancelButton() {
-		if (CancelButton == null) {
-			CancelButton = new JButton("Cancel");
-			CancelButton.addActionListener(new ActionListener() {
+		if (this.CancelButton == null) {
+            this.CancelButton = new JButton("Cancel");
+            this.CancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					close();
+					InputWizard.this.close();
 				}
 			});
-			CancelButton.setFont(Fonts.GLOBAL);
-			CancelButton.setToolTipText("Cancels this wizard.");
-			CancelButton.setActionCommand("Cancel");
-			CancelButton.setBounds(138, 62, 105, 23);
+            this.CancelButton.setFont(Fonts.GLOBAL);
+            this.CancelButton.setToolTipText("Cancels this wizard.");
+            this.CancelButton.setActionCommand("Cancel");
+            this.CancelButton.setBounds(138, 62, 105, 23);
 		}
-		return CancelButton;
+		return this.CancelButton;
 	}
 	
 	private JLabel getValidationImage() {
-		if (ValidationImage == null) {
-			ValidationImage = new JLabel();
-			ValidationImage.setIcon(x);
-			ValidationImage.setToolTipText("Well, you actually have to type something...");
-			ValidationImage.setBounds(215, 11, 48, 55);
+		if (this.ValidationImage == null) {
+            this.ValidationImage = new JLabel();
+            this.ValidationImage.setIcon(this.x);
+            this.ValidationImage.setToolTipText("Well, you actually have to type something...");
+            this.ValidationImage.setBounds(215, 11, 48, 55);
 		}
-		return ValidationImage;
+		return this.ValidationImage;
 	}
 	
 }

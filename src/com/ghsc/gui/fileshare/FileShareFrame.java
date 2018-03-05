@@ -12,7 +12,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -55,15 +54,14 @@ public class FileShareFrame extends JDialog {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private FileShare fileShare;
-	public PackageWizard packageWizard = null;
-	private FindPackageDialog findPackageDialog = null;
+	private final FileShare fileShare;
+	public PackageWizard packageWizard;
+	private FindPackageDialog findPackageDialog;
 	
 	private final SnapAdapter snapAdapter;
 	
-	private boolean visibleBuffer = false;
-	
-	private JPanel canvas;
+	private boolean visibleBuffer;
+
 	private JToolBar topBar;
 	private JButton packageWizardButton;
 	private JButton findPackageButton;
@@ -89,14 +87,14 @@ public class FileShareFrame extends JDialog {
 					}
 				}
 				public void windowClosing(WindowEvent e) {
-					setVisible(false, false);
+					FileShareFrame.this.setVisible(false, false);
 				}
 			};
 			owner.addWindowFocusListener(wa);
 			owner.addWindowListener(wa);
 			owner.addComponentListener(new ComponentAdapter() {
 				public void componentShown(ComponentEvent arg0) {
-					applyVisible();
+					FileShareFrame.this.applyVisible();
 				}
 			});
 			
@@ -108,25 +106,25 @@ public class FileShareFrame extends JDialog {
 		} else {
 			this.snapAdapter = null;
 		}
-		
-		initComponents();
+
+		this.initComponents();
 	}
 	
 	@Override
 	public void setVisible(boolean enabled) {
-		super.setVisible(visibleBuffer = enabled);
+		super.setVisible(this.visibleBuffer = enabled);
 	}
 	
 	public void setVisible(boolean enabled, boolean buffer) {
-		super.setVisible(buffer ? visibleBuffer = enabled : enabled);
+		super.setVisible(buffer ? this.visibleBuffer = enabled : enabled);
 	}
 	
 	public void applyVisible() {
-		super.setVisible(visibleBuffer);
+		super.setVisible(this.visibleBuffer);
 	}
 	
 	public FileShare getFileShare() {
-		return fileShare;
+		return this.fileShare;
 	}
 	
 	public SnapAdapter getSnapAdapter() {
@@ -134,103 +132,103 @@ public class FileShareFrame extends JDialog {
 	}
 	
 	private void initComponents() {
-		setTitle("GHSC - File sharing");
-		setIconImage(Images.PAGE_GO);
-		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-		setSize(300, 450);
-		setMinimumSize(getSize());
-		
-		canvas = new JPanel();
-		canvas.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(canvas);
-		GroupLayout gl_canvas = new GroupLayout(canvas);
+		this.setTitle("GHSC - File sharing");
+		this.setIconImage(Images.PAGE_GO);
+		this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		this.setSize(300, 450);
+		this.setMinimumSize(this.getSize());
+
+		final JPanel contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		this.setContentPane(contentPane);
+		final GroupLayout gl_canvas = new GroupLayout(contentPane);
 		gl_canvas.setHorizontalGroup(
 			gl_canvas.createParallelGroup(Alignment.LEADING)
-				.addComponent(getTopBar(), GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
-				.addComponent(getPackageScrollPane(), GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
+				.addComponent(this.getTopBar(), GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
+				.addComponent(this.getPackageScrollPane(), GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
 		);
 		gl_canvas.setVerticalGroup(
 			gl_canvas.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_canvas.createSequentialGroup()
-					.addComponent(getTopBar(), GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-					.addComponent(getPackageScrollPane(), GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE))
+					.addComponent(this.getTopBar(), GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+					.addComponent(this.getPackageScrollPane(), GroupLayout.DEFAULT_SIZE, 372, Short.MAX_VALUE))
 		);
-		canvas.setLayout(gl_canvas);
+		contentPane.setLayout(gl_canvas);
 	}
 	
 	public JToolBar getTopBar() {
-		if (topBar == null) {
-			topBar = new JToolBar();
-			topBar.setDoubleBuffered(true);
-			topBar.setFloatable(false);
-			topBar.add(getPackageWizardButton());
-			topBar.add(getFindPackageButton());
-			topBar.add(Box.createHorizontalGlue());
-			topBar.add(getSortByButton());
+		if (this.topBar == null) {
+			this.topBar = new JToolBar();
+			this.topBar.setDoubleBuffered(true);
+			this.topBar.setFloatable(false);
+			this.topBar.add(this.getPackageWizardButton());
+			this.topBar.add(this.getFindPackageButton());
+			this.topBar.add(Box.createHorizontalGlue());
+			this.topBar.add(this.getSortByButton());
 		}
-		return topBar;
+		return this.topBar;
 	}
 	
 	public JButton getPackageWizardButton() {
-		if (packageWizardButton == null) {
-			packageWizardButton = new JButton();
-			packageWizardButton.setIconTextGap(0);
-			packageWizardButton.setHorizontalTextPosition(SwingConstants.CENTER);
-			packageWizardButton.setIcon(new ImageIcon(Images.PACKAGE_ADD));
-			packageWizardButton.addActionListener(new ActionListener() {
+		if (this.packageWizardButton == null) {
+			this.packageWizardButton = new JButton();
+			this.packageWizardButton.setIconTextGap(0);
+			this.packageWizardButton.setHorizontalTextPosition(SwingConstants.CENTER);
+			this.packageWizardButton.setIcon(new ImageIcon(Images.PACKAGE_ADD));
+			this.packageWizardButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					if (packageWizard == null) {
-						packageWizard = new PackageWizard(FileShareFrame.this, new WizardListener<LocalPackage>() {
+					if (FileShareFrame.this.packageWizard == null) {
+						FileShareFrame.this.packageWizard = new PackageWizard(FileShareFrame.this, new WizardListener<LocalPackage>() {
 							public void wizardFinished(LocalPackage lPackage) {
 								if (lPackage != null) {
-									fileShare.addPackages(lPackage);
+									FileShareFrame.this.fileShare.addPackages(lPackage);
 									// TODO: message users about new package
 								}
-								packageWizard = null;
+								FileShareFrame.this.packageWizard = null;
 							}
 						});
-						packageWizard.setVisible(true);
+						FileShareFrame.this.packageWizard.setVisible(true);
 					}
 				}
 			});
-			packageWizardButton.setFont(Fonts.GLOBAL);
-			packageWizardButton.setToolTipText("New package");
-			packageWizardButton.setDoubleBuffered(true);
-			packageWizardButton.setFocusable(false);
+			this.packageWizardButton.setFont(Fonts.GLOBAL);
+			this.packageWizardButton.setToolTipText("New package");
+			this.packageWizardButton.setDoubleBuffered(true);
+			this.packageWizardButton.setFocusable(false);
 		}
-		return packageWizardButton;
+		return this.packageWizardButton;
 	}
 	
 	public JButton getFindPackageButton() {
-		if (findPackageButton == null) {
-			findPackageButton = new JButton();
-			findPackageButton.setIconTextGap(0);
-			findPackageButton.setHorizontalTextPosition(SwingConstants.CENTER);
-			findPackageButton.setIcon(new ImageIcon(Images.FIND));
-			findPackageButton.addActionListener(new ActionListener() {
+		if (this.findPackageButton == null) {
+			this.findPackageButton = new JButton();
+			this.findPackageButton.setIconTextGap(0);
+			this.findPackageButton.setHorizontalTextPosition(SwingConstants.CENTER);
+			this.findPackageButton.setIcon(new ImageIcon(Images.FIND));
+			this.findPackageButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					if (findPackageDialog == null) {
-						findPackageDialog = new FindPackageDialog(FileShareFrame.this, new WizardListener<RemotePackage[]>() {
+					if (FileShareFrame.this.findPackageDialog == null) {
+						FileShareFrame.this.findPackageDialog = new FindPackageDialog(FileShareFrame.this, new WizardListener<RemotePackage[]>() {
 							public void wizardFinished(RemotePackage[] packages) {
 								if (packages != null) {
 									for (RemotePackage rp : packages) {
 										rp.getVisibility().setDiscovered(true);
 									}
 								}
-								findPackageDialog = null;
+								FileShareFrame.this.findPackageDialog = null;
 							}
 						}, new WizardValidator<String, RemotePackage[], Boolean>() {
 							public ValidationResult<RemotePackage[], Boolean> validate(String key) {
-								if (key == null)
+								if (key == null) {
 									return new ValidationResult<RemotePackage[], Boolean>(null, false);
+								}
 								final LinkedList<RemotePackage> remotePackages = new LinkedList<RemotePackage>();
-								final Collection<FilePackage> packages = fileShare.packages.values();
-								synchronized (fileShare.packages) {
-									final Iterator<FilePackage> it = packages.iterator();
-									while (it.hasNext()) {
-										final FilePackage pack = it.next();
-										if (pack == null || !(pack instanceof RemotePackage))
+								final Collection<FilePackage> packages = FileShareFrame.this.fileShare.packages.values();
+								synchronized (FileShareFrame.this.fileShare.packages) {
+									for (final FilePackage pack : packages) {
+										if (pack == null || !(pack instanceof RemotePackage)) {
 											continue;
+										}
 										final RemotePackage rp = (RemotePackage) pack;
 										final Visibility v = rp.getVisibility();
 										if (!v.isDiscovered() && key.equals(v.getData().toString())) {
@@ -242,93 +240,94 @@ public class FileShareFrame extends JDialog {
 								return new ValidationResult<RemotePackage[], Boolean>(remotePackages.toArray(new RemotePackage[size]), size > 0);
 							}
 						});
-						findPackageDialog.setVisible(true);
+						FileShareFrame.this.findPackageDialog.setVisible(true);
 					}
 				}
 			});
-			findPackageButton.setFont(Fonts.GLOBAL);
-			findPackageButton.setToolTipText("Find private packages");
-			findPackageButton.setDoubleBuffered(true);
-			findPackageButton.setFocusable(false);
+			this.findPackageButton.setFont(Fonts.GLOBAL);
+			this.findPackageButton.setToolTipText("Find private packages");
+			this.findPackageButton.setDoubleBuffered(true);
+			this.findPackageButton.setFocusable(false);
 		}
-		return findPackageButton;
+		return this.findPackageButton;
 	}
 	
 	public JToggleButton getSortByButton() {
-		if (sortByButton == null) {
-			sortByButton = new JToggleButton("Sort by");
-			sortByButton.setIconTextGap(0);
-			sortByButton.setHorizontalTextPosition(SwingConstants.LEADING);
-			sortByButton.setIcon(new ImageIcon(Images.BULLET_ARROW_DOWN));
-			sortByButton.addMouseListener(new MouseAdapter() {
+		if (this.sortByButton == null) {
+			this.sortByButton = new JToggleButton("Sort by");
+			this.sortByButton.setIconTextGap(0);
+			this.sortByButton.setHorizontalTextPosition(SwingConstants.LEADING);
+			this.sortByButton.setIcon(new ImageIcon(Images.BULLET_ARROW_DOWN));
+			this.sortByButton.addMouseListener(new MouseAdapter() {
 				public void mouseReleased(MouseEvent e) {
-					if (getSortByPopup().isShowing()) {
-						getSortByPopup().setVisible(false);
+					if (FileShareFrame.this.getSortByPopup().isShowing()) {
+						FileShareFrame.this.getSortByPopup().setVisible(false);
 					} else {
 						final Rectangle bounds = e.getComponent().getBounds();
-						getSortByPopup().show(e.getComponent(), bounds.width / 2, bounds.height / 2);
+						FileShareFrame.this.getSortByPopup().show(e.getComponent(), bounds.width / 2, bounds.height / 2);
 					}
 				}
 			});
-			sortByButton.setFont(Fonts.GLOBAL);
-			sortByButton.setToolTipText("Sort packages");
-			sortByButton.setDoubleBuffered(true);
-			sortByButton.setFocusable(false);
+			this.sortByButton.setFont(Fonts.GLOBAL);
+			this.sortByButton.setToolTipText("Sort packages");
+			this.sortByButton.setDoubleBuffered(true);
+			this.sortByButton.setFocusable(false);
 		}
-		return sortByButton;
+		return this.sortByButton;
 	}
 	
 	public SortByPopup getSortByPopup() {
-		if (sortByPopup == null) {
-			sortByPopup = new SortByPopup(sortByButton);
-			sortByPopup.addPopupMenuListener(new PopupMenuListener() {
+		if (this.sortByPopup == null) {
+			this.sortByPopup = new SortByPopup(this.sortByButton);
+			this.sortByPopup.addPopupMenuListener(new PopupMenuListener() {
 				public void popupMenuCanceled(PopupMenuEvent pme) {}
 				public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
 					System.out.println("Sorting packages.");
-					final Set<Comparator<PackagePanel>> comps = sortByPopup.getSortingComparators();
+					final Set<Comparator<PackagePanel>> comps = FileShareFrame.this.sortByPopup.getSortingComparators();
 					final Comparator<PackagePanel> comp = new Comparator<PackagePanel>() {
 						public int compare(PackagePanel p, PackagePanel pp) {
 							for (Comparator<PackagePanel> c : comps) {
 								int cp = c.compare(p, pp);
-								if (cp != 0)
+								if (cp != 0) {
 									return cp;
+								}
 							}
 							return 0;
 						}
 					};
-					getPackagePanels().setComparator(comp);
+					FileShareFrame.this.getPackagePanels().setComparator(comp);
 				}
 				public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {}
 			});
-			sortByPopup.setDoubleBuffered(true);
+			this.sortByPopup.setDoubleBuffered(true);
 		}
-		return sortByPopup;
+		return this.sortByPopup;
 	}
 	
 	public JScrollPane getPackageScrollPane() {
-		if (packageScrollPane == null) {
-			packageScrollPane = new JScrollPane();
-			packageScrollPane.addComponentListener(new ComponentAdapter() {
+		if (this.packageScrollPane == null) {
+			this.packageScrollPane = new JScrollPane();
+			this.packageScrollPane.addComponentListener(new ComponentAdapter() {
 				public void componentResized(ComponentEvent ce) {
-					getPackagePanels().invalidate();
+					FileShareFrame.this.getPackagePanels().invalidate();
 				}
 			});
-			packageScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-			packageScrollPane.getVerticalScrollBar().setUnitIncrement(8);
-			packageScrollPane.setViewportView(getPackagePanels());
+			this.packageScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+			this.packageScrollPane.getVerticalScrollBar().setUnitIncrement(8);
+			this.packageScrollPane.setViewportView(this.getPackagePanels());
 		}
-		return packageScrollPane;
+		return this.packageScrollPane;
 	}
 	
 	public PackagePanelList getPackagePanels() {
-		if (packagePanels == null) {
-			packagePanels = new PackagePanelList(this, new ObjectProcessor<Object, LinkedList<FilePackage>>() {
+		if (this.packagePanels == null) {
+			this.packagePanels = new PackagePanelList(this, new ObjectProcessor<Object, LinkedList<FilePackage>>() {
 				public LinkedList<FilePackage> process(Object input) {
-					return new LinkedList<FilePackage>(fileShare.packages.values());
+					return new LinkedList<FilePackage>(FileShareFrame.this.fileShare.packages.values());
 				}
 			});
 		}
-		return packagePanels;
+		return this.packagePanels;
 	}
 	
 }

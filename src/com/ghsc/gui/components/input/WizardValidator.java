@@ -5,5 +5,5 @@ package com.ghsc.gui.components.input;
  * @author Odell
  */
 public interface WizardValidator<I, V, R> {
-	public ValidationResult<V, R> validate(I text);
+	ValidationResult<V, R> validate(I text);
 }

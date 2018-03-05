@@ -1,52 +1,23 @@
 package com.ghsc.gui.fileshare.components;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.SwingUtilities;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
-
 import com.ghsc.common.Fonts;
 import com.ghsc.common.Images;
-import com.ghsc.event.EventListener;
-import com.ghsc.event.EventProvider;
 import com.ghsc.gui.Application;
-import com.ghsc.gui.components.input.WizardListener;
-import com.ghsc.gui.components.popup.Popup;
-import com.ghsc.gui.components.popup.PopupBuilder;
-import com.ghsc.gui.components.popup.PopupManager;
 import com.ghsc.gui.fileshare.FileShare;
-import com.ghsc.gui.fileshare.FileShare.SocketWorker;
 import com.ghsc.gui.fileshare.FileShareFrame;
 import com.ghsc.gui.fileshare.internal.FilePackage;
 import com.ghsc.gui.fileshare.internal.FilePackage.Visibility;
 import com.ghsc.gui.fileshare.internal.LocalPackage;
-import com.ghsc.impl.Filter;
+
+import javax.swing.*;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.border.MatteBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 
 /**
  * Created by Eclipse IDE.
@@ -58,8 +29,9 @@ public class PackagePanel extends JPanel {
 	
 	//private final FileShareFrame frame;
 	private final FilePackage pack;
-	private boolean headerHovered = false, headerDown = false;
-	private boolean expanded = false;
+	private boolean headerHovered;
+    private boolean headerDown;
+	private boolean expanded;
 
 	private JLabel packageIconLabel;
 	private JLabel packageNameLabel;
@@ -87,138 +59,120 @@ public class PackagePanel extends JPanel {
 		}
 
 		this.addMouseListener(new MouseAdapter() {
-			public void mouseExited(MouseEvent me) {
-				headerHovered = headerDown = false;
-				repaint();
+			public void mouseExited(final MouseEvent me) {
+				PackagePanel.this.headerHovered = PackagePanel.this.headerDown = false;
+				PackagePanel.this.repaint();
 			}
-			public void mousePressed(MouseEvent me) {
+			public void mousePressed(final MouseEvent me) {
 				if (me.getButton() == MouseEvent.BUTTON1) {
-					headerDown = new Rectangle(0, 0, getWidth(), 60).contains(me.getPoint());
-					if (headerDown) {
-						setExpanded(!isExpanded());
+					PackagePanel.this.headerDown = new Rectangle(0, 0, PackagePanel.this.getWidth(), 60).contains(me.getPoint());
+					if (PackagePanel.this.headerDown) {
+						PackagePanel.this.setExpanded(!PackagePanel.this.isExpanded());
 					}
-					repaint();
+					PackagePanel.this.repaint();
 				}
 			}
-			public void mouseReleased(MouseEvent me) {
+			public void mouseReleased(final MouseEvent me) {
 				if (me.getButton() == MouseEvent.BUTTON1) {
-					headerDown = false;
-					repaint();
+					PackagePanel.this.headerDown = false;
+					PackagePanel.this.repaint();
 				}
 			}
 		});
 		this.addMouseMotionListener(new MouseMotionAdapter() {
-			public void mouseMoved(MouseEvent me) {
-				headerHovered = new Rectangle(0, 0, getWidth(), 60).contains(me.getPoint());
-				repaint();
+			public void mouseMoved(final MouseEvent me) {
+				PackagePanel.this.headerHovered = new Rectangle(0, 0, PackagePanel.this.getWidth(), 60).contains(me.getPoint());
+				PackagePanel.this.repaint();
 			}
 		});
-		
-		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
-			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-				if (pack != null && new Rectangle(0, 0, sender.getWidth(), 60).contains(x, y)) {
-					final JMenuItem detailsMenuItem = menu.createItem("Details", new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							// open details frame
-							
-						}
-					});
-					detailsMenuItem.setIcon(new ImageIcon(Images.INFORMATION));
-					menu.add(detailsMenuItem);
-					if (pack instanceof LocalPackage) {
-						final JMenuItem editMenuItem = menu.createItem("Edit", new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								// edit existing local packages...
-								if (frame.packageWizard == null) {
-									frame.packageWizard = new PackageWizard(frame, (LocalPackage) pack, new WizardListener<LocalPackage>() {
-										public void wizardFinished(LocalPackage lPackage) {
-											if (lPackage != null) {
-												// TODO: send edit message
-												
-												sync();
-											}
-											frame.packageWizard = null;
-										}
-									});
-									frame.packageWizard.setVisible(true);
-								}
-							}
-						});
-						editMenuItem.setIcon(new ImageIcon(Images.PENCIL));
-						menu.add(editMenuItem);
-						final JMenuItem deleteMenuItem = menu.createItem("Delete", new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								SwingUtilities.invokeLater(new Runnable() {
-									public void run() {
-										if (JOptionPane.showConfirmDialog(frame, "Are you sure you want to permanently delete this package?\nAny users currently downloading package contents will be disconnected.", 
-												"Package warning!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, new ImageIcon(Images.PACKAGE_LARGE)) == JOptionPane.YES_OPTION) {
-											final FileShare fs = frame.getFileShare();
-											if (fs.removePackages(pack)) {
-												// TODO: message users about package deletion.
-												
-												frame.getFileShare().closeAll(new Filter<SocketWorker>() {
-													public boolean accept(SocketWorker sw) {
-														return sw.isActivePackage(pack);
-													}
-												});
-											}
-										}
-									}
-								});
-							}
-						});
-						deleteMenuItem.setIcon(new ImageIcon(Images.DELETE));
-						menu.add(deleteMenuItem);
-					}
-					return true;
-				}
-				return false;
-			}
-		}, this);
-		
-		initComponents();
-		sync();
+
+        Application.getInstance().getPopupManager().submit((menu, popupManager, sender, x, y) -> {
+            if (pack != null && new Rectangle(0, 0, sender.getWidth(), 60).contains(x, y)) {
+                final JMenuItem detailsMenuItem = menu.createItem("Details", e -> {
+                    // open details frame
+
+                });
+                detailsMenuItem.setIcon(new ImageIcon(Images.INFORMATION));
+                menu.add(detailsMenuItem);
+                if (pack instanceof LocalPackage) {
+                    final JMenuItem editMenuItem = menu.createItem("Edit", e -> {
+                        // edit existing local packages...
+                        if (frame.packageWizard == null) {
+                            frame.packageWizard = new PackageWizard(frame, (LocalPackage) pack, lPackage -> {
+                                if (lPackage != null) {
+                                    // TODO: send edit message
+
+                                    this.sync();
+                                }
+                                frame.packageWizard = null;
+                            });
+                            frame.packageWizard.setVisible(true);
+                        }
+                    });
+                    editMenuItem.setIcon(new ImageIcon(Images.PENCIL));
+                    menu.add(editMenuItem);
+                    final JMenuItem deleteMenuItem = menu.createItem("Delete", e -> {
+                        if (JOptionPane.showConfirmDialog(frame, "Are you sure you want to permanently delete this package?\nAny users currently downloading package contents will be disconnected.",
+                                "Package warning!", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, new ImageIcon(Images.PACKAGE_LARGE)) == JOptionPane.YES_OPTION) {
+                            final FileShare fs = frame.getFileShare();
+                            if (fs.removePackages(pack)) {
+                                // TODO: message users about package deletion.
+
+                                frame.getFileShare().closeAll(sw -> sw.isActivePackage(pack));
+                            }
+                        }
+                    });
+                    deleteMenuItem.setIcon(new ImageIcon(Images.DELETE));
+                    menu.add(deleteMenuItem);
+                }
+                return true;
+            }
+            return false;
+        }, this);
+
+		this.initComponents();
+		this.sync();
 	}
 	
 	public FilePackage getPackage() {
-		return pack;
+		return this.pack;
 	}
 	
 	/**
 	 * Sync the panel with the package data.
 	 */
 	public void sync() {
-		if (pack != null) {
-			getPackageNameLabel().setText("Name: " + pack.getName());
-			getPackageOwnerLabel().setText("Owner: " + pack.getOwner());
-			getPackageCreatedLabel().setText("Created: " + pack.getCreationDateString());
-			getDescriptionPane().setText(pack.getDescription());
-			getSizeLabel().setText("Size: " + FileShare.toHumanReadable(pack.getSize(), true));
-			getFileCountLabel().setText("Files: " + pack.getFileCount());
-			getFolderCountLabel().setText("Folders: " + pack.getDirectoryCount());
-			getDownloadsLabel().setText("Downloads: " + pack.getDownloadCount());
+		if (this.pack != null) {
+			this.getPackageNameLabel().setText("Name: " + this.pack.getName());
+			this.getPackageOwnerLabel().setText("Owner: " + this.pack.getOwner());
+			this.getPackageCreatedLabel().setText("Created: " + this.pack.getCreationDateString());
+			this.getDescriptionPane().setText(this.pack.getDescription());
+			this.getSizeLabel().setText("Size: " + FileShare.toHumanReadable(this.pack.getSize(), true));
+			this.getFileCountLabel().setText("Files: " + this.pack.getFileCount());
+			this.getFolderCountLabel().setText("Folders: " + this.pack.getDirectoryCount());
+			this.getDownloadsLabel().setText("Downloads: " + this.pack.getDownloadCount());
 			
-			StringBuilder sb = new StringBuilder();
-			Visibility vis = pack.getVisibility();
+			final StringBuilder sb = new StringBuilder();
+			final Visibility vis = this.pack.getVisibility();
 			sb.append(vis.getType());
-			if (pack instanceof LocalPackage &&
+			if (this.pack instanceof LocalPackage &&
 					vis.getType() == Visibility.Type.PRIVATE) {
 				sb.append(" [");
 				sb.append(vis.getData());
 				sb.append("]");
 			}
-			getVisibilityLabel().setText("Visibility: " + sb.toString());
-			
-			getPasswordRequiredLabel().setText("Password required: " + (pack.isPasswordProtected() ? "yes" : "no"));
+			this.getVisibilityLabel().setText("Visibility: " + sb.toString());
+
+			this.getPasswordRequiredLabel().setText("Password required: " + (this.pack.isPasswordProtected() ? "yes" : "no"));
 			
 		}
 	}
 	
 	public boolean isExpanded() {
-		return expanded;
+		return this.expanded;
 	}
 	
-	public void setExpanded(boolean expanded) {
+	public void setExpanded(final boolean expanded) {
 		this.expanded = expanded;
 		final Container c = this.getParent();
 		c.invalidate();
@@ -226,7 +180,7 @@ public class PackagePanel extends JPanel {
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(final Object o) {
 		if (o != null) {
 			if (o instanceof FilePackage) {
 				return this.pack == o;
@@ -238,13 +192,14 @@ public class PackagePanel extends JPanel {
 	}
 	
 	@Override
-	public void paintComponent(Graphics g1) {
+	public void paintComponent(final Graphics g1) {
 		super.paintComponent(g1);
-		if (headerHovered) {
-			Graphics2D g = (Graphics2D) g1;
-			final int width = getWidth(), height = 60;
-			final Color c = headerDown ? Color.LIGHT_GRAY : Color.WHITE;
-			GradientPaint gp = new GradientPaint(0, 0, c, 0, height, new Color(c.getRed(), c.getGreen(), c.getBlue(), 0));
+		if (this.headerHovered) {
+			final Graphics2D g = (Graphics2D) g1;
+			final int width = this.getWidth();
+			final int height = 60;
+			final Color c = this.headerDown ? Color.LIGHT_GRAY : Color.WHITE;
+			final GradientPaint gp = new GradientPaint(0, 0, c, 0, height, new Color(c.getRed(), c.getGreen(), c.getBlue(), 0));
 			g.setPaint(gp);
 			g.fillRect(0, 0, width, height);
 			g.setPaint(null);
@@ -253,185 +208,186 @@ public class PackagePanel extends JPanel {
 	
 	@Override
 	public Dimension getPreferredSize() {
-		Dimension p = super.getPreferredSize();
-		if (!expanded)
-			p.height = 60;
+		final Dimension p = super.getPreferredSize();
+		if (!this.expanded) {
+            p.height = 60;
+        }
 		return p;
 	}
 	
 	private void initComponents() {
-		setBorder(new MatteBorder(0, 0, 1, 0, (Color) Color.LIGHT_GRAY));
-		GroupLayout groupLayout = new GroupLayout(this);
+		this.setBorder(new MatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+		final GroupLayout groupLayout = new GroupLayout(this);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addComponent(getInfoPanel(), Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
+				.addComponent(this.getInfoPanel(), Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addComponent(getPackageIconLabel(), GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
+					.addComponent(this.getPackageIconLabel(), GroupLayout.PREFERRED_SIZE, 64, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(getPackageOwnerLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE)
-						.addComponent(getPackageCreatedLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE)
-						.addComponent(getPackageNameLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE))
+						.addComponent(this.getPackageOwnerLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE)
+						.addComponent(this.getPackageCreatedLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE)
+						.addComponent(this.getPackageNameLabel(), GroupLayout.PREFERRED_SIZE, 192, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(getPackageIconLabel(), GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getPackageIconLabel(), GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addGap(9)
-							.addComponent(getPackageNameLabel())
-							.addComponent(getPackageOwnerLabel())
-							.addComponent(getPackageCreatedLabel())))
-					.addComponent(getInfoPanel(), GroupLayout.DEFAULT_SIZE, 314, Short.MAX_VALUE))
+							.addComponent(this.getPackageNameLabel())
+							.addComponent(this.getPackageOwnerLabel())
+							.addComponent(this.getPackageCreatedLabel())))
+					.addComponent(this.getInfoPanel(), GroupLayout.DEFAULT_SIZE, 314, Short.MAX_VALUE))
 		);
-		setLayout(groupLayout);
+		this.setLayout(groupLayout);
 	}
 	
 	public JLabel getPackageIconLabel() {
-		if (packageIconLabel == null) {
-			packageIconLabel = new JLabel();
-			packageIconLabel.setIcon(new ImageIcon(Images.PACKAGE_LARGE));
+		if (this.packageIconLabel == null) {
+			this.packageIconLabel = new JLabel();
+			this.packageIconLabel.setIcon(new ImageIcon(Images.PACKAGE_LARGE));
 		}
-		return packageIconLabel;
+		return this.packageIconLabel;
 	}
 	
 	public JLabel getPackageNameLabel() {
-		if (packageNameLabel == null) {
-			packageNameLabel = new JLabel("Name: 2000 pictures for the yearbook");
-			packageNameLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD));
+		if (this.packageNameLabel == null) {
+			this.packageNameLabel = new JLabel("Name: 2000 pictures for the yearbook");
+			this.packageNameLabel.setFont(Fonts.GLOBAL.deriveFont(Font.BOLD));
 		}
-		return packageNameLabel;
+		return this.packageNameLabel;
 	}
 	
 	public JLabel getPackageOwnerLabel() {
-		if (packageOwnerLabel == null) {
-			packageOwnerLabel = new JLabel("Owner: Bradley Odell");
-			packageOwnerLabel.setFont(Fonts.GLOBAL);
+		if (this.packageOwnerLabel == null) {
+			this.packageOwnerLabel = new JLabel("Owner: Bradley Odell");
+			this.packageOwnerLabel.setFont(Fonts.GLOBAL);
 		}
-		return packageOwnerLabel;
+		return this.packageOwnerLabel;
 	}
 	
 	public JLabel getPackageCreatedLabel() {
-		if (packageCreatedLabel == null) {
-			packageCreatedLabel = new JLabel("Created: 00/00/00 00:00 PM");
-			packageCreatedLabel.setFont(Fonts.GLOBAL);
+		if (this.packageCreatedLabel == null) {
+			this.packageCreatedLabel = new JLabel("Created: 00/00/00 00:00 PM");
+			this.packageCreatedLabel.setFont(Fonts.GLOBAL);
 		}
-		return packageCreatedLabel;
+		return this.packageCreatedLabel;
 	}
 	
 	public JPanel getInfoPanel() {
-		if (infoPanel == null) {
-			infoPanel = new JPanel();
-			infoPanel.setBorder(new MatteBorder(1, 1, 0, 1, (Color) new Color(192, 192, 192)));
-			GroupLayout gl_infoPanel = new GroupLayout(infoPanel);
+		if (this.infoPanel == null) {
+			this.infoPanel = new JPanel();
+			this.infoPanel.setBorder(new MatteBorder(1, 1, 0, 1, new Color(192, 192, 192)));
+			final GroupLayout gl_infoPanel = new GroupLayout(this.infoPanel);
 			gl_infoPanel.setHorizontalGroup(
 				gl_infoPanel.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_infoPanel.createSequentialGroup()
 						.addGap(15)
 						.addGroup(gl_infoPanel.createParallelGroup(Alignment.TRAILING)
-							.addComponent(getSizeLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
-							.addComponent(getFileCountLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
-							.addComponent(getFolderCountLabel(), GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
-							.addComponent(getVisibilityLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
-							.addComponent(getPasswordRequiredLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
-							.addComponent(getDownloadsLabel(), GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE))
+							.addComponent(this.getSizeLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+							.addComponent(this.getFileCountLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+							.addComponent(this.getFolderCountLabel(), GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+							.addComponent(this.getVisibilityLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+							.addComponent(this.getPasswordRequiredLabel(), Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE)
+							.addComponent(this.getDownloadsLabel(), GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE))
 						.addGap(15))
 					.addGroup(gl_infoPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(getDescriptionScrollPane(), GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+						.addComponent(this.getDescriptionScrollPane(), GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
 						.addContainerGap())
 			);
 			gl_infoPanel.setVerticalGroup(
 				gl_infoPanel.createParallelGroup(Alignment.LEADING)
 					.addGroup(gl_infoPanel.createSequentialGroup()
 						.addContainerGap()
-						.addComponent(getSizeLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-						.addComponent(getFileCountLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-						.addComponent(getFolderCountLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-						.addComponent(getDownloadsLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-						.addComponent(getVisibilityLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
-						.addComponent(getPasswordRequiredLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getSizeLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getFileCountLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getFolderCountLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getDownloadsLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getVisibilityLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.getPasswordRequiredLabel(), GroupLayout.PREFERRED_SIZE, 15, GroupLayout.PREFERRED_SIZE)
 						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(getDescriptionScrollPane(), GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
+						.addComponent(this.getDescriptionScrollPane(), GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
 						.addContainerGap())
 			);
-			infoPanel.setLayout(gl_infoPanel);
+			this.infoPanel.setLayout(gl_infoPanel);
 		}
-		return infoPanel;
+		return this.infoPanel;
 	}
 	
 	public JLabel getSizeLabel() {
-		if (sizeLabel == null) {
-			sizeLabel = new JLabel("Size: 300MB");
-			sizeLabel.setFont(Fonts.GLOBAL);
+		if (this.sizeLabel == null) {
+			this.sizeLabel = new JLabel("Size: 300MB");
+			this.sizeLabel.setFont(Fonts.GLOBAL);
 		}
-		return sizeLabel;
+		return this.sizeLabel;
 	}
 	
 	public JLabel getFileCountLabel() {
-		if (fileCountLabel == null) {
-			fileCountLabel = new JLabel("Files: 52");
-			fileCountLabel.setFont(Fonts.GLOBAL);
+		if (this.fileCountLabel == null) {
+			this.fileCountLabel = new JLabel("Files: 52");
+			this.fileCountLabel.setFont(Fonts.GLOBAL);
 		}
-		return fileCountLabel;
+		return this.fileCountLabel;
 	}
 	
 	public JLabel getFolderCountLabel() {
-		if (folderCountLabel == null) {
-			folderCountLabel = new JLabel("Folders: 3");
-			folderCountLabel.setFont(Fonts.GLOBAL);
+		if (this.folderCountLabel == null) {
+			this.folderCountLabel = new JLabel("Folders: 3");
+			this.folderCountLabel.setFont(Fonts.GLOBAL);
 		}
-		return folderCountLabel;
+		return this.folderCountLabel;
 	}
 	
 	public JLabel getDownloadsLabel() {
-		if (downloadsLabel == null) {
-			downloadsLabel = new JLabel("Downloads: 487");
-			downloadsLabel.setFont(Fonts.GLOBAL);
+		if (this.downloadsLabel == null) {
+			this.downloadsLabel = new JLabel("Downloads: 487");
+			this.downloadsLabel.setFont(Fonts.GLOBAL);
 		}
-		return downloadsLabel;
+		return this.downloadsLabel;
 	}
 	
 	public JLabel getVisibilityLabel() {
-		if (visibilityLabel == null) {
-			visibilityLabel = new JLabel("Visibility: Public");
-			visibilityLabel.setFont(Fonts.GLOBAL);
+		if (this.visibilityLabel == null) {
+			this.visibilityLabel = new JLabel("Visibility: Public");
+			this.visibilityLabel.setFont(Fonts.GLOBAL);
 		}
-		return visibilityLabel;
+		return this.visibilityLabel;
 	}
 	
 	public JLabel getPasswordRequiredLabel() {
-		if (passwordRequiredLabel == null) {
-			passwordRequiredLabel = new JLabel("Password required: no");
-			passwordRequiredLabel.setFont(Fonts.GLOBAL);
+		if (this.passwordRequiredLabel == null) {
+			this.passwordRequiredLabel = new JLabel("Password required: no");
+			this.passwordRequiredLabel.setFont(Fonts.GLOBAL);
 		}
-		return passwordRequiredLabel;
+		return this.passwordRequiredLabel;
 	}
 	
 	public JScrollPane getDescriptionScrollPane() {
-		if (descriptionScrollPane == null) {
-			descriptionScrollPane = new JScrollPane();
-			descriptionScrollPane.setBorder(new TitledBorder(null, "Description", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-			descriptionScrollPane.setViewportView(getDescriptionPane());
+		if (this.descriptionScrollPane == null) {
+			this.descriptionScrollPane = new JScrollPane();
+			this.descriptionScrollPane.setBorder(new TitledBorder(null, "Description", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+			this.descriptionScrollPane.setViewportView(this.getDescriptionPane());
 		}
-		return descriptionScrollPane;
+		return this.descriptionScrollPane;
 	}
 	
 	public JTextPane getDescriptionPane() {
-		if (descriptionPane == null) {
-			descriptionPane = new JTextPane();
-			descriptionPane.setMargin(new Insets(0, 5, 3, 3));
-			descriptionPane.setDoubleBuffered(true);
-			descriptionPane.setMinimumSize(new Dimension(0, 0));
-			descriptionPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-			descriptionPane.setEditable(false);
-			descriptionPane.setFont(new Font("Tahoma", Font.PLAIN, 11));
-			descriptionPane.setOpaque(false);
-			descriptionPane.setText("Hello, what is your name? My name is Josh.");
+		if (this.descriptionPane == null) {
+			this.descriptionPane = new JTextPane();
+			this.descriptionPane.setMargin(new Insets(0, 5, 3, 3));
+			this.descriptionPane.setDoubleBuffered(true);
+			this.descriptionPane.setMinimumSize(new Dimension(0, 0));
+			this.descriptionPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+			this.descriptionPane.setEditable(false);
+			this.descriptionPane.setFont(new Font("Tahoma", Font.PLAIN, 11));
+			this.descriptionPane.setOpaque(false);
+			this.descriptionPane.setText("Hello, what is your name? My name is Josh.");
 		}
-		return descriptionPane;
+		return this.descriptionPane;
 	}
 	
 }

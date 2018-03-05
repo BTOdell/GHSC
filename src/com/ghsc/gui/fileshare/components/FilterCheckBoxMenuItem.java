@@ -31,7 +31,7 @@ public class FilterCheckBoxMenuItem<E extends Filter> extends BufferedCheckBoxMe
 	}
 	
 	public final E getFilter() {
-		return filter;
+		return this.filter;
 	}
 	
 }

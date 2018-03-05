@@ -3,7 +3,6 @@ package com.ghsc.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -19,14 +18,15 @@ public abstract class ObjectConverter<E> implements IObjectConverter<E> {
 	}
 	
 	public E getObject() {
-		return obj;
+		return this.obj;
 	}
 	
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
+		if (obj == null) {
+            return false;
+        }
 		if (obj instanceof ObjectConverter) {
 			obj = ((ObjectConverter) obj).getObject();
 		}
@@ -35,19 +35,18 @@ public abstract class ObjectConverter<E> implements IObjectConverter<E> {
 	
 	@Override
 	public String toString() {
-		return convert(obj);
+		return this.convert(this.obj);
 	}
 	
 	@SafeVarargs
-	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, E... data) {
+	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, final E... data) {
 		return wrap(converter, Arrays.asList(data));
 	}
 	
-	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, Collection<E> elements) {
+	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, final Collection<E> elements) {
 		final ArrayList<ObjectConverter<E>> collection = new ArrayList<ObjectConverter<E>>(elements.size());
-		final Iterator<E> it = elements.iterator();
-		while (it.hasNext()) {
-			collection.add(new ObjectConverter<E>(it.next()) {
+		for (final E element : elements) {
+			collection.add(new ObjectConverter<E>(element) {
 				public String convert(E obj) {
 					return converter.convert(obj);
 				}
@@ -56,11 +55,10 @@ public abstract class ObjectConverter<E> implements IObjectConverter<E> {
 		return collection;
 	}
 	
-	public static <E> List<E> unwrap(Collection<ObjectConverter<E>> wrapped) {
+	public static <E> List<E> unwrap(final Collection<ObjectConverter<E>> wrapped) {
 		final ArrayList<E> collection = new ArrayList<E>(wrapped.size());
-		final Iterator<ObjectConverter<E>> it = wrapped.iterator();
-		while (it.hasNext()) {
-			collection.add(it.next().getObject());
+		for (final ObjectConverter<E> aWrapped : wrapped) {
+			collection.add(aWrapped.getObject());
 		}
 		return collection;
 	}

@@ -12,84 +12,81 @@ import com.ghsc.net.encryption.AES;
 import com.ghsc.util.Tag;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A utility for reading and writing to an IO stream using a dedicated thread.
  */
 public class MessageThread {
 	
-	private static Charset UTF8 = Charset.forName("UTF-8");
+	private static final Charset UTF8 = Charset.forName("UTF-8");
 	
-	private IOWrapper io;
-	private Thread workThread;
-	private MessageDecoder decoder;
-	private Runnable endOfStream;
-	private boolean started = false;
+	private final IOWrapper io;
+	private final Thread workThread;
+	private final MessageDecoder decoder;
+	private final Runnable endOfStream;
+
+	private boolean started;
 	
-	public MessageThread(IOWrapper io, EventListener<MessageEvent> callback, Runnable endOfStream) {
+	public MessageThread(final IOWrapper io, final EventListener<MessageEvent> callback, final Runnable endOfStream) {
 		this.io = io;
 		this.endOfStream = endOfStream;
 		this.decoder = new MessageDecoder(callback);
-		this.workThread = new Thread(workRunnable);
+		this.workThread = new Thread(() -> {
+			try {
+				final InputStream stream = this.io.getInputStream();
+				final byte[] buf = new byte[8192];
+				int bufLength;
+				while ((bufLength = stream.read(buf)) >= 0) {
+					this.decoder.append(buf, bufLength);
+				}
+			} catch (final IOException ignored) {
+			}
+			this.endOfStream.run();
+		});
 		this.workThread.setName("MessageThread");
 	}
 	
 	public void start() {
-		if (!started) {
-			started = true;
+		if (!this.started) {
+            this.started = true;
 			this.workThread.start();
 		}
 	}
 	
-	public void setEncryption(AES cipher) {
-		decoder.setEncryption(cipher);
+	public void setEncryption(final AES cipher) {
+        this.decoder.setEncryption(cipher);
 	}
-	
-	private Runnable workRunnable = new Runnable() {
-		public void run() {
-			try {
-				InputStream stream = io.getInputStream();
-				byte[] buf = new byte[8192];
-				int bufLength;
-				while ((bufLength = stream.read(buf)) >= 0) {
-					decoder.append(buf, bufLength);
-				}
-			} catch (IOException io) {}
-			MessageThread.this.endOfStream.run();
-		}
-	};
-	
+
 	/**
 	 * @return the IOWrapper that this MessageThread encloses.
 	 */
 	public IOWrapper getIO() {
-		return io;
+		return this.io;
 	}
 	
 	/**
 	 * Encrypts the given data string into bytes,</br>
 	 * then marks the bytes so they can be reassembled as packets on the other side</br>
 	 * and sends them through the TCP socket to be received by the connected user.
-	 * @param data - the data to send through the socket.
+	 * @param tag The data to send through the socket.
 	 */
-	public synchronized void send(Tag tag) {
-		if (io != null) {
+	public synchronized void send(final Tag tag) {
+		if (this.io != null) {
 			try {
-				OutputStream out = io.getOutputStream();
-				byte[] encrypted = decoder.getEncryption().encrypt(tag.getEncodedString());
+				final OutputStream out = this.io.getOutputStream();
+				final byte[] encrypted = this.decoder.getEncryption().encrypt(tag.getEncodedString());
 				out.write(("<" + encrypted.length + ">").getBytes(UTF8));
 				out.write(encrypted);
 				out.flush();
-			} catch (SocketException se) {
+			} catch (final SocketException se) {
 				System.out.println("Socket write error.");
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	
 	public interface IOWrapper {
-		public InputStream getInputStream() throws IOException;
-		public OutputStream getOutputStream() throws IOException;
+		InputStream getInputStream() throws IOException;
+		OutputStream getOutputStream() throws IOException;
 	}
 	
 }

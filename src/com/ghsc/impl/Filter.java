@@ -11,5 +11,5 @@ public interface Filter<E> {
 	 * @param obj - the object to test qualification.
 	 * @return <tt>true</tt> if the object qualified, otherwise <tt>false</tt>.
 	 */
-	public boolean accept(E obj);
+    boolean accept(E obj);
 }

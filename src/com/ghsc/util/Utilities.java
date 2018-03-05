@@ -21,9 +21,11 @@ public class Utilities {
 	 */
 	@SafeVarargs
 	public static <E> boolean contains(E element, E... elements) {
-		for (E e : elements)
-			if (element == null ? e == null : element.equals(e))
-				return true;
+		for (E e : elements) {
+            if (element == null ? e == null : element.equals(e)) {
+                return true;
+            }
+        }
 		return false;
 	}
 	
@@ -37,8 +39,9 @@ public class Utilities {
 			}
 			for (int j = i, s = 0; s < search.length(); j++, s++) {
 				char cc = content.charAt(j);
-				if ((quotes |= (cc == '"')) || (cc != search.charAt(s)))
-					continue o;
+				if ((quotes |= (cc == '"')) || (cc != search.charAt(s))) {
+                    continue o;
+                }
 			}
 			return i;
 		}
@@ -47,11 +50,13 @@ public class Utilities {
 	
 	public static boolean startsWith(final CharSequence content, final CharSequence search) {
 		final int contentLength = content.length(), searchLength = search.length();
-		if (searchLength > contentLength)
-			return false;
+		if (searchLength > contentLength) {
+            return false;
+        }
 		for (int i = 0; i < searchLength; i++) {
-			if (content.charAt(i) != search.charAt(i))
-				return false;
+			if (content.charAt(i) != search.charAt(i)) {
+                return false;
+            }
 		}
 		return true;
 	}
@@ -62,15 +67,17 @@ public class Utilities {
 	
 	private static final String BOOLEAN_TRUE = "t", BOOLEAN_FALSE = "f";
 	
-	public static boolean resolveToBoolean(Object o) {
-		if (o == null)
-			return false;
-		if (o instanceof Boolean)
-			return ((Boolean) o).booleanValue();
+	public static boolean resolveToBoolean(final Object o) {
+		if (o == null) {
+            return false;
+        }
+		if (o instanceof Boolean) {
+            return (Boolean) o;
+        }
 		return o.toString().equals(BOOLEAN_TRUE);
 	}
 	
-	public static String resolveToString(boolean b) {
+	public static String resolveToString(final boolean b) {
 		return b ? BOOLEAN_TRUE : BOOLEAN_FALSE;
 	}
 	

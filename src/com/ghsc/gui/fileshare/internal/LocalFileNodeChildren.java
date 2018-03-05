@@ -14,7 +14,7 @@ public class LocalFileNodeChildren extends FileNodeChildren<LocalFileNode> {
 	
 	public LocalFileNodeChildren(final LocalFileNode parent) {
 		super(parent);
-		this.endTag = new StringBuilder("</").append(getTagName()).append(">").toString();
+		this.endTag = new StringBuilder("</").append(this.getTagName()).append(">").toString();
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class LocalFileNodeChildren extends FileNodeChildren<LocalFileNode> {
 	
 	@Override
 	public String getEndTag() {
-		return endTag;
+		return this.endTag;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class LocalFileNodeChildren extends FileNodeChildren<LocalFileNode> {
 			Taggable t = (Taggable) o;
 			String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
-				add((LocalFileNode) t);
+				this.add((LocalFileNode) t);
 			}
 		}
 	}

@@ -9,7 +9,6 @@ import com.ghsc.net.encryption.AES;
 
 /**
  * Used to keep track of individual "message packets" as bytes are submitted to the wrapper.
- * @author Odell
  */
 public class MessageDecoder {
 	
@@ -17,44 +16,44 @@ public class MessageDecoder {
 		NO_TAG, IN_TAG, BODY
 	}
 	
-	private EventListener<MessageEvent> callback;
-	private AtomicReference<AES> cipher;
+	private final EventListener<MessageEvent> callback;
+	private final AtomicReference<AES> cipher;
 	
 	private State state = State.NO_TAG;
-	private long tempLength = 0;
-	private byte[] buffer = null;
-	private int offset = 0;
+	private long tempLength;
+	private byte[] buffer;
+	private int offset;
 	
-	public MessageDecoder(EventListener<MessageEvent> callback) {
+	public MessageDecoder(final EventListener<MessageEvent> callback) {
 		this(AES.DEFAULT, callback);
 	}
 	
-	public MessageDecoder(AES cipher, EventListener<MessageEvent> callback) {
+	public MessageDecoder(final AES cipher, final EventListener<MessageEvent> callback) {
 		this.callback = callback;
-		this.cipher = new AtomicReference<AES>(cipher);
+		this.cipher = new AtomicReference<>(cipher);
 	}
 	
 	public AES getEncryption() {
 		return this.cipher.get();
 	}
 	
-	public void setEncryption(AES cipher) {
+	public void setEncryption(final AES cipher) {
 		synchronized (this.cipher) {
 			this.cipher.set(cipher);
 		}
 	}
 	
-	public void append(byte[] buf, int bufLen) {
-		synchronized (cipher) {
+	public void append(final byte[] buf, final int bufLen) {
+		synchronized (this.cipher) {
 			int bufOff = 0;
 			outer:
 			while (bufOff < bufLen) {
-				switch (state) {
+				switch (this.state) {
 					case NO_TAG:
 						for (; bufOff < bufLen; bufOff++) {
 							if (((char) buf[bufOff]) == '<') {
-								state = State.IN_TAG;
-								tempLength = 0L;
+                                this.state = State.IN_TAG;
+                                this.tempLength = 0L;
 								bufOff++;
 								continue outer;
 							}
@@ -64,39 +63,39 @@ public class MessageDecoder {
 						for (; bufOff < bufLen; bufOff++) {
 							final char c = (char) buf[bufOff];
 							if (c == '>') {
-								state = State.BODY;
-								offset = 0;
-								buffer = new byte[(int) tempLength];
+                                this.state = State.BODY;
+                                this.offset = 0;
+                                this.buffer = new byte[(int) this.tempLength];
 								bufOff++;
 								continue outer;
 							}
 							final int i = Character.digit(c, 10);
 							if (i >= 0) {
-								tempLength *= 10;
-								tempLength += i;
-								if (tempLength <= Integer.MAX_VALUE) {
+                                this.tempLength *= 10;
+                                this.tempLength += i;
+								if (this.tempLength <= Integer.MAX_VALUE) {
 									continue;
 								}
 							}
-							state = State.NO_TAG;
-							tempLength = 0L;
+                            this.state = State.NO_TAG;
+                            this.tempLength = 0L;
 						}
 						break outer;
 					case BODY:
-						final int copyLength = Math.min(buffer.length - offset, bufLen - bufOff);
-						System.arraycopy(buf, bufOff, buffer, offset, copyLength);
-						offset += copyLength;
+						final int copyLength = Math.min(this.buffer.length - this.offset, bufLen - bufOff);
+						System.arraycopy(buf, bufOff, this.buffer, this.offset, copyLength);
+                        this.offset += copyLength;
 						bufOff += copyLength;
-						if (offset >= buffer.length) {
-							final String parsed = new String(cipher.get().decrypt(buffer), Application.CHARSET);
+						if (this.offset >= this.buffer.length) {
+							final String parsed = new String(this.cipher.get().decrypt(this.buffer), Application.CHARSET);
 							if (parsed != null) {
-								callback.eventReceived(MessageEvent.parse(parsed));
+                                this.callback.eventReceived(MessageEvent.parse(parsed));
 							}
-							state = State.NO_TAG;
-							offset = 0;
-							buffer = null;
+                            this.state = State.NO_TAG;
+                            this.offset = 0;
+                            this.buffer = null;
 						}
-						continue outer;
+						break;
 				}
 			}
 		}

@@ -27,15 +27,17 @@ public class SHA2 {
 	
 	public static String hash256String(byte[] input) {
 		byte[] h = hash256Bytes(input);
-		if (h == null)
-			return null;
+		if (h == null) {
+            return null;
+        }
 		return new String(h, Application.CHARSET);
 	}
 	
 	public static String hash256String(String input) {
 		byte[] h = hash256Bytes(input);
-		if (h == null)
-			return null;
+		if (h == null) {
+            return null;
+        }
 		return new String(h, Application.CHARSET);
 	}
 	
@@ -49,15 +51,17 @@ public class SHA2 {
 	
 	public static String hash512String(byte[] input) {
 		byte[] h = hash512Bytes(input);
-		if (h == null)
-			return null;
+		if (h == null) {
+            return null;
+        }
 		return new String(h, Application.CHARSET);
 	}
 	
 	public static String hash512String(String input) {
 		byte[] h = hash512Bytes(input);
-		if (h == null)
-			return null;
+		if (h == null) {
+            return null;
+        }
 		return new String(h, Application.CHARSET);
 	}
 	

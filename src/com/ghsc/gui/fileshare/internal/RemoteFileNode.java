@@ -22,7 +22,7 @@ public class RemoteFileNode extends FileNode {
 		this.path = path;
 		this.size = Math.max(0, size);
 		this.directory = size < 0;
-		this.endTag = new StringBuilder("</").append(getTagName()).append(">").toString();
+		this.endTag = new StringBuilder("</").append(this.getTagName()).append(">").toString();
 	}
 	
 	/**
@@ -35,11 +35,11 @@ public class RemoteFileNode extends FileNode {
 	}
 	
 	public RemoteFileNode getParent() {
-		return (RemoteFileNode) parent;
+		return (RemoteFileNode) this.parent;
 	}
 	
 	public RemoteFileNodeChildren getContainer() {
-		return (RemoteFileNodeChildren) container;
+		return (RemoteFileNodeChildren) this.container;
 	}
 	
 	public void setContainer(RemoteFileNodeChildren container) {
@@ -47,7 +47,7 @@ public class RemoteFileNode extends FileNode {
 	}
 	
 	public RemoteFileNodeChildren getChildren() {
-		return (RemoteFileNodeChildren) children;
+		return (RemoteFileNodeChildren) this.children;
 	}
 	
 	public void setChildren(final RemoteFileNodeChildren children) {
@@ -56,50 +56,53 @@ public class RemoteFileNode extends FileNode {
 	
 	@Override
 	public String getName() {
-		return name;
+		return this.name;
 	}
 	
 	@Override
 	public String getPath() {
-		return path;
+		return this.path;
 	}
 	
 	@Override
 	public boolean isDirectory() {
-		return directory;
+		return this.directory;
 	}
 	
 	@Override
 	public long getFileSize() {
-		return size;
+		return this.size;
 	}
 	
 	@Override
 	public long getSize() {
-		long temp = getFileSize();
-		if (!isLeaf()) {
-			for (RemoteFileNode node : getChildren())
-				temp += node.getSize();
+		long temp = this.getFileSize();
+		if (!this.isLeaf()) {
+			for (RemoteFileNode node : this.getChildren()) {
+                temp += node.getSize();
+            }
 		}
 		return temp;
 	}
 	
 	@Override
 	public long getFileCount() {
-		long temp = isDirectory() ? 0 : 1;
-		if (!isLeaf()) {
-			for (RemoteFileNode node : getChildren())
-				temp += node.getFileCount();
+		long temp = this.isDirectory() ? 0 : 1;
+		if (!this.isLeaf()) {
+			for (RemoteFileNode node : this.getChildren()) {
+                temp += node.getFileCount();
+            }
 		}
 		return temp;
 	}
 
 	@Override
 	public long getDirectoryCount() {
-		long temp = isDirectory() ? 1 : 0;
-		if (!isLeaf()) {
-			for (RemoteFileNode node : getChildren())
-				temp += node.getDirectoryCount();
+		long temp = this.isDirectory() ? 1 : 0;
+		if (!this.isLeaf()) {
+			for (RemoteFileNode node : this.getChildren()) {
+                temp += node.getDirectoryCount();
+            }
 		}
 		return temp;
 	}
@@ -112,12 +115,12 @@ public class RemoteFileNode extends FileNode {
 	
 	@Override
 	public String getTagName() {
-		return directory ? TAGNAME_DIR : TAGNAME_FILE;
+		return this.directory ? TAGNAME_DIR : TAGNAME_FILE;
 	}
 	
 	@Override
 	public String getEndTag() {
-		return endTag;
+		return this.endTag;
 	}
 	
 	@Override
@@ -126,10 +129,10 @@ public class RemoteFileNode extends FileNode {
 			Taggable t = (Taggable) o;
 			String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
-				if (children == null) {
-					setChildren(new RemoteFileNodeChildren(this));
+				if (this.children == null) {
+					this.setChildren(new RemoteFileNodeChildren(this));
 				}
-				getChildren().add((RemoteFileNode) t);
+				this.getChildren().add((RemoteFileNode) t);
 			}
 		}
 	}
@@ -139,37 +142,41 @@ public class RemoteFileNode extends FileNode {
 		final String tagName = tag.getName();
 		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
 			final String name = tag.getAttribute(FileNode.ATT_NAME);
-			if (name == null)
-				return null;
-			final String path = tracePath(name);
+			if (name == null) {
+                return null;
+            }
+			final String path = this.tracePath(name);
 			if (tagName.equals(FileNode.TAGNAME_FILE)) {
 				final String size = tag.getAttribute(FileNode.ATT_SIZE);
 				if (size != null) {
-					if (children == null)
-						setChildren(new RemoteFileNodeChildren(this));
-					return new RemoteFileNode(getChildren(), name, path, Long.parseLong(size));
+					if (this.children == null) {
+						this.setChildren(new RemoteFileNodeChildren(this));
+                    }
+					return new RemoteFileNode(this.getChildren(), name, path, Long.parseLong(size));
 				}
 			} else {
-				if (children == null)
-					setChildren(new RemoteFileNodeChildren(this));
-				return new RemoteFileNode(getChildren(), name, path);
+				if (this.children == null) {
+					this.setChildren(new RemoteFileNodeChildren(this));
+                }
+				return new RemoteFileNode(this.getChildren(), name, path);
 			}
 		}
 		return null;
 	}
 	
 	String tracePath() {
-		return tracePath(getName());
+		return this.tracePath(this.getName());
 	}
 	
 	String tracePath(final String name) {
-		return tracePath(getParent(), name);
+		return tracePath(this.getParent(), name);
 	}
 	
 	static String tracePath(final RemoteFileNode parent, final String name) {
 		final StringBuilder build = new StringBuilder();
-		if (parent != null)
-			build.append(parent.tracePath());
+		if (parent != null) {
+            build.append(parent.tracePath());
+        }
 		build.append("\\"); // do not use File.separator
 		build.append(name);
 		return build.toString();
@@ -182,7 +189,7 @@ public class RemoteFileNode extends FileNode {
 	
 	@Override
 	public String toString() {
-		return isRoot() ? getPath() : getName();
+		return this.isRoot() ? this.getPath() : this.getName();
 	}
 	
 }

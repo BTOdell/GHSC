@@ -1,7 +1,6 @@
 package com.ghsc.util;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,9 +13,9 @@ import java.util.Set;
 public class Tag {
 	
 	protected String raw, raw_encoded, name, post, tag, tag_encoded;
-	protected HashMap<String, Base64Value> attributes = null;
+	protected HashMap<String, Base64Value> attributes;
 	protected int length, length_encoded;
-	protected boolean parsed = false;
+	protected boolean parsed;
 	
 	public Tag(final Object raw) {
 		this.raw_encoded = raw.toString();
@@ -39,14 +38,14 @@ public class Tag {
 	 * @return the name of this tag.
 	 */
 	public final String getName() {
-		return name;
+		return this.name;
 	}
 	
 	/**
 	 * @return the count of attributes of this tag.
 	 */
 	public final int getCount() {
-		return attributes != null ? attributes.size() : 0;
+		return this.attributes != null ? this.attributes.size() : 0;
 	}
 	
 	/**
@@ -56,9 +55,10 @@ public class Tag {
 	 * @return the attribute retrieved from the key.
 	 */
 	public final String getAttribute(final String key) {
-		if (attributes == null)
-			return null;
-		final Base64Value v = attributes.get(key);
+		if (this.attributes == null) {
+            return null;
+        }
+		final Base64Value v = this.attributes.get(key);
 		return v != null ? v.getValue() : null;
 	}
 	
@@ -66,31 +66,31 @@ public class Tag {
 	 * @return the length of this tag not including the post data.
 	 */
 	public final int getLength() {
-		return length;
+		return this.length;
 	}
 	
 	public final int getEncodedLength() {
-		return length_encoded;
+		return this.length_encoded;
 	}
 	
 	public String getEncodedString() {
-		return raw_encoded;
+		return this.raw_encoded;
 	}
 	
 	@Override
 	public String toString() {
-		return raw;
+		return this.raw;
 	}
 	
 	/**
 	 * @return raw tag string excluding post data.
 	 */
 	public final String getTag() {
-		return tag;
+		return this.tag;
 	}
 	
 	public final String getEncodedTag() {
-		return tag_encoded;
+		return this.tag_encoded;
 	}
 	
 	/**
@@ -99,7 +99,7 @@ public class Tag {
 	 * @return any post data that exists in this Tag, may return null.
 	 */
 	public final String getPost() {
-		return post;
+		return this.post;
 	}
 	
 	/**
@@ -108,26 +108,26 @@ public class Tag {
 	 */
 	public void clearPost() {
 		this.post = null;
-		this.raw = this.raw.substring(0, getLength());
-		this.raw_encoded = this.raw_encoded.substring(0, getEncodedLength());
+		this.raw = this.raw.substring(0, this.getLength());
+		this.raw_encoded = this.raw_encoded.substring(0, this.getEncodedLength());
 	}
 	
 	public void reset() {
-		parsed = false;
-		resetI();
+		this.parsed = false;
+		this.resetI();
 	}
 	
 	private void resetI() {
-		attributes = null;
-		name = post = tag = tag_encoded = null;
-		length = length_encoded = 0;
+		this.attributes = null;
+		this.name = this.post = this.tag = this.tag_encoded = null;
+		this.length = this.length_encoded = 0;
 	}
 	
 	/**
 	 * @return whether this tag has been parsed.
 	 */
 	public boolean isParsed() {
-		return parsed;
+		return this.parsed;
 	}
 	
 	/**
@@ -135,7 +135,7 @@ public class Tag {
 	 * @return this tag after parsing.
 	 */
 	public Tag parse() {
-		return parse(false);
+		return this.parse(false);
 	}
 	
 	/**
@@ -144,53 +144,56 @@ public class Tag {
 	 * @return this tag after parsing.
 	 */
 	public Tag parse(boolean force) {
-		if (parsed && !force)
-			return this;
-		if (raw_encoded.charAt(0) != '<')
-			return null;
-		resetI();
+		if (this.parsed && !force) {
+            return this;
+        }
+		if (this.raw_encoded.charAt(0) != '<') {
+            return null;
+        }
+		this.resetI();
 		final StringBuilder build = new StringBuilder();
 		boolean noQuote = true;
 		int m = 1;
 		while (true) {
-			if (m >= raw_encoded.length())
-				return null;
-			final char curr = raw_encoded.charAt(m++);
+			if (m >= this.raw_encoded.length()) {
+                return null;
+            }
+			final char curr = this.raw_encoded.charAt(m++);
 			if (curr == '"') {
 				noQuote = !noQuote;
 			} else if (noQuote) {
 				if (curr == ' ') {
-					resolveBuilder(build);
+					this.resolveBuilder(build);
 					build.delete(0, build.length());
 					continue;
 				} else if (curr == '>') {
-					resolveBuilder(build);
-					length_encoded = m;
+					this.resolveBuilder(build);
+					this.length_encoded = m;
 					break;
 				}
 			}
 			build.append(curr);
 		}
-		tag_encoded = raw_encoded.substring(0, length_encoded);
-		if (length_encoded < raw_encoded.length())
-			post = raw_encoded.substring(length_encoded);
+		this.tag_encoded = this.raw_encoded.substring(0, this.length_encoded);
+		if (this.length_encoded < this.raw_encoded.length()) {
+			this.post = this.raw_encoded.substring(this.length_encoded);
+        }
 		final StringBuilder rawBuilder = new StringBuilder();
-		rawBuilder.append('<').append(name);
-		if (attributes != null) {
-			final Set<Map.Entry<String, Base64Value>> mapSet = attributes.entrySet();
-			final Iterator<Map.Entry<String, Base64Value>> it = mapSet.iterator();
-			while (it.hasNext()) {
-				Map.Entry<String, Base64Value> e = it.next();
+		rawBuilder.append('<').append(this.name);
+		if (this.attributes != null) {
+			final Set<Map.Entry<String, Base64Value>> mapSet = this.attributes.entrySet();
+			for (final Map.Entry<String, Base64Value> e : mapSet) {
 				rawBuilder.append(' ').append(e.getKey()).append('=').append('"').append(e.getValue().getValue()).append('"');
 			}
 		}
 		rawBuilder.append('>');
-		tag = rawBuilder.toString();
-		length = rawBuilder.length();
-		if (post != null)
-			rawBuilder.append(post);
-		raw = rawBuilder.toString();
-		parsed = true;
+		this.tag = rawBuilder.toString();
+		this.length = rawBuilder.length();
+		if (this.post != null) {
+            rawBuilder.append(this.post);
+        }
+		this.raw = rawBuilder.toString();
+		this.parsed = true;
 		return this;
 	}
 	
@@ -199,53 +202,57 @@ public class Tag {
 	 * @return a tag with basic parsing.
 	 */
 	public Tag parseBasic() {
-		return parseBasic(false);
+		return this.parseBasic(false);
 	}
 	
 	public Tag parseBasic(boolean force) {
-		if (parsed && !force)
-			return this;
-		if (raw_encoded.charAt(0) != '<')
-			return null;
-		resetI();
+		if (this.parsed && !force) {
+            return this;
+        }
+		if (this.raw_encoded.charAt(0) != '<') {
+            return null;
+        }
+		this.resetI();
 		final StringBuilder build = new StringBuilder();
 		boolean noQuote = true;
 		int m = 1;
 		while (true) {
-			if (m >= raw_encoded.length())
-				return null;
-			final char curr = raw_encoded.charAt(m++);
+			if (m >= this.raw_encoded.length()) {
+                return null;
+            }
+			final char curr = this.raw_encoded.charAt(m++);
 			if (curr == '"') {
 				noQuote = !noQuote;
 				continue;
 			} else if (noQuote) {
 				if (curr == ' ') {
-					resolveBuilder(build);
+					this.resolveBuilder(build);
 					build.delete(0, build.length());
 					continue;
 				} else if (curr == '>') {
-					resolveBuilder(build);
-					length_encoded = m;
+					this.resolveBuilder(build);
+					this.length_encoded = m;
 					break;
 				}
 			}
 			build.append(curr);
 		}
-		tag_encoded = raw_encoded.substring(0, length_encoded);
-		parsed = true;
+		this.tag_encoded = this.raw_encoded.substring(0, this.length_encoded);
+		this.parsed = true;
 		return this;
 	}
 	
 	private void resolveBuilder(final StringBuilder build) {
 		final int equalsIndex = build.indexOf("=");
 		if (equalsIndex < 0) {
-			name = build.toString();
+			this.name = build.toString();
 		} else {
 			final String data0 = build.substring(0, equalsIndex), 
 					data1 = build.substring(equalsIndex + 2, build.length() - 1);
-			if (attributes == null)
-				attributes = new HashMap<String, Base64Value>();
-			attributes.put(data0, new Base64Value(Base64.decode(data1), data1));
+			if (this.attributes == null) {
+				this.attributes = new HashMap<String, Base64Value>();
+            }
+			this.attributes.put(data0, new Base64Value(Base64.decode(data1), data1));
 		}
 	}
 	
@@ -267,8 +274,9 @@ public class Tag {
 	public static Tag construct(Object name, Object... attributes) {
 		int aLength = attributes.length;
 		boolean odd = (aLength & 1) == 1;
-		if (odd)
-			aLength--;
+		if (odd) {
+            aLength--;
+        }
 		final StringBuilder build = new StringBuilder(), buildE = new StringBuilder();
 		build.append('<').append(name.toString());
 		buildE.append('<').append(name.toString());
@@ -276,8 +284,9 @@ public class Tag {
 		int i = 0;
 		while (i < aLength) {
 			final Object key = attributes[i++], value = attributes[i++];
-			if (key == null || value == null)
-				continue;
+			if (key == null || value == null) {
+                continue;
+            }
 			final String keyString = key.toString(), valueString = value.toString();
 			final Base64Value bv = new Base64Value(valueString, Base64.encode(valueString));
 			att.put(keyString, bv);
@@ -305,11 +314,11 @@ public class Tag {
 		}
 		
 		public String getValue() {
-			return value;
+			return this.value;
 		}
 		
 		public String getBase64() {
-			return base64;
+			return this.base64;
 		}
 		
 	}

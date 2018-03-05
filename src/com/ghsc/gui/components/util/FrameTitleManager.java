@@ -1,8 +1,6 @@
 package com.ghsc.gui.components.util;
 
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
@@ -26,8 +24,8 @@ public abstract class FrameTitleManager {
 	 */
 	public FrameTitleManager(final Frame frame, final String defaultTitle) {
 		this.frame = frame;
-		setDefaultTitle(defaultTitle);
-		this.timer = new Timer(0, e -> appendTitle(null));
+        this.setDefaultTitle(defaultTitle);
+		this.timer = new Timer(0, e -> this.appendTitle(null));
 		this.timer.setRepeats(false);
 	}
 	
@@ -65,7 +63,7 @@ public abstract class FrameTitleManager {
 	}
 	
 	private void restartTimer(int delay) {
-		stopTimer();
+        this.stopTimer();
 		this.timer.setInitialDelay(delay);
 		this.timer.restart();
 	}
@@ -86,7 +84,7 @@ public abstract class FrameTitleManager {
 		if (this.frame != null) {
 			this.frame.setTitle(title);
 		}
-		onTitleChanged(title);
+        this.onTitleChanged(title);
 	}
 	
 	/**
@@ -107,10 +105,10 @@ public abstract class FrameTitleManager {
 	 * 		the time period in milliseconds for the temporary title to last.
 	 */
 	public final void submit(final String title, final int period) {
-		setTitle(title);
-		stopTimer();
+        this.setTitle(title);
+        this.stopTimer();
 		if (period > 0) {
-			restartTimer(period);
+            this.restartTimer(period);
 		}
 	}
 	
@@ -122,10 +120,10 @@ public abstract class FrameTitleManager {
 	 * 		the time period in milliseconds for the temporary text to last.
 	 */
 	public final void submitAppend(final String append, final int period) {
-		appendTitle(append);
-		stopTimer();
+        this.appendTitle(append);
+        this.stopTimer();
 		if (period > 0) {
-			restartTimer(period);
+            this.restartTimer(period);
 		}
 	}
 	

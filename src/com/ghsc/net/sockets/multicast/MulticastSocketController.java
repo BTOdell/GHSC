@@ -58,13 +58,13 @@ public class MulticastSocketController implements ISocketController {
 		MULTICAST_SOCKET_ADDRESS = new InetSocketAddress(MULTICAST_ADDRESS, MULTICAST_PORT);
 	}
 	
-	private Set<String> interfaceNames = null;
+	private Set<String> interfaceNames;
 	
 	private final MulticastSocket receiveSocket;
 	private final MulticastSocket sendSocket;
 	
 	private final int localUserPort;
-	private volatile boolean isConnecting = false;
+	private volatile boolean isConnecting;
 	
 	private final Thread receiveWorker;
 	private final Thread sendWorker;
@@ -73,7 +73,7 @@ public class MulticastSocketController implements ISocketController {
 	
 	/**
 	 * Initializes a new MulticastManager.
-	 * @throws IOException
+	 * @throws IOException If an error occurs when creating the underlying multicast socket.
 	 */
 	public MulticastSocketController(final int localUserPort) throws IOException {
 		this.localUserPort = localUserPort;
@@ -86,7 +86,7 @@ public class MulticastSocketController implements ISocketController {
 		// join the multicast Group for all the network interfaces.
 		this.interfaceNames = Application.NETWORK.getInterfaces();
 		if (this.interfaceNames != null) {
-			for (String name : this.interfaceNames) {
+			for (final String name : this.interfaceNames) {
 				final NetworkInterface xface = NetworkInterface.getByName(name);
 				if (xface != null) {
 					this.receiveSocket.joinGroup(MULTICAST_SOCKET_ADDRESS, xface);
@@ -126,7 +126,7 @@ public class MulticastSocketController implements ISocketController {
 				// }}).start();
 				pack.setLength(buf.length);
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.out.println("Multicast receive interrupted.");
 		}
 	}
@@ -166,13 +166,11 @@ public class MulticastSocketController implements ISocketController {
 			if (!users.addMulticaster(remoteAddress)) {
 				return;
 			}
-			{
-				// Note: this isn't thread reliable, but will work because of the 500 ms delay.
-				if (isConnecting) {
-					return;
-				}
-				isConnecting = true;
+			// Note: this isn't thread reliable, but will work because of the 500 ms delay.
+			if (this.isConnecting) {
+				return;
 			}
+			this.isConnecting = true;
 			System.out.println("Received " + remoteAddress.getAddress().getHostAddress() + " from MULTICASTER " + remotePort);
 			
 			application.getMainFrame().setStatus("Connecting to " + message.getAttribute(ATT_USERNAME), 0);
@@ -197,7 +195,7 @@ public class MulticastSocketController implements ISocketController {
 				users.removeMulticaster(remoteAddress); // no longer need to block multicasters.
 			}
 			
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			if (e instanceof SocketTimeoutException) {
 				System.out.println("Socket timed out trying to connect to " + remoteIP + "@" + remotePort + ". Maybe next time?");
 			} else {
@@ -205,7 +203,7 @@ public class MulticastSocketController implements ISocketController {
 			}
 			application.getMainFrame().setStatus("Failed to connect", 750);
 		} finally {
-			isConnecting = false;
+			this.isConnecting = false;
 		}
 	}
 	
@@ -232,22 +230,22 @@ public class MulticastSocketController implements ISocketController {
 				Thread.sleep(SEND_DELAY);
 				if (System.currentTimeMillis() > updateTime) {
 					updateTime = System.currentTimeMillis() + INTERFACE_UPDATE_DELAY;
-					Set<String> newInterfaceNames = Application.NETWORK.updateInterfaces();
+					final Set<String> newInterfaceNames = Application.NETWORK.updateInterfaces();
 					if (newInterfaceNames != null) {
 						// Changes have occurred to the active interfaces.
 						// First, unjoin interfaces no longer in the list...
 						for (final String name : this.interfaceNames) {
 							if (!newInterfaceNames.contains(name)) {
-								NetworkInterface xface = NetworkInterface.getByName(name);
+								final NetworkInterface xface = NetworkInterface.getByName(name);
 								if (xface != null) {
 									this.receiveSocket.leaveGroup(MULTICAST_SOCKET_ADDRESS, xface);
 								}
 							}
 						}
 						// Second, join new interfaces in the list...
-						for (String name : newInterfaceNames) {
+						for (final String name : newInterfaceNames) {
 							if (!this.interfaceNames.contains(name)) {
-								NetworkInterface xface = NetworkInterface.getByName(name);
+								final NetworkInterface xface = NetworkInterface.getByName(name);
 								if (xface != null) {
 									this.receiveSocket.joinGroup(MULTICAST_SOCKET_ADDRESS, xface);
 								}
@@ -258,9 +256,7 @@ public class MulticastSocketController implements ISocketController {
 					}
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
 	}

@@ -19,47 +19,47 @@ public class ComboBoxAdapter extends ACAdapter {
 		this.comboBox = comboBox;
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				markAll();
+				ComboBoxAdapter.this.markAll();
 			}
 		});
 	}
 
 	@Override
 	public int getItemCount() {
-		return comboBox.getItemCount();
+		return this.comboBox.getItemCount();
 	}
 
 	@Override
 	public Object getItem(int index) {
-		return comboBox.getItemAt(index);
+		return this.comboBox.getItemAt(index);
 	}
 
 	@Override
 	public void setSelectedItem(Object item) {
-		if (item == getSelectedItem()) {
+		if (item == this.getSelectedItem()) {
 			return;
 		}
-		Accessible a = comboBox.getUI().getAccessibleChild(comboBox, 0);
-		if (getItemCount() > 0 && a instanceof ComboPopup) {
+		Accessible a = this.comboBox.getUI().getAccessibleChild(this.comboBox, 0);
+		if (this.getItemCount() > 0 && a instanceof ComboPopup) {
 			JList list = ((ComboPopup) a).getList();
 			int lastIndex = list.getModel().getSize() - 1;
 			Rectangle rect = list.getCellBounds(lastIndex, lastIndex);
 			if (rect == null) {
-				throw new IllegalStateException("failed to access index [" + lastIndex + "] for " + comboBox);
+				throw new IllegalStateException("failed to access index [" + lastIndex + "] for " + this.comboBox);
 			}
 			list.scrollRectToVisible(rect);
 		}
-		comboBox.setSelectedItem(item);
+        this.comboBox.setSelectedItem(item);
 	}
 
 	@Override
 	public Object getSelectedItem() {
-		return comboBox.getModel().getSelectedItem();
+		return this.comboBox.getModel().getSelectedItem();
 	}
 
 	@Override
 	public JTextComponent getTextComponent() {
-		return (JTextComponent) comboBox.getEditor().getEditorComponent();
+		return (JTextComponent) this.comboBox.getEditor().getEditorComponent();
 	}
 	
 }

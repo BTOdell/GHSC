@@ -17,7 +17,7 @@ public class PromptHandler implements FocusListener {
 	private final JTextComponent textComp;
 	private final JLabel overlay;
 	
-	private boolean enabled = false;
+	private boolean enabled;
 	
 	/**
 	 * Creates a new prompt handler for the given text component.
@@ -44,37 +44,38 @@ public class PromptHandler implements FocusListener {
 	}
 	
 	public PromptHandler(final JTextComponent textComp, final String text, final Color color, final int verticalAlignment) {
-		if (textComp == null)
-			throw new IllegalArgumentException("Component is null!");
+		if (textComp == null) {
+            throw new IllegalArgumentException("Component is null!");
+        }
 		this.textComp = textComp;
-		
-		overlay = new JLabel();
-		overlay.setText(text);
-		overlay.setForeground(color);
-		overlay.setFont(textComp.getFont());
-		overlay.setHorizontalAlignment(JLabel.LEADING);
-		overlay.setVerticalAlignment(verticalAlignment);
-		overlay.setVisible(false);
+
+		this.overlay = new JLabel();
+		this.overlay.setText(text);
+		this.overlay.setForeground(color);
+		this.overlay.setFont(textComp.getFont());
+		this.overlay.setHorizontalAlignment(JLabel.LEADING);
+		this.overlay.setVerticalAlignment(verticalAlignment);
+		this.overlay.setVisible(false);
 		
 		textComp.setLayout(new BorderLayout());
-		textComp.add(overlay);
-		
-		setEnabled(true);
-		determinePrompt();
+		textComp.add(this.overlay);
+
+		this.setEnabled(true);
+		this.determinePrompt();
 	}
 	
 	/**
 	 * @return the text component that this PromptHandler is handling.
 	 */
 	public JTextComponent getComponent() {
-		return textComp;
+		return this.textComp;
 	}
 	
 	/**
 	 * @return the prompt text currently in use.
 	 */
 	public String getText() {
-		return overlay.getText();
+		return this.overlay.getText();
 	}
 	
 	/**
@@ -90,7 +91,7 @@ public class PromptHandler implements FocusListener {
 	 * @return the current color of the prompt text.
 	 */
 	public Color getColor() {
-		return overlay.getForeground();
+		return this.overlay.getForeground();
 	}
 	
 	/**
@@ -106,7 +107,7 @@ public class PromptHandler implements FocusListener {
 	 * @return whether this prompt handler is active over the component.
 	 */
 	public boolean isEnabled() {
-		return enabled;
+		return this.enabled;
 	}
 	
 	/**
@@ -115,18 +116,19 @@ public class PromptHandler implements FocusListener {
 	 * 		whether to enable or disable.
 	 */
 	public void setEnabled(final boolean enabled) {
-		if (this.enabled == enabled)
-			return;
+		if (this.enabled == enabled) {
+            return;
+        }
 		if (this.enabled = enabled) {
-			textComp.addFocusListener(this);
+			this.textComp.addFocusListener(this);
 		} else {
-			setVisible(false);
-			textComp.removeFocusListener(this);
+			this.setVisible(false);
+			this.textComp.removeFocusListener(this);
 		}
 	}
 	
 	private boolean isVisible() {
-		return overlay.isVisible();
+		return this.overlay.isVisible();
 	}
 	
 	private void setVisible(final boolean visible) {
@@ -134,29 +136,31 @@ public class PromptHandler implements FocusListener {
 	}
 	
 	private void determinePrompt() {
-		if (textComp.hasFocus()) {
-			if (isVisible()) {
-				setVisible(false);
+		if (this.textComp.hasFocus()) {
+			if (this.isVisible()) {
+				this.setVisible(false);
 			}
 		} else {
-			if (textComp.getText().length() <= 0) {
-				setVisible(true);
+			if (this.textComp.getText().length() <= 0) {
+				this.setVisible(true);
 			}
 		}
 	}
 
 	@Override
 	public void focusGained(FocusEvent fe) {
-		if (!textComp.equals(fe.getSource()))
-			return;
-		determinePrompt();
+		if (!this.textComp.equals(fe.getSource())) {
+            return;
+        }
+		this.determinePrompt();
 	}
 
 	@Override
 	public void focusLost(FocusEvent fe) {
-		if (!textComp.equals(fe.getSource()))
-			return;
-		determinePrompt();
+		if (!this.textComp.equals(fe.getSource())) {
+            return;
+        }
+		this.determinePrompt();
 	}
 	
 }

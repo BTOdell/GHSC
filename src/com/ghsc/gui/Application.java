@@ -35,14 +35,11 @@ import com.ghsc.net.update.VersionController;
 import com.ghsc.util.Tag;
 
 /**
- * This is the main application class.</br>
- * Most of the network interface is managed from this class.</br>
- * Basically the foundation for the entire project :D
- * @author Odell
+ * The main application class.
  */
 public class Application implements ComplexIdentifiable {
 	
-	private static Application INSTANCE = null;
+	private static final Application INSTANCE;
 	
 	static {
 		INSTANCE = new Application();
@@ -71,7 +68,7 @@ public class Application implements ComplexIdentifiable {
 
 	// Updating
 	private VersionController versionController;
-	private Updater updater = null;
+	private Updater updater;
 	
 	// Networking
 	private SocketManager socketManager;
@@ -88,7 +85,7 @@ public class Application implements ComplexIdentifiable {
 	
 	@Override
 	public String getHostname() {
-		return hostname;
+		return this.hostname;
 	}
 	
 	@Override
@@ -101,7 +98,7 @@ public class Application implements ComplexIdentifiable {
 	
 	@Override
 	public String getNick() {
-		return nick;
+		return this.nick;
 	}
 	
 	@Override
@@ -135,7 +132,7 @@ public class Application implements ComplexIdentifiable {
 	}
 
 	@Override
-	public void setID(UUID uuid) {
+	public void setID(final UUID uuid) {
 		this.userID = uuid;
 	}
 
@@ -149,7 +146,7 @@ public class Application implements ComplexIdentifiable {
 	 * Will also visually change the title of the application to match the version.
 	 * @param vers - the new version of this application.
 	 */
-	public void setVersion(Version vers) {
+	public void setVersion(final Version vers) {
 		Application.VERSION = vers;
 		if (this.titleManager != null) {
 			this.titleManager.appendTitle(null);
@@ -173,30 +170,39 @@ public class Application implements ComplexIdentifiable {
 		if (this.nickDialog != null && this.nickDialog.isVisible()) {
             return;
         }
-		this.nickDialog = new InputWizard(frame, "Change nickname", "Nickname", getPreferredName(), "Apply", "Applies your new nickname!",
+		this.nickDialog = new InputWizard(this.frame, "Change nickname", "Nickname", this.getPreferredName(), "Apply", "Applies your new nickname!",
                 input -> {
                     if (input != null) {
-                        if (input.equals(nick))
-                            return;
-                        setNick(input);
-                        frame.getChatContainer().refreshUser(null);
+                        if (input.equals(this.nick)) {
+							return;
+						}
+						this.setNick(input);
+						this.frame.getChatContainer().refreshUser(null);
                     } else {
-                        if (Debug.MINOR.compareTo(DEBUG) < 0)
-                            System.out.println("Nickname wizard cancelled.");
+                        if (Debug.MINOR.compareTo(DEBUG) < 0) {
+							System.out.println("Nickname wizard cancelled.");
+						}
                     }
                 }, text -> {
-                    if (text.isEmpty())
-                        return new ValidationResult<>("Well, you actually have to type something...", false);
-                    if (text.length() > 18)
-                        return new ValidationResult<>("Name can't exceed 18 characters.", false);
-                    if (text.startsWith("_") || text.startsWith(" "))
-                        return new ValidationResult<>("Can't start with any space character.", false);
-                    if (text.contains("__") || text.contains("  "))
-                        return new ValidationResult<>("Can't contain two spaces anywhere.", false);
-                    if (text.contains(" _") || text.contains("_ "))
-                        return new ValidationResult<>("Come on...", false);
-                    for (char c : text.toCharArray()) {
-                        if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_') continue;
+                    if (text.isEmpty()) {
+						return new ValidationResult<>("Well, you actually have to type something...", false);
+					}
+                    if (text.length() > 18) {
+						return new ValidationResult<>("Name can't exceed 18 characters.", false);
+					}
+                    if (text.startsWith("_") || text.startsWith(" ")) {
+						return new ValidationResult<>("Can't start with any space character.", false);
+					}
+                    if (text.contains("__") || text.contains("  ")) {
+						return new ValidationResult<>("Can't contain two spaces anywhere.", false);
+					}
+                    if (text.contains(" _") || text.contains("_ ")) {
+						return new ValidationResult<>("Come on...", false);
+					}
+                    for (final char c : text.toCharArray()) {
+                        if (Character.isDigit(c) || Character.isLetter(c) || c == ' ' || c == '_') {
+							continue;
+						}
                         return new ValidationResult<>("Only allowed letters and numbers!", false);
                     }
                     return new ValidationResult<>("Current name is acceptable.", true);
@@ -208,63 +214,63 @@ public class Application implements ComplexIdentifiable {
 	 * @return the socket manager associated with this application.
 	 */
 	public SocketManager getSocketManager() {
-		return socketManager;
+		return this.socketManager;
 	}
 
 	/**
 	 * @return the main GUI frame associated with this application.
 	 */
 	public MainFrame getMainFrame() {
-		return frame;
+		return this.frame;
 	}
 	
 	/**
 	 * @return the title manager associated with this application.
 	 */
 	public FrameTitleManager getTitleManager() {
-		return titleManager;
+		return this.titleManager;
 	}
 	
 	/**
 	 * @return the popup manager supporting all components.
 	 */
 	public PopupManager getPopupManager() {
-		return popupManager;
+		return this.popupManager;
 	}
 	
 	/**
 	 * @return the tray icon manager associated with this application.
 	 */
 	public TrayManager getTrayManager() {
-		return tray;
+		return this.tray;
 	}
 	
 	/**
 	 * @return the administrator control system of this application.
 	 */
 	public AdminControl getAdminControl() {
-		return adminControl;
+		return this.adminControl;
 	}
 	
 	/**
 	 * @return the file transfer handler of this application.
 	 */
 	public FileShare getFileShare() {
-		return fileShare;
+		return this.fileShare;
 	}
 	
 	/**
 	 * @return the updater associated with this application.
 	 */
 	public Updater getUpdater() {
-		return updater;
+		return this.updater;
 	}
 	
 	/**
 	 * @return the version controller associated with this application.
 	 */
 	public VersionController getVersionController() {
-		return versionController;
+		return this.versionController;
 	}
 
 	/**
@@ -275,8 +281,8 @@ public class Application implements ComplexIdentifiable {
 		 * Add this shutdown hook, so that correct de-initialization will take place even if we call System.exit(int).
 		 */
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (socketManager != null) {
-                socketManager.close();
+            if (this.socketManager != null) {
+				this.socketManager.close();
             }
             if (Profile.getProfile().isSavable()) {
                 if (Profile.getProfile().save()) {
@@ -292,13 +298,14 @@ public class Application implements ComplexIdentifiable {
                     System.out.println("Failed to save settings!");
                 }
             }
-            if (frame != null) {
-                if (frame.getUsers() != null) {
-                    frame.getUsers().disconnectAll();
+            if (this.frame != null) {
+                if (this.frame.getUsers() != null) {
+					this.frame.getUsers().disconnectAll();
                 }
             }
-            if (fileShare != null)
-                fileShare.dispose();
+            if (this.fileShare != null) {
+				this.fileShare.dispose();
+			}
             System.gc();
         }));
 		
@@ -307,15 +314,15 @@ public class Application implements ComplexIdentifiable {
 		boolean duplicateInstance = false;
 		if (!this.socketManager.instanceCheck()) {
 			duplicateInstance = true;
-			if (JOptionPane.showConfirmDialog(frame, PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+			if (JOptionPane.showConfirmDialog(this.frame, this.PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
 				System.exit(0);
 			}
 		}
 		try {
 			this.socketManager.initControllers();
-		} catch (IOException e1) {
+		} catch (final IOException e1) {
 			e1.printStackTrace();
-			JOptionPane.showMessageDialog(frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this.frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
 			System.exit(0);
 		}
 
@@ -323,85 +330,86 @@ public class Application implements ComplexIdentifiable {
 
 		// userid
 		Profile.getProfile().addHook(() -> {
-            final UUID id = getID();
+            final UUID id = this.getID();
             return id != null ? new Node(Tag.construct("userID"), id) : null;
         });
 		final Node userIdNode = Profile.getProfile().search("/userID");
 		if (userIdNode != null) {
 			final String userIdString = userIdNode.getData();
 			if (userIdString != null) {
-				setID(userIdString);
+				this.setID(userIdString);
 			}
 		}
-		if (getID() == null) {
-			setID(UUID.randomUUID());
+		if (this.getID() == null) {
+			this.setID(UUID.randomUUID());
 		}
-		System.out.println("UserID: " + getID());
+		System.out.println("UserID: " + this.getID());
 		//Tray
 		if (TrayManager.isSupported()) {
-			tray = new TrayManager(null);
-			tray.activate();
+			this.tray = new TrayManager(null);
+			this.tray.activate();
 		}
 		// GUI
 		SwingUtilities.invokeAndWait(() -> {
             try {
-                popupManager = new PopupManager();
-                frame = new MainFrame(Application.this);
-                frame.setVisible(true);
-            } catch (Exception e) {
+				this.popupManager = new PopupManager();
+				this.frame = new MainFrame(this);
+				this.frame.setVisible(true);
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         });
-		titleManager = new FrameTitleManager(frame, PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
-			public void onTitleChanged(String title) {
-				if (tray != null)
-					tray.updateTooltip(title);
+		this.titleManager = new FrameTitleManager(Application.this.frame, Application.this.PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
+			public void onTitleChanged(final String title) {
+				if (Application.this.tray != null) {
+					Application.this.tray.updateTooltip(title);
+				}
 			}
 		};
-		adminControl = new AdminControl();
-		fileShare = new FileShare();
+		this.adminControl = new AdminControl();
+		this.fileShare = new FileShare();
 		Thread.yield();
 		
 		System.out.println("Current version: " + VERSION);
-		frame.setStatus("Checking for updates");
-		versionController = new VersionController();
-		System.out.println("Latest version: " + versionController.refresh(true));
+		this.frame.setStatus("Checking for updates");
+		this.versionController = new VersionController();
+		System.out.println("Latest version: " + this.versionController.refresh(true));
 		//System.out.println("Compatible: " + versionController.isCompatible(versionController.getLatest()));
-		updater = new Updater();
+		this.updater = new Updater();
 
 		// for some reason, it freezes inside isJar()...
 		if (Application.isJar()) {
-			updater.updateCheck(false, true);
+			this.updater.updateCheck(false, true);
 		}
+
+		this.versionController.start();
+		this.setVersion(VERSION);
 		
-		versionController.start();
-		setVersion(VERSION);
-		
-		Profile.getProfile().addHook(() -> new Node(Tag.construct("nick"), getNick()));
-		Node nickNode = Profile.getProfile().search("/nick");
+		Profile.getProfile().addHook(() -> new Node(Tag.construct("nick"), this.getNick()));
+		final Node nickNode = Profile.getProfile().search("/nick");
 		if (nickNode != null) {
-			String nickData = nickNode.getData();
+			final String nickData = nickNode.getData();
 			if (nickData != null) {
-				setNick(nickData);
+				this.setNick(nickData);
 			}
 		}
-		setHostname(System.getProperty("user.name"));
+		this.setHostname(System.getProperty("user.name"));
+
+		this.frame.setStatus("Starting network interface");
+		this.socketManager.start();
+
+		this.frame.setStatus("Loading channels");
+		final ChatContainer chatContainer = this.frame.getChatContainer();
 		
-		frame.setStatus("Starting network interface");
-		socketManager.start();
-		
-		frame.setStatus("Loading channels");
-		ChatContainer chatContainer = frame.getChatContainer();
-		
-		Settings.getSettings().addHook(() -> new Node(Tag.construct("chats"), getMainFrame().getChatContainer().printChats()));
-		Node chatsNode = Settings.getSettings().search("/chats");
+		Settings.getSettings().addHook(() -> new Node(Tag.construct("chats"), this.getMainFrame().getChatContainer().printChats()));
+		final Node chatsNode = Settings.getSettings().search("/chats");
         loadChannels: {
             if (chatsNode != null) {
-                String chatString = chatsNode.getData();
+                final String chatString = chatsNode.getData();
                 if (chatString != null) {
-                    String[] chats = chatString.split(Pattern.quote(","));
+                    final String[] chats = chatString.split(Pattern.quote(","));
                     if (chats.length > 0) {
-                        for (String chatName : chats) {
+                        for (final String chatName : chats) {
                             if (chatName.startsWith("#")) {
                                 chatContainer.add(new Channel(chatContainer, chatName));
                             } else {
@@ -414,9 +422,9 @@ public class Application implements ComplexIdentifiable {
             }
             chatContainer.add(new Channel(chatContainer, "#Global"));
         }
-		
-		frame.toggleInput(true);
-		frame.setStatus("Finalizing startup...", 1000);
+
+		this.frame.toggleInput(true);
+		this.frame.setStatus("Finalizing startup...", 1000);
 		
 		if (!duplicateInstance) {
 			Profile.getProfile().setSavable(true);
@@ -427,18 +435,21 @@ public class Application implements ComplexIdentifiable {
 	/**
 	 * Restarts the entire application.</br>
 	 * This application will only restart if running from a JAR file.
+     * @return Whether the application successfully restarted.
 	 */
-	public static void restart() {
-		if (isJar()) {
-			try {
-				Runtime.getRuntime().exec("java -jar \"" + currentRunningPath().trim() + "\"");
-			} catch (IOException e) {
-				e.printStackTrace();
+	public static boolean restart() {
+		try {
+			final String runningPath = currentRunningPath();
+			if (isJar(runningPath)) {
+                Runtime.getRuntime().exec("java -jar \"" + runningPath.trim() + "\"");
+				System.exit(0);
+				return true;
 			}
-			System.exit(0);
-		} else {
-			System.out.println("Can't restart, not running from jar.");
-		}
+		} catch (final URISyntaxException | IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Can't restart, not running from jar.");
+		return false;
 	}
 	
 	/**
@@ -446,19 +457,22 @@ public class Application implements ComplexIdentifiable {
 	 * @return <tt>true</tt> if application is running from a JAR file, otherwise <tt>false</tt>.
 	 */
 	public static boolean isJar() {
-		final String runningPath = currentRunningPath();
+        try {
+            return isJar(currentRunningPath());
+        } catch (final URISyntaxException e) {
+            return false;
+        }
+    }
+
+	private static boolean isJar(final String runningPath) {
 		return runningPath.toLowerCase().endsWith(".jar");
 	}
 	
 	/**
 	 * @return the current working/running path of this application.
 	 */
-	public static String currentRunningPath() {
-		try {
-			return new File(Application.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
-		} catch (URISyntaxException e) {
-			return null;
-		}
+	public static String currentRunningPath() throws URISyntaxException {
+		return new File(Application.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
 	}
 	
 }

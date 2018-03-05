@@ -1,7 +1,6 @@
 package com.ghsc.gui.components.antispam;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.regex.Pattern;
 
 import com.ghsc.common.Debug;
@@ -10,48 +9,49 @@ import com.ghsc.util.FixedArrayQueue;
 
 /**
  * Prevents users from spamming chat channels. (Doesn't protect PM spamming)
- * @author Odell
  */
 public class SpamControl {
 	
-	private Object spamSync = new Object();
+	private final Object spamSync = new Object();
 	
-	private HashMap<String, SpamBan> banned;
-	private HashMap<String, Integer> offences;
-	private FixedArrayQueue<Long> times;
+	private final HashMap<String, SpamBan> banned;
+	private final HashMap<String, Integer> offences;
+	private final FixedArrayQueue<Long> times;
+
 	private long lastOffence = -1;
-	private String lastChannel = null;
+	private String lastChannel;
 	
 	public SpamControl() {
-		times = new FixedArrayQueue<Long>(3);
-		banned = new HashMap<String, SpamBan>();
-		offences = new HashMap<String, Integer>();
+		this.times = new FixedArrayQueue<>(3);
+		this.banned = new HashMap<>();
+		this.offences = new HashMap<>();
 	}
 	
-	public SpamBan getChannelBan(String channel) {
-		synchronized (spamSync) {
-			return getChannelBanI(channel);
+	public SpamBan getChannelBan(final String channel) {
+		synchronized (this.spamSync) {
+			return this.getChannelBanI(channel);
 		}
 	}
 	
-	private SpamBan getChannelBanI(String channel) {
-		if (!channel.startsWith("#") || !banned.containsKey(channel))
-			return null;
-		SpamBan sb = banned.get(channel);
+	private SpamBan getChannelBanI(final String channel) {
+		if (!channel.startsWith("#") || !this.banned.containsKey(channel)) {
+            return null;
+        }
+		final SpamBan sb = this.banned.get(channel);
 		if (sb.finished()) {
-			banned.remove(channel);
+			this.banned.remove(channel);
 			return null;
 		}
 		return sb;
 	}
 	
 	public void reset() {
-		synchronized (spamSync) {
-			banned.clear();
-			offences.clear();
-			times.clear();
-			lastOffence = -1;
-			lastChannel = null;
+		synchronized (this.spamSync) {
+			this.banned.clear();
+			this.offences.clear();
+			this.times.clear();
+			this.lastOffence = -1;
+			this.lastChannel = null;
 		}
 	}
 	
@@ -63,42 +63,45 @@ public class SpamControl {
 	 * 5 minutes after an offense, all recorded offenses are removed.</br>
 	 * @return 0 is no errors occur, 1 is a warning, 2 you violated the rules and have been restricted access, 3 you are already blocked from this channel.
 	 */
-	public int filter(String message, String channel) {
-		synchronized (spamSync) {
-			if (lastOffence > 0 && offences.size() > 0 && 
-					System.currentTimeMillis() - lastOffence > (offences.get(channel) == 1 ? 30000 : 300000)) {
-				offences.clear();
+	public int filter(final String message, final String channel) {
+		synchronized (this.spamSync) {
+			if (this.lastOffence > 0 && !this.offences.isEmpty() &&
+					System.currentTimeMillis() - this.lastOffence > (this.offences.get(channel) == 1 ? 30000 : 300000)) {
+				this.offences.clear();
 			}
-			if (getChannelBanI(channel) != null)
-				return 3;
-			if (lastChannel != null) {
-				if (lastChannel.equals(channel)) {
-					long curr = System.currentTimeMillis();
-					Long firstL = times.add(curr);
-					if (firstL == null)
-						return 0;
-					if (times.isFull()) {
-						long first = (long) firstL;
+			if (this.getChannelBanI(channel) != null) {
+                return 3;
+            }
+			if (this.lastChannel != null) {
+				if (this.lastChannel.equals(channel)) {
+					final long curr = System.currentTimeMillis();
+					final Long firstL = this.times.add(curr);
+					if (firstL == null) {
+                        return 0;
+                    }
+					if (this.times.isFull()) {
+						final long first = firstL;
 						if (curr - first < 2400) { // 2000 - 3000
-							lastOffence = curr;
-							if (offences.containsKey(channel)) {
-								long time = 60000L * (long) Math.pow(3, offences.get(channel) - 1);
-								if (Debug.MAJOR.compareTo(Application.DEBUG) < 0)
-									System.out.println("Time: " + time);
-								banned.put(channel, new SpamBan(lastOffence, time));
-								offences.put(channel, offences.get(channel) + 1);
+							this.lastOffence = curr;
+							if (this.offences.containsKey(channel)) {
+								final long time = 60000L * (long) Math.pow(3, this.offences.get(channel) - 1);
+								if (Debug.MAJOR.compareTo(Application.DEBUG) < 0) {
+                                    System.out.println("Time: " + time);
+                                }
+								this.banned.put(channel, new SpamBan(this.lastOffence, time));
+								this.offences.put(channel, this.offences.get(channel) + 1);
 								return 2;
 							} else {
-								offences.put(channel, 1);
+								this.offences.put(channel, 1);
 								return 1;
 							}
 						}
 					}
 				} else {
-					times.clear();
+					this.times.clear();
 				}
 			}
-			lastChannel = channel;
+			this.lastChannel = channel;
 			return 0;
 		}
 	}
@@ -107,13 +110,14 @@ public class SpamControl {
 	 * Loads the SpamControl with the given Settings data.
 	 * @param data - the data to load the SpamControl with.
 	 */
-	public void load(String[] data) {
-		for (String s : data) {
-			String[] mini = s.split(Pattern.quote("|"), 3);
-			SpamBan sb = new SpamBan(Long.parseLong(mini[1]), Long.parseLong(mini[2]));
-			if (sb.finished())
-				continue;
-			banned.put(mini[0], sb);
+	public void load(final String[] data) {
+		for (final String s : data) {
+			final String[] mini = s.split(Pattern.quote("|"), 3);
+			final SpamBan sb = new SpamBan(Long.parseLong(mini[1]), Long.parseLong(mini[2]));
+			if (sb.finished()) {
+                continue;
+            }
+			this.banned.put(mini[0], sb);
 		}
 	}
 	
@@ -121,14 +125,13 @@ public class SpamControl {
 	 * @return CHANNEL|AT|TIME,CHANNEL|AT|TIME, | | | , ...
 	 */
 	public String printBanned() {
-		StringBuilder build = new StringBuilder();
-		synchronized (spamSync) {
-			Iterator<String> it = banned.keySet().iterator();
-			while (it.hasNext()) {
-				String channel = it.next();
-				SpamBan sb = banned.get(channel);
-				if (sb.finished())
+		final StringBuilder build = new StringBuilder();
+		synchronized (this.spamSync) {
+			for (final String channel : this.banned.keySet()) {
+				final SpamBan sb = this.banned.get(channel);
+				if (sb.finished()) {
 					continue;
+				}
 				build.append(channel);
 				build.append('|');
 				build.append(sb.at);
@@ -137,34 +140,36 @@ public class SpamControl {
 				build.append(',');
 			}
 		}
-		if (build.length() > 0)
-			build.deleteCharAt(build.length() - 1);
+		if (build.length() > 0) {
+            build.deleteCharAt(build.length() - 1);
+        }
 		return build.toString();
 	}
 	
 	public class SpamBan {
+
+	    final long at;
+        final long time;
 		
-		long at, time;
-		
-		private SpamBan(long at, long time) {
+		private SpamBan(final long at, final long time) {
 			this.at = at;
 			this.time = time;
 		}
 		
 		private long elapsed() {
-			return System.currentTimeMillis() - at;
+			return System.currentTimeMillis() - this.at;
 		}
 		
 		public boolean finished() {
-			return remaining() <= 0;
+			return this.remaining() <= 0;
 		}
 		
 		public long duration() {
-			return time;
+			return this.time;
 		}
 		
 		public long remaining() {
-			return time - elapsed();
+			return this.time - this.elapsed();
 		}
 		
 	}

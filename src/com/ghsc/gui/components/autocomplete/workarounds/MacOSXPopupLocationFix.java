@@ -29,15 +29,16 @@ public final class MacOSXPopupLocationFix {
 	private MacOSXPopupLocationFix(JComboBox comboBox) {
 		this.comboBox = comboBox;
 		this.popupMenu = (JPopupMenu) comboBox.getUI().getAccessibleChild(comboBox, 0);
-		popupMenu.addPopupMenuListener(listener);
+		this.popupMenu.addPopupMenuListener(this.listener);
 	}
 
 	/**
 	 * Install the fix for the specified combo box.
 	 */
 	public static MacOSXPopupLocationFix install(JComboBox comboBox) {
-		if (comboBox == null)
+		if (comboBox == null) {
 			throw new IllegalArgumentException("combobox can't be null.");
+		}
 		return new MacOSXPopupLocationFix(comboBox);
 	}
 
@@ -45,7 +46,7 @@ public final class MacOSXPopupLocationFix {
 	 * Uninstall the fix. Usually this is unnecessary since letting the combo box go out of scope is sufficient.
 	 */
 	public void uninstall() {
-		popupMenu.removePopupMenuListener(listener);
+		this.popupMenu.removePopupMenuListener(this.listener);
 	}
 
 	/**
@@ -54,7 +55,7 @@ public final class MacOSXPopupLocationFix {
 	private class Listener implements PopupMenuListener {
 		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 			final JComponent popupComponent = (JComponent) e.getSource();
-			fixPopupLocation(popupComponent);
+			MacOSXPopupLocationFix.this.fixPopupLocation(popupComponent);
 		}
 		public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
 		public void popupMenuCanceled(PopupMenuEvent e) {}
@@ -70,12 +71,12 @@ public final class MacOSXPopupLocationFix {
 		}
 		// put the popup right under the combo box so it looks like a
 		// normal Aqua combo box
-		Point comboLocationOnScreen = comboBox.getLocationOnScreen();
-		int comboHeight = comboBox.getHeight();
+		Point comboLocationOnScreen = this.comboBox.getLocationOnScreen();
+		int comboHeight = this.comboBox.getHeight();
 		int popupY = comboLocationOnScreen.y + comboHeight;
 		// ...unless the popup overflows the screen, in which case we put it
 		// above the combobox
-		Rectangle screenBounds = new ScreenGeometry(comboBox).getScreenBounds();
+		Rectangle screenBounds = new ScreenGeometry(this.comboBox).getScreenBounds();
 		int popupHeight = popupComponent.getPreferredSize().height;
 		if (comboLocationOnScreen.y + comboHeight + popupHeight > screenBounds.x + screenBounds.height) {
 			popupY = comboLocationOnScreen.y - popupHeight;
@@ -96,24 +97,26 @@ public final class MacOSXPopupLocationFix {
 		final boolean aqua;
 
 		public ScreenGeometry(JComponent component) {
-			this.aqua = UIManager.getLookAndFeel().getName().indexOf("Aqua") != -1;
-			this.graphicsConfiguration = graphicsConfigurationForComponent(component);
+			this.aqua = UIManager.getLookAndFeel().getName().contains("Aqua");
+			this.graphicsConfiguration = this.graphicsConfigurationForComponent(component);
 		}
 
 		/**
 		 * Get the best graphics configuration for the specified point and component.
 		 */
-		private GraphicsConfiguration graphicsConfigurationForComponent(Component component) {
-			Point point = component.getLocationOnScreen();
+		private GraphicsConfiguration graphicsConfigurationForComponent(final Component component) {
+			final Point point = component.getLocationOnScreen();
 			// try to find the graphics configuration for our point of interest
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			GraphicsDevice[] gd = ge.getScreenDevices();
-			for (int i = 0; i < gd.length; i++) {
-				if (gd[i].getType() != GraphicsDevice.TYPE_RASTER_SCREEN) 
+			for (GraphicsDevice aGd : gd) {
+				if (aGd.getType() != GraphicsDevice.TYPE_RASTER_SCREEN) {
 					continue;
-				GraphicsConfiguration defaultGraphicsConfiguration = gd[i].getDefaultConfiguration();
-				if (!defaultGraphicsConfiguration.getBounds().contains(point)) 
+				}
+				GraphicsConfiguration defaultGraphicsConfiguration = aGd.getDefaultConfiguration();
+				if (!defaultGraphicsConfiguration.getBounds().contains(point)) {
 					continue;
+				}
 				return defaultGraphicsConfiguration;
 			}
 			// we couldn't find a graphics configuration, use the component's
@@ -124,8 +127,8 @@ public final class MacOSXPopupLocationFix {
 		 * Get the bounds of where we can put a popup.
 		 */
 		public Rectangle getScreenBounds() {
-			Rectangle screenSize = getScreenSize();
-			Insets screenInsets = getScreenInsets();
+			Rectangle screenSize = this.getScreenSize();
+			Insets screenInsets = this.getScreenInsets();
 			return new Rectangle(screenSize.x + screenInsets.left, screenSize.y + screenInsets.top, screenSize.width - screenInsets.left - screenInsets.right, screenSize.height - screenInsets.top - screenInsets.bottom);
 		}
 
@@ -134,8 +137,8 @@ public final class MacOSXPopupLocationFix {
 		 */
 		public Rectangle getScreenSize() {
 			// get the screen bounds and insets via the graphics configuration
-			if (graphicsConfiguration != null) {
-				return graphicsConfiguration.getBounds();
+			if (this.graphicsConfiguration != null) {
+				return this.graphicsConfiguration.getBounds();
 			}
 			// just use the toolkit bounds, it's less awesome but sufficient
 			return new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
@@ -146,13 +149,13 @@ public final class MacOSXPopupLocationFix {
 		 */
 		public Insets getScreenInsets() {
 			Insets screenInsets;
-			if (graphicsConfiguration != null) {
-				screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(graphicsConfiguration);
+			if (this.graphicsConfiguration != null) {
+				screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(this.graphicsConfiguration);
 			} else {
 				screenInsets = new Insets(0, 0, 0, 0);
 			}
 			// tweak the insets for aqua, they're reported incorrectly there
-			if (aqua) {
+			if (this.aqua) {
 				int aquaBottomInsets = 21; // unreported insets, shown in screenshot, https://glazedlists.dev.java.net/issues/show_bug.cgi?id=332
 				int aquaTopInsets = 22; // for Apple menu bar, found via debugger
 				screenInsets.bottom = Math.max(screenInsets.bottom, aquaBottomInsets);

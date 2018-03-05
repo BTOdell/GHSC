@@ -26,7 +26,7 @@ public class FileTransferListener implements ISocketController {
 			try {
 				try {
 					while (true) {
-						fileShare.process(socket.accept());
+                        FileTransferListener.this.fileShare.process(FileTransferListener.this.socket.accept());
 					}
 				} catch (SocketException se) {
 					throw se;
@@ -42,15 +42,14 @@ public class FileTransferListener implements ISocketController {
 	
 	/**
 	 * Initializes a new FileTransferListener.
-	 * @param application - the main application.
-	 * @throws IOException
+	 * @throws IOException If an error occurs when creating the underlying server socket.
 	 */
 	public FileTransferListener() throws IOException {
 		final Application application = Application.getInstance();
 		this.fileShare = application.getFileShare();
 		//socket = new ServerSocket(0, 10, Inet4Address.getByName(Application.NETWORK.getIP()));
 		this.socket = new ServerSocket(0, 10, null);
-		this.selfPort = socket.getLocalPort();
+		this.selfPort = this.socket.getLocalPort();
 		this.listener = new Thread(this.runnable);
 		this.listener.setName("FileTransferListener");
 	}
@@ -60,20 +59,21 @@ public class FileTransferListener implements ISocketController {
 	 */
 	@Override
 	public void start() {
-		listener.start();
+        this.listener.start();
 	}
 	
 	public int getPort() {
-		return selfPort;
+		return this.selfPort;
 	}
 	
 	/**
 	 * Closes the file transfer socket listener, thus stops listening.
-	 * @throws IOException
 	 */
 	@Override
-	public void close() throws IOException {
-		socket.close();
+	public void close() {
+		try {
+			this.socket.close();
+		} catch (final IOException ignored) { }
 	}
 	
 }

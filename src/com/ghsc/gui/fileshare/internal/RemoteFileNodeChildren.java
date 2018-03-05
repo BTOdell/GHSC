@@ -12,7 +12,7 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	
 	public RemoteFileNodeChildren(final RemoteFileNode parent) {
 		super(parent);
-		this.endTag = new StringBuilder("</").append(getTagName()).append(">").toString();
+		this.endTag = new StringBuilder("</").append(this.getTagName()).append(">").toString();
 	}
 
 	@Override
@@ -22,7 +22,7 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 	
 	@Override
 	public String getEndTag() {
-		return endTag;
+		return this.endTag;
 	}
 	
 	@Override
@@ -31,7 +31,7 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 			Taggable t = (Taggable) o;
 			String tName = t.getTagName();
 			if (tName != null && (tName.equals(FileNode.TAGNAME_FILE) || tName.equals(FileNode.TAGNAME_DIR))) {
-				add((RemoteFileNode) t);
+				this.add((RemoteFileNode) t);
 			}
 		}
 	}
@@ -41,9 +41,10 @@ public class RemoteFileNodeChildren extends FileNodeChildren<RemoteFileNode> {
 		final String tagName = tag.getName();
 		if (tagName != null && (tagName.equals(FileNode.TAGNAME_FILE) || tagName.equals(FileNode.TAGNAME_DIR))) {
 			final String name = tag.getAttribute(FileNode.ATT_NAME);
-			if (name == null)
-				return null;
-			final String path = RemoteFileNode.tracePath(getParent(), name);
+			if (name == null) {
+                return null;
+            }
+			final String path = RemoteFileNode.tracePath(this.getParent(), name);
 			if (tagName.equals(FileNode.TAGNAME_FILE)) {
 				final String size = tag.getAttribute(FileNode.ATT_SIZE);
 				if (size != null) {

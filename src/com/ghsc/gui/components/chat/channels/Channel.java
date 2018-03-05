@@ -23,32 +23,32 @@ public class Channel extends Chat {
 	public Channel(ChatContainer container, String name) {
 		super(container, name);
 		
-		this.addElement(new ChannelElement(elements, TimeStamp.newInstance(), this.name, "Welcome!", null), false);
+		this.addElement(new ChannelElement(this.elements, TimeStamp.newInstance(), this.name, "Welcome!", null), false);
 	}
 	
 	@Override
 	protected void init() {
-		panel = new JPanel();
-		scrollPane = new JScrollPane();
-		scrollPane.addComponentListener(new ComponentAdapter() {
+		this.panel = new JPanel();
+		this.scrollPane = new JScrollPane();
+		this.scrollPane.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent ce) {
-				elements.invalidate();
+				Channel.this.elements.invalidate();
 			}
 		});
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(8);
-		scrollPane.setViewportView(elements = new ChatElementList(this));
+		this.scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		this.scrollPane.getVerticalScrollBar().setUnitIncrement(8);
+		this.scrollPane.setViewportView(this.elements = new ChatElementList(this));
 		
-		GroupLayout gl_panel = new GroupLayout(panel);
+		GroupLayout gl_panel = new GroupLayout(this.panel);
 		gl_panel.setHorizontalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
+				.addComponent(this.scrollPane, GroupLayout.DEFAULT_SIZE, 399, Short.MAX_VALUE)
 		);
 		gl_panel.setVerticalGroup(
 			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
+				.addComponent(this.scrollPane, GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
 		);
-		panel.setLayout(gl_panel);
+		this.panel.setLayout(gl_panel);
 	}
 	
 	/**
@@ -57,11 +57,13 @@ public class Channel extends Chat {
 	 * @param scroll - whether to scroll this element into view after it appears.
 	 */
 	synchronized public final void addElement(ChannelElement element, boolean scroll) {
-		if (element == null)
+		if (element == null) {
 			return;
-		elements.addElement(element);
-		if (scroll)
-			scrollBottom();
+		}
+		this.elements.addElement(element);
+		if (scroll) {
+			this.scrollBottom();
+		}
 	}
 	
 	/**
@@ -70,8 +72,8 @@ public class Channel extends Chat {
 	 */
 	public void refreshUser(User u) {
 		boolean changed = false;
-		for (int i = 0; i < elements.getCount(); i++) {
-			ChannelElement element = (ChannelElement) elements.get(i);
+		for (int i = 0; i < this.elements.getCount(); i++) {
+			ChannelElement element = (ChannelElement) this.elements.get(i);
 			if (u == null) {
 				if (element.isMe()) {
 					element.refreshAll();
@@ -82,8 +84,9 @@ public class Channel extends Chat {
 				changed = true;
 			}
 		}
-		if (changed)
-			repaint();
+		if (changed) {
+			this.repaint();
+		}
 	}
 	
 	/**
@@ -91,9 +94,10 @@ public class Channel extends Chat {
 	 */
 	public int getUserCount() {
 		int count = 0;
-		for (User u : container.frame.getUsers().getUserCollection()) {
-			if (u.inChannel(name))
+		for (User u : this.container.frame.getUsers().getUserCollection()) {
+			if (u.inChannel(this.name)) {
 				count++;
+			}
 		}
 		return count;
 	}

@@ -14,7 +14,7 @@ public class RemotePackage extends FilePackage {
 	
 	private final User host;
 	private RemoteFileNode[] roots;
-	private boolean passwordProtected = false;
+	private boolean passwordProtected;
 	
 	public RemotePackage(final User user, final String name, final String description, String creationDateS, final Visibility visibility, final boolean passwordProtected, final String uuid) {
 		super(name, description, parseCalendar(new SimpleDateFormat(DATE_FORMAT), creationDateS), visibility);
@@ -25,25 +25,25 @@ public class RemotePackage extends FilePackage {
 	
 	@Override
 	public UUID getUUID() {
-		return uuid;
+		return this.uuid;
 	}
 	
 	public User getHost() {
-		return host;
+		return this.host;
 	}
 	
 	@Override
 	public String getOwner() {
-		return host.getPreferredName();
+		return this.host.getPreferredName();
 	}
 	
 	@Override
 	public boolean isPasswordProtected() {
-		return passwordProtected;
+		return this.passwordProtected;
 	}
 	
 	public RemoteFileNode[] getRoots() {
-		return roots;
+		return this.roots;
 	}
 	
 	public void setRoots(final RemoteFileNode[] roots) {
@@ -52,35 +52,38 @@ public class RemotePackage extends FilePackage {
 	
 	@Override
 	public long getFileCount() {
-		if (fileCount == null) {
+		if (this.fileCount == null) {
 			long temp = 0;
-			for (final RemoteFileNode node : getRoots())
-				temp += node.getFileCount();
-			fileCount = temp;
+			for (final RemoteFileNode node : this.getRoots()) {
+                temp += node.getFileCount();
+            }
+			this.fileCount = temp;
 		}
-		return fileCount;
+		return this.fileCount;
 	}
 
 	@Override
 	public long getDirectoryCount() {
-		if (directoryCount == null) {
+		if (this.directoryCount == null) {
 			long temp = 0;
-			for (final RemoteFileNode node : getRoots())
-				temp += node.getDirectoryCount();
-			directoryCount = temp;
+			for (final RemoteFileNode node : this.getRoots()) {
+                temp += node.getDirectoryCount();
+            }
+			this.directoryCount = temp;
 		}
-		return directoryCount;
+		return this.directoryCount;
 	}
 	
 	@Override
 	public long getSize() {
-		if (size == null) {
+		if (this.size == null) {
 			long temp = 0;
-			for (final RemoteFileNode node : getRoots())
-				temp += node.getSize();
-			size = temp;
+			for (final RemoteFileNode node : this.getRoots()) {
+                temp += node.getSize();
+            }
+			this.size = temp;
 		}
-		return size;
+		return this.size;
 	}
 	
 	public static RemotePackage parse(final User u, final String meta) {
@@ -89,15 +92,17 @@ public class RemotePackage extends FilePackage {
 	
 	public static RemotePackage parse(final User u, final Tag pTag) {
 		// parse package info...
-		if (pTag == null)
-			return null;
+		if (pTag == null) {
+            return null;
+        }
 		String name = null, uuid = null, vA = null, cD = null;
 		if (!pTag.getName().equals(TAGNAME) || (name = pTag.getAttribute(ATT_NAME)) == null || 
 			(uuid = pTag.getAttribute(ATT_UUID)) == null || (vA = pTag.getAttribute(ATT_VISIBILITY)) == null ||
-			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null)
-			return null;
+			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null) {
+            return null;
+        }
 		final int vIndex = vA.indexOf(':');
-		final String[] vD = new String[] { vA.substring(0, vIndex), vA.substring(vIndex + 1, vA.length()) };
+		final String[] vD = { vA.substring(0, vIndex), vA.substring(vIndex + 1, vA.length()) };
 		final RemotePackage rp = new RemotePackage(u, name, pTag.getAttribute(ATT_DESCRIPTION), cD, new Visibility(Visibility.Type.match(vD[0]), vD.length > 1 ? vD[1] : null), Utilities.resolveToBoolean(pTag.getAttribute(ATT_PASSWORDPROTECTED)), uuid);
 		rp.setDownloadCount(Long.parseLong(pTag.getAttribute(ATT_DOWNLOADCOUNT)));
 		
@@ -113,7 +118,9 @@ public class RemotePackage extends FilePackage {
 				peek = tagStack.peek();
 				if (peek != null) {
 					peek.receive(popT);
-				} else break;
+				} else {
+                    break;
+                }
 			} else {
 				final Tag newTag = new Tag(build).parseBasic();
 				if (newTag != null) {

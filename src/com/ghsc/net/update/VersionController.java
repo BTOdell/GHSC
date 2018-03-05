@@ -13,63 +13,57 @@ import com.ghsc.gui.Application;
 import com.ghsc.impl.Filter;
 
 /**
- * Creates a controller to manage different versions of GHSC interacting with the running version.
- * @author Odell
+ * Creates a controller to manage different versions of the application interacting with the running version.
  */
 public class VersionController {
 	
-	private int DELAY = 10000;
+	private final int DELAY = 10000;
 	
-	private ArrayList<Version> versions;
-	private Object versionSync = new Object();
+	private final ArrayList<Version> versions;
+	private final Object versionSync = new Object();
 	
 	private Thread workThread;
-	private Runnable workRunnable = new Runnable() {
-		public void run() {
-			try {
-				while (running) {
-					Version lastLatest = getLatest();
-					Version newLatest = refresh(false);
-					if (!running)
-						break;
-					if (lastLatest.compareTo(newLatest) > 0) {
-						new Thread(new Runnable() {
-							public void run() {
-								Application.getInstance().getUpdater().updateCheck(false, false);
-							}
-						}).start();
-					}
-					Thread.sleep(DELAY);
-				}
-			} catch (Exception e) {}
-		}
-	};
+	private final Runnable workRunnable = () -> {
+        try {
+            while (this.running) {
+                Version lastLatest = this.getLatest();
+                Version newLatest = this.refresh(false);
+                if (!this.running) {
+					break;
+                }
+                if (lastLatest.compareTo(newLatest) > 0) {
+                    new Thread(() -> Application.getInstance().getUpdater().updateCheck(false, false)).start();
+                }
+                Thread.sleep(this.DELAY);
+            }
+        } catch (Exception ignored) {}
+    };
 	private boolean running = true;
 	
 	/**
 	 * Initializes a new VersionController.
 	 */
 	public VersionController() {
-		versions = new ArrayList<Version>();
+		this.versions = new ArrayList<>();
 	}
 	
 	/**
 	 * Starts the threaded version monitor.
 	 */
 	public void start() {
-		workThread = new Thread(workRunnable);
-		workThread.setName("Version controller");
-		running = true;
-		workThread.start();
+		this.workThread = new Thread(this.workRunnable);
+		this.workThread.setName("Version controller");
+		this.running = true;
+		this.workThread.start();
 	}
 	
 	/**
 	 * Stops the threaded version monitor.
 	 */
 	public void stop() {
-		if (workThread != null && workThread.isAlive()) {
-			running = false;
-			workThread.interrupt();
+		if (this.workThread != null && this.workThread.isAlive()) {
+			this.running = false;
+			this.workThread.interrupt();
 		}
 	}
 	
@@ -77,7 +71,7 @@ public class VersionController {
 	 * @return a sorted array of all the Versions currently loaded.
 	 */
 	private Version[] getAll() {
-		Version[] va = versions.toArray(new Version[versions.size()]);
+		final Version[] va = this.versions.toArray(new Version[this.versions.size()]);
 		Arrays.sort(va);
 		return va;
 	}
@@ -86,8 +80,8 @@ public class VersionController {
 	 * @return the latest known version of GHSC.
 	 */
 	public Version getLatest() {
-		synchronized (versionSync) {
-			Version[] all = getAll();
+		synchronized (this.versionSync) {
+			final Version[] all = this.getAll();
 			return all.length > 0 ? all[0] : null;
 		}
 	}
@@ -97,65 +91,52 @@ public class VersionController {
 	 * @param notify - whether it's ok to display a version failed message box.
 	 * @return the latest online version.
 	 */
-	public Version refresh(boolean notify) {
+	public Version refresh(final boolean notify) {
 		try {
-			URL url = new URL(Paths.WEBHOST_VERSION);
-			BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-			synchronized (versionSync) {
-				versions.clear();
+			final URL url = new URL(Paths.WEBHOST_VERSION);
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+			synchronized (this.versionSync) {
+				this.versions.clear();
 				String line;
 				while ((line = reader.readLine()) != null) {
-					Version v = Version.parse(line);
-					if (v == null)
-						throw new Exception("Version parse error!");
-					versions.add(v);
+					final Version v = Version.parse(line);
+					if (v == null) {
+                        throw new Exception("Version parse error!");
+                    }
+					this.versions.add(v);
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if (notify) {
 				JOptionPane.showMessageDialog(null, "Unable to reach version host!", "Version error", JOptionPane.ERROR_MESSAGE);
 				return null;
 			}
 		}
-		return getLatest();
+		return this.getLatest();
 	}
 	
 	/**
 	 * Determines if the given version is a compatible version with the current running version.
 	 * @return <tt>true</tt> if the given version is compatible, otherwise <tt>false</tt>.
 	 */
-	public boolean isCompatible(Version v) {
-		if (v.equals(Application.VERSION))
-			return true;
-		return !isValid(v, new Filter<Version>() {
-			public boolean accept(Version v) {
-				return v.hasFlag(Version.COMPATIBLE);
-			}
-		});
+	public boolean isCompatible(final Version v) {
+		return v.equals(Application.VERSION) || !this.isValid(v, v1 -> v1.hasFlag(Version.COMPATIBLE));
 	}
 	
 	/**
 	 * Determines if the given version is a compatible version with the current running version.
 	 * @return <tt>true</tt> if the given version is compatible, otherwise <tt>false</tt>.
 	 */
-	public boolean isRequired(Version v) {
-		return isValid(v, new Filter<Version>() {
-			public boolean accept(Version v) {
-				return v.hasFlag(Version.REQUIRED);
-			}
-		});
+	public boolean isRequired(final Version v) {
+		return this.isValid(v, v1 -> v1.hasFlag(Version.REQUIRED));
 	}
 	
 	/**
 	 * Determines if the given version is a compatible version with the current running version.
 	 * @return <tt>true</tt> if the given version is compatible, otherwise <tt>false</tt>.
 	 */
-	public boolean isForced(Version v) {
-		return isValid(v, new Filter<Version>() {
-			public boolean accept(Version v) {
-				return v.hasFlag(Version.FORCED);
-			}
-		});
+	public boolean isForced(final Version v) {
+		return this.isValid(v, v1 -> v1.hasFlag(Version.FORCED));
 	}
 	
 	/**
@@ -163,25 +144,31 @@ public class VersionController {
 	 * @param to The latest version.
 	 * @param filter The filter to qualify versions.
 	 */
-	protected boolean isValid(Version to, Filter<Version> filter) {
-		synchronized (versionSync) {
-			if (!versions.contains(to) || !versions.contains(Application.VERSION))
-				return false;
-			Version[] vall = getAll(), vm = { to, Application.VERSION };
+    private boolean isValid(final Version to, final Filter<Version> filter) {
+		synchronized (this.versionSync) {
+			if (!this.versions.contains(to) || !this.versions.contains(Application.VERSION)) {
+                return false;
+            }
+			final Version[] vall = this.getAll();
+			final Version[] vm = { to, Application.VERSION };
 			Arrays.sort(vm);
-			Version latest = vm[0], current = vm[1];
+			final Version latest = vm[0];
+			final Version current = vm[1];
 			boolean checking = false;
-			for (Version c : vall) {
+			for (final Version c : vall) {
 				if (checking) {
-					if (current.equals(c))
-						break;
+					if (current.equals(c)) {
+                        break;
+                    }
 				} else {
-					if (latest.equals(c))
-						checking = true;
+					if (latest.equals(c)) {
+                        checking = true;
+                    }
 				}
 				if (checking) {
-					if (filter.accept(c))
-						return true;
+					if (filter.accept(c)) {
+                        return true;
+                    }
 				}
 			}
 			return false;

@@ -26,7 +26,7 @@ public class TimeStamp {
 	 * Sets whether to display seconds on the end of the String from {@link #print(Style)}.
 	 */
 	public void setShowSeconds(boolean show) {
-		showSeconds = show;
+		this.showSeconds = show;
 	}
 	
 	/**
@@ -39,21 +39,25 @@ public class TimeStamp {
 		StringBuilder build = new StringBuilder();
 		byte h = this.h;
 		if (style == Style.Hour12) {
-			if (h > 12)
-				h -= 12;
+			if (h > 12) {
+                h -= 12;
+            }
 		}
-		if (h < 10)
-			build.append("0");
+		if (h < 10) {
+            build.append("0");
+        }
 		build.append(h);
 		build.append(":");
-		if (m < 10)
-			build.append("0");
-		build.append(m);
-		if (showSeconds) {
+		if (this.m < 10) {
+            build.append("0");
+        }
+		build.append(this.m);
+		if (this.showSeconds) {
 			build.append(":");
-			if (s < 10)
-				build.append("0");
-			build.append(s);
+			if (this.s < 10) {
+                build.append("0");
+            }
+			build.append(this.s);
 		}
 		return build.toString();
 	}

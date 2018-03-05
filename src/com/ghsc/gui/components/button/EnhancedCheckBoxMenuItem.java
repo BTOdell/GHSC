@@ -19,13 +19,13 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	
 	private final ChangeListener cl = new ChangeListener() {
 		public void stateChanged(ChangeEvent e) {
-			if (getModel().isArmed() && isShowing()) {
+			if (EnhancedCheckBoxMenuItem.this.getModel().isArmed() && EnhancedCheckBoxMenuItem.this.isShowing()) {
 				path = MenuSelectionManager.defaultManager().getSelectedPath();
 			}
 		}
 	};
 	
-	private boolean stayOpen = false;
+	private boolean stayOpen;
 
 	public EnhancedCheckBoxMenuItem() {
 		super();
@@ -33,7 +33,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	
 	public EnhancedCheckBoxMenuItem(boolean stayOpen) {
 		super();
-		setStayOpen(stayOpen);
+		this.setStayOpen(stayOpen);
 	}
 	
 	public EnhancedCheckBoxMenuItem(String text) {
@@ -42,20 +42,20 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	
 	public EnhancedCheckBoxMenuItem(String text, boolean stayOpen) {
 		super(text);
-		setStayOpen(stayOpen);
+		this.setStayOpen(stayOpen);
 	}
 	
 	public boolean isStayOpen() {
-		return stayOpen;
+		return this.stayOpen;
 	}
 	
 	public void setStayOpen(boolean enabled) {
-		if (stayOpen != enabled) { // state will change
+		if (this.stayOpen != enabled) { // state will change
 			this.stayOpen = enabled;
 			if (enabled) {
-				getModel().addChangeListener(cl);
+				this.getModel().addChangeListener(this.cl);
 			} else {
-				getModel().removeChangeListener(cl);
+				this.getModel().removeChangeListener(this.cl);
 			}
 		}
 	}

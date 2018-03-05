@@ -36,7 +36,7 @@ public class FindPackageDialog extends JDialog {
 	
 	private Border errorBorder = BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.RED), BorderFactory.createEmptyBorder(0, 2, 0, 0));
 	
-	private SwingWorker<ValidationResult<RemotePackage[], Boolean>, String> discoverWorker = null;
+	private SwingWorker<ValidationResult<RemotePackage[], Boolean>, String> discoverWorker;
 	
 	private JLabel keyLabel;
 	private JTextField keyField;
@@ -51,110 +51,111 @@ public class FindPackageDialog extends JDialog {
 		this.frame = frame;
 		this.listener = listener;
 		this.validator = validator;
-		
-		initComponents();
+
+		this.initComponents();
 	}
 	
 	private void close() {
-		listener.wizardFinished(null);
-		dispose();
+		this.listener.wizardFinished(null);
+		this.dispose();
 	}
 	
 	private void initComponents() {
-		addWindowListener(new WindowAdapter() {
+		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent arg0) {
-				close();
+				FindPackageDialog.this.close();
 			}
 		});
-		setIconImage(Images.FIND);
-		setFont(Fonts.GLOBAL);
-		setTitle("Find private package");
-		setAlwaysOnTop(true);
-		setResizable(false);
-		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		setSize(273, 130);
-		setLocationRelativeTo(frame);
-	
-		getContentPane().setLayout(null);
-		getContentPane().add(getKeyLabel());
-		getContentPane().add(getKeyField());
-		getContentPane().add(getOkButton());
-		getContentPane().add(getCancelButton());
+		this.setIconImage(Images.FIND);
+		this.setFont(Fonts.GLOBAL);
+		this.setTitle("Find private package");
+		this.setAlwaysOnTop(true);
+		this.setResizable(false);
+		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		this.setSize(273, 130);
+		this.setLocationRelativeTo(this.frame);
+
+		this.getContentPane().setLayout(null);
+		this.getContentPane().add(this.getKeyLabel());
+		this.getContentPane().add(this.getKeyField());
+		this.getContentPane().add(this.getOkButton());
+		this.getContentPane().add(this.getCancelButton());
 	}
 	
 	private JLabel getKeyLabel() {
-		if (keyLabel == null) {
-			keyLabel = new JLabel("Enter a private package key.");
-			keyLabel.setFont(Fonts.GLOBAL);
-			keyLabel.setBounds(23, 11, 220, 20);
+		if (this.keyLabel == null) {
+			this.keyLabel = new JLabel("Enter a private package key.");
+			this.keyLabel.setFont(Fonts.GLOBAL);
+			this.keyLabel.setBounds(23, 11, 220, 20);
 		}
-		return keyLabel;
+		return this.keyLabel;
 	}
 	
 	private JTextField getKeyField() {
-		if (keyField == null) {
-			keyField = new JTextField();
-			keyField.setBounds(23, 31, 220, 20);
-			keyField.setColumns(10);
+		if (this.keyField == null) {
+			this.keyField = new JTextField();
+			this.keyField.setBounds(23, 31, 220, 20);
+			this.keyField.setColumns(10);
 			// TODO: make sure the user can only enter in private keys to the specified format
 		}
-		return keyField;
+		return this.keyField;
 	}
 	
 	private JButton getOkButton() {
-		if (okButton == null) {
-			okButton = new JButton("OK");
-			okButton.addActionListener(new ActionListener() {
+		if (this.okButton == null) {
+			this.okButton = new JButton("OK");
+			this.okButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					if (discoverWorker == null) {
-						final String key = getKeyField().getText();
-						discoverWorker = new SwingWorker<ValidationResult<RemotePackage[], Boolean>, String>() {
+					if (FindPackageDialog.this.discoverWorker == null) {
+						final String key = FindPackageDialog.this.getKeyField().getText();
+						FindPackageDialog.this.discoverWorker = new SwingWorker<ValidationResult<RemotePackage[], Boolean>, String>() {
 							protected ValidationResult<RemotePackage[], Boolean> doInBackground() throws Exception {
-								return validator.validate(key);
+								return FindPackageDialog.this.validator.validate(key);
 							}
 							protected void done() {
 								try {
-									ValidationResult<RemotePackage[], Boolean> result = get();
+									ValidationResult<RemotePackage[], Boolean> result = this.get();
 									if (result != null && result.getResult()) {
-										listener.wizardFinished(result.getValue());
-										dispose();
+										FindPackageDialog.this.listener.wizardFinished(result.getValue());
+										FindPackageDialog.this.dispose();
 									} else {
-										getKeyField().setBorder(errorBorder);
+										FindPackageDialog.this.getKeyField().setBorder(FindPackageDialog.this.errorBorder);
 									}
-								} catch (Exception e) {
+								} catch (Exception ignored) {
 								} finally {
-									discoverWorker = null;
+									FindPackageDialog.this.discoverWorker = null;
 								}
 							}
 						};
-						discoverWorker.execute();
+						FindPackageDialog.this.discoverWorker.execute();
 					}
 				}
 			});
-			okButton.setFont(Fonts.GLOBAL);
-			okButton.setActionCommand("OK");
-			okButton.setBounds(23, 62, 105, 23);
-			getRootPane().setDefaultButton(okButton);
+			this.okButton.setFont(Fonts.GLOBAL);
+			this.okButton.setActionCommand("OK");
+			this.okButton.setBounds(23, 62, 105, 23);
+			this.getRootPane().setDefaultButton(this.okButton);
 		}
-		return okButton;
+		return this.okButton;
 	}
 	
 	private JButton getCancelButton() {
-		if (cancelButton == null) {
-			cancelButton = new JButton("Cancel");
-			cancelButton.addActionListener(new ActionListener() {
+		if (this.cancelButton == null) {
+			this.cancelButton = new JButton("Cancel");
+			this.cancelButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent event) {
-					if (discoverWorker != null)
-						discoverWorker.cancel(true);
-					close();
+					if (FindPackageDialog.this.discoverWorker != null) {
+						FindPackageDialog.this.discoverWorker.cancel(true);
+                    }
+					FindPackageDialog.this.close();
 				}
 			});
-			cancelButton.setFont(Fonts.GLOBAL);
-			cancelButton.setToolTipText("Cancels this dialog.");
-			cancelButton.setActionCommand("Cancel");
-			cancelButton.setBounds(138, 62, 105, 23);
+			this.cancelButton.setFont(Fonts.GLOBAL);
+			this.cancelButton.setToolTipText("Cancels this dialog.");
+			this.cancelButton.setActionCommand("Cancel");
+			this.cancelButton.setBounds(138, 62, 105, 23);
 		}
-		return cancelButton;
+		return this.cancelButton;
 	}
 
 }

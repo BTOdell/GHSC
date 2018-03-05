@@ -34,15 +34,15 @@ public class ChatElement extends JTextPane {
 	
 	private static final long serialVersionUID = 1L;
 	
-	protected ChatElementList container = null;
+	protected ChatElementList container;
 	
 	protected TimeStamp time;
-	protected User sender = null;
+	protected User sender;
 	protected String sender_name, message, title;
 	protected Color color;
-	protected boolean automated = false, me = false, show = true;
+	protected boolean automated, me, show = true;
 	
-	private int textLength = 0;
+	private int textLength;
 	
 	/*
 	 * Styles
@@ -64,8 +64,8 @@ public class ChatElement extends JTextPane {
 	 */
 	public ChatElement(ChatElementList container, TimeStamp time, String title, String message) {
 		this(container, time, title, message, true);
-		
-		init();
+
+		this.init();
 	}
 	
 	/**
@@ -80,8 +80,8 @@ public class ChatElement extends JTextPane {
 		this.color = color;
 		this.automated = true;
 		this.sender_name = sender;
-		
-		init();
+
+		this.init();
 	}
 	
 	/**
@@ -93,8 +93,8 @@ public class ChatElement extends JTextPane {
 		this.sender = sender;
 		this.color = color;
 		this.show = show;
-		
-		init();
+
+		this.init();
 	}
 	
 	/**
@@ -102,61 +102,63 @@ public class ChatElement extends JTextPane {
 	 * @param hidden - whether to hide the text, or show it.
 	 */
 	public void setHidden(boolean hidden) {
-		show = !hidden;
-		select(0,0);
-		refreshText();
+		this.show = !hidden;
+		this.select(0,0);
+		this.refreshText();
 	}
 	
 	public boolean isHidden() {
-		return !show;
+		return !this.show;
 	}
 	
 	public User getUser() {
-		return sender;
+		return this.sender;
 	}
 	
 	public boolean isMe() {
-		return me;
+		return this.me;
 	}
 	
 	/**
 	 * Initializes this ChannelElement with chat data.
 	 */
 	private void init() {
-		setBackground(null);
-		
-		setFont(Fonts.GLOBAL);
-		setOpaque(true);
-		setEditable(false);
-		if (this.color != null)
-			setForeground(this.color);
-		configureStyles();
-		refreshAll();
-		
-		addMouseListener(new MouseAdapter() {
+		this.setBackground(null);
+
+		this.setFont(Fonts.GLOBAL);
+		this.setOpaque(true);
+		this.setEditable(false);
+		if (this.color != null) {
+			this.setForeground(this.color);
+        }
+		this.configureStyles();
+		this.refreshAll();
+
+		this.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				container.getChat().setSelection(ChatElement.this);
+				ChatElement.this.container.getChat().setSelection(ChatElement.this);
 			}
 		});
 		
 		Application.getInstance().getPopupManager().submit(new PopupBuilder() {
 			public boolean build(Popup menu, PopupManager popupManager, Component sender, int x, int y) {
-				final String selection = getSelectedText();
+				final String selection = ChatElement.this.getSelectedText();
 				if (selection != null) {
 					JMenuItem fi = menu.createItem("Copy", new ActionListener() {
 						public void actionPerformed(ActionEvent ae) {
-							copy();
+							ChatElement.this.copy();
 						}
 					});
 					fi.setFont(Fonts.GLOBAL);
 					menu.add(fi);
-					if (message != null)
-						menu.addSeparator();
+					if (ChatElement.this.message != null) {
+                        menu.addSeparator();
+                    }
 				}
-				if (message != null) {
-					JMenuItem fi = menu.createItem(isHidden() ? "Show" : "Hide", new ActionListener() {
+				if (ChatElement.this.message != null) {
+					JMenuItem fi = menu.createItem(ChatElement.this.isHidden() ? "Show" : "Hide", new ActionListener() {
 						public void actionPerformed(ActionEvent ae) {
-							setHidden(!isHidden());
+							ChatElement.this.setHidden(!ChatElement.this.isHidden());
 						}
 					});
 					fi.setFont(Fonts.GLOBAL);
@@ -168,18 +170,18 @@ public class ChatElement extends JTextPane {
 	}
 	
 	public void insertImage(Image img, int pos) {
-		pos = Math.max(0, Math.min(textLength - 1, pos));
-		int prev = getCaretPosition();
-		setCaretPosition(pos);
-		insertIcon(new ImageIcon(img));
-		setCaretPosition(prev);
+		pos = Math.max(0, Math.min(this.textLength - 1, pos));
+		int prev = this.getCaretPosition();
+		this.setCaretPosition(pos);
+		this.insertIcon(new ImageIcon(img));
+		this.setCaretPosition(prev);
 	}
 	
 	protected void refreshSender() {
-		if (me) {
-			sender_name = Application.getInstance().getPreferredName();
-		} else if (sender != null) {
-			sender_name = this.sender.getPreferredName();
+		if (this.me) {
+			this.sender_name = Application.getInstance().getPreferredName();
+		} else if (this.sender != null) {
+			this.sender_name = this.sender.getPreferredName();
 		}
 	}
 	
@@ -188,50 +190,51 @@ public class ChatElement extends JTextPane {
 		build.append("[");
 		build.append(this.time.print(TimeStamp.Style.Hour12));
 		build.append("] ");
-		build.append(sender_name);
-		if (!automated)
-			build.append(" says");
+		build.append(this.sender_name);
+		if (!this.automated) {
+            build.append(" says");
+        }
 		build.append(":");
 		int bSize = build.length();
-		if (title != null) {
+		if (this.title != null) {
 			build.append(" ");
-			build.append(title);
+			build.append(this.title);
 		}
 		int lSize = build.length();
-		boolean valid = show && message != null;
+		boolean valid = this.show && this.message != null;
 		if (valid) {
 			build.append("\n");
-			build.append(message);
+			build.append(this.message);
 		}
-		textLength = build.length();
-		setText(build.toString());
+		this.textLength = build.length();
+		this.setText(build.toString());
 		
-		StyledDocument sDoc = getStyledDocument();
+		StyledDocument sDoc = this.getStyledDocument();
 		// apply styles
-		sDoc.setCharacterAttributes(0, build.length(), emptyStyle, true);
-		sDoc.setCharacterAttributes(0, bSize, boldStyle, true);
+		sDoc.setCharacterAttributes(0, build.length(), this.emptyStyle, true);
+		sDoc.setCharacterAttributes(0, bSize, this.boldStyle, true);
 		if (valid) {
 			// do the left indenting
-			sDoc.setParagraphAttributes(lSize + 1, build.length(), indentStyle, false);
+			sDoc.setParagraphAttributes(lSize + 1, build.length(), this.indentStyle, false);
 		}
 	}
 	
 	protected void refreshAll() {
-		refreshSender();
-		refreshText();
+		this.refreshSender();
+		this.refreshText();
 	}
 	
 	private void configureStyles() {
-		StyledDocument sDoc = getStyledDocument();
-		
-		indentStyle = sDoc.addStyle("li_style", sDoc.getStyle(StyleContext.DEFAULT_STYLE));
-		StyleConstants.setLeftIndent(indentStyle, LEFT_INDENT);
-		
-		emptyStyle = new SimpleAttributeSet();
-		boldStyle = new SimpleAttributeSet();
-		StyleConstants.setFontFamily(boldStyle, Fonts.GLOBAL.getFamily());
-		StyleConstants.setFontSize(boldStyle, Fonts.GLOBAL.getSize());
-		StyleConstants.setBold(boldStyle, true);
+		StyledDocument sDoc = this.getStyledDocument();
+
+		this.indentStyle = sDoc.addStyle("li_style", sDoc.getStyle(StyleContext.DEFAULT_STYLE));
+		StyleConstants.setLeftIndent(this.indentStyle, LEFT_INDENT);
+
+		this.emptyStyle = new SimpleAttributeSet();
+		this.boldStyle = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(this.boldStyle, Fonts.GLOBAL.getFamily());
+		StyleConstants.setFontSize(this.boldStyle, Fonts.GLOBAL.getSize());
+		StyleConstants.setBold(this.boldStyle, true);
 		
 	}
 	

@@ -13,20 +13,20 @@ public class FileShareFileChooser extends JFileChooser {
 	
 	public FileShareFileChooser(File startDirectory) {
 		super(startDirectory);
-		init();
+        this.init();
 	}
 	
 	private void init() {
-		setApproveButtonMnemonic(KeyEvent.VK_ENTER);
-		setApproveButtonText("Accept");
-		setApproveButtonToolTipText("Accept the current selected files.");
-		setDialogTitle("Select files to share");
-		setDialogType(CUSTOM_DIALOG);
-		setDoubleBuffered(true);
-		setDragEnabled(false);
-		setFileSelectionMode(FILES_AND_DIRECTORIES);
-		setFont(Fonts.GLOBAL);
-		setMultiSelectionEnabled(true);
+        this.setApproveButtonMnemonic(KeyEvent.VK_ENTER);
+        this.setApproveButtonText("Accept");
+        this.setApproveButtonToolTipText("Accept the current selected files.");
+        this.setDialogTitle("Select files to share");
+        this.setDialogType(CUSTOM_DIALOG);
+        this.setDoubleBuffered(true);
+        this.setDragEnabled(false);
+        this.setFileSelectionMode(FILES_AND_DIRECTORIES);
+        this.setFont(Fonts.GLOBAL);
+        this.setMultiSelectionEnabled(true);
 	}
 
 }

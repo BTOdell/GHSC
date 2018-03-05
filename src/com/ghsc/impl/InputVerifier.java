@@ -5,5 +5,5 @@ package com.ghsc.impl;
  * @author Odell
  */
 public interface InputVerifier<E> {
-	public E verify(E input);
+	E verify(E input);
 }

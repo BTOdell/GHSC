@@ -5,5 +5,5 @@ package com.ghsc.gui.components.input;
  * @author Odell
  */
 public interface WizardListener<I> {
-	public void wizardFinished(I obj);
+	void wizardFinished(I obj);
 }

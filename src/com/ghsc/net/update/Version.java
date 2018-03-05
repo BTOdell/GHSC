@@ -20,7 +20,7 @@ public class Version implements Comparable<Version> {
 	public static final String COMPATIBLE = "c", REQUIRED = "r", FORCED = "f";
 	
 	private final int[] version = new int[3];
-	private String status = null;
+	private String status;
 	private final ArrayList<String> flags;
 	
 	private Version() {
@@ -28,7 +28,7 @@ public class Version implements Comparable<Version> {
 	}
 	
 	public String getStatus() {
-		return status;
+		return this.status;
 	}
 	
 	public void setStatus(final String status) {
@@ -36,7 +36,7 @@ public class Version implements Comparable<Version> {
 	}
 	
 	public boolean hasFlag(String flag) {
-		return flags.contains(flag);
+		return this.flags.contains(flag);
 	}
 	
 	/**
@@ -63,8 +63,9 @@ public class Version implements Comparable<Version> {
 	
 	public static Version create(String parse, String status) {
 		final Version v = parse(parse);
-		if (v == null)
+		if (v == null) {
 			return null;
+		}
 		v.setStatus(status);
 		return v;
 	}
@@ -74,10 +75,11 @@ public class Version implements Comparable<Version> {
 	 * @return a detailed String representation of this version.
 	 */
 	public String getDetailed() {
-		final StringBuilder sb = new StringBuilder(toString());
-		final String statusStr = getStatus();
-		if (statusStr != null)
+		final StringBuilder sb = new StringBuilder(this.toString());
+		final String statusStr = this.getStatus();
+		if (statusStr != null) {
 			sb.append(" (").append(statusStr).append(")");
+		}
 		return sb.toString();
 	}
 	
@@ -87,9 +89,9 @@ public class Version implements Comparable<Version> {
 	 */
 	public String toString() {
 		StringBuilder build = new StringBuilder();
-		for (int i = 0; i < version.length; i++) {
-			build.append(version[i]);
-			if (i + 1 < version.length) {
+		for (int i = 0; i < this.version.length; i++) {
+			build.append(this.version[i]);
+			if (i + 1 < this.version.length) {
 				build.append('.');
 			}
 		}
@@ -98,10 +100,11 @@ public class Version implements Comparable<Version> {
 
 	@Override
 	public int compareTo(Version o) {
-		for (int i = 0; i < version.length; i++) {
-			int diff = o.version[i] - version[i];
-			if (diff == 0)
+		for (int i = 0; i < this.version.length; i++) {
+			int diff = o.version[i] - this.version[i];
+			if (diff == 0) {
 				continue;
+			}
 			return diff;
 		}
 		return 0;
@@ -109,14 +112,12 @@ public class Version implements Comparable<Version> {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof Version)
-			return compareTo((Version) o) == 0;
-		return false;
+		return o instanceof Version && this.compareTo((Version) o) == 0;
 	}
 	
 	@Override
 	public int hashCode() {
-		return (version[0] << 2) + (version[1] << 1) + version[2];
+		return (this.version[0] << 2) + (this.version[1] << 1) + this.version[2];
 	}
 	
 }

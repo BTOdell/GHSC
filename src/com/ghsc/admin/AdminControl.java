@@ -29,8 +29,8 @@ public class AdminControl {
 	private PasswordWizard pw;
 	private AdminCommands commands;
 	
-	private byte[] hash = null;
-	private boolean isAdmin = false;
+	private byte[] hash;
+	private boolean isAdmin;
 	
 	public AdminControl() throws Exception {
 		final Application application = Application.getInstance();
@@ -41,7 +41,7 @@ public class AdminControl {
 	}
 	
 	public boolean isAdmin() {
-		return isAdmin;
+		return this.isAdmin;
 	}
 	
 	public void setAdmin(final boolean admin) {
@@ -49,18 +49,20 @@ public class AdminControl {
 	}
 	
 	public Tag process(final User user, final MessageEvent adminEvent) {
-		if (adminEvent.getType() != Type.ADMIN)
-			return null;
+		if (adminEvent.getType() != Type.ADMIN) {
+            return null;
+        }
 		final String requestCommand = adminEvent.getAttribute(AdminCommand.ATT_COMMAND);
-		if (isAdmin()) {
+		if (this.isAdmin()) {
 			if (!Utilities.resolveToBoolean(adminEvent.getAttribute(AdminCommand.ATT_UPDATE)) && 
 					!Utilities.resolveToBoolean(adminEvent.getAttribute(AdminCommand.ATT_RESPONSE))) {
 				return AdminCommand.composeResponse(requestCommand, true, false, "Operation not allowed: This user is also an admin!");
 			}
 		}
-		final AdminCommand aCommand = commands.get(requestCommand);
-		if (aCommand == null)
-			return AdminCommand.composeResponse(requestCommand, false, false, "Command not supported: " + requestCommand);
+		final AdminCommand aCommand = this.commands.get(requestCommand);
+		if (aCommand == null) {
+            return AdminCommand.composeResponse(requestCommand, false, false, "Command not supported: " + requestCommand);
+        }
 		final String supported = adminEvent.getAttribute(AdminCommand.ATT_SUPPORTED);
 		if (supported != null && !Utilities.resolveToBoolean(supported)) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -75,21 +77,22 @@ public class AdminControl {
 	}
 	
 	public boolean showLogin() {
-		if (isLoginVisible())
-			return false;
-		pw = new PasswordWizard(frame, "Administrative login", "Password", 
+		if (this.isLoginVisible()) {
+            return false;
+        }
+		this.pw = new PasswordWizard(this.frame, "Administrative login", "Password",
 		new WizardListener<String>() {
 			public void wizardFinished(String input) {
 				if (input != null) {
-					setAdmin(true);
-					frame.getAdminButton().setToolTipText("Logout");
+					AdminControl.this.setAdmin(true);
+					AdminControl.this.frame.getAdminButton().setToolTipText("Logout");
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							JOptionPane.showMessageDialog(frame, "Login successful: You have been confirmed as administrator.", "Administrative login", JOptionPane.INFORMATION_MESSAGE);
+							JOptionPane.showMessageDialog(AdminControl.this.frame, "Login successful: You have been confirmed as administrator.", "Administrative login", JOptionPane.INFORMATION_MESSAGE);
 						}
 					});
 				} else {
-					frame.getAdminButton().setSelected(false);
+					AdminControl.this.frame.getAdminButton().setSelected(false);
 				}
 			}
 		}, new WizardValidator<String, String, Boolean>() {
@@ -101,19 +104,19 @@ public class AdminControl {
 				}
 			}
 		});
-		pw.setVisible(true);
+		this.pw.setVisible(true);
 		return true;
 	}
 	
 	public boolean isLoginVisible() {
-		return pw != null && pw.isVisible();
+		return this.pw != null && this.pw.isVisible();
 	}
 	
 	/**
 	 * @return whether this admin control is ready. (meaning the admin control knows the password hash to validate)
 	 */
 	public boolean isReady() {
-		return hash != null;
+		return this.hash != null;
 	}
 	
 	/*
@@ -128,40 +131,43 @@ public class AdminControl {
 			
 			byte[] hash = new byte[64];
 			int read, off = 0;
-			while ((read = io.read(hash, off, hash.length - off)) > 0)
-				off += read;
+			while ((read = io.read(hash, off, hash.length - off)) > 0) {
+                off += read;
+            }
 			return hash;
-		} catch (UnknownHostException uhe) {
+		} catch (UnknownHostException ignored) {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (io != null) {
 				try {
 					io.close();
-				} catch (IOException e) {}
+				} catch (IOException ignored) {}
 			}
 		}
 		return null;
 	}
 	
 	protected String refreshPassword() {
-		byte[] newHash = retrieveHash();
-		if (newHash == null)
-			return null;
-		hash = newHash;
-		return new String(hash, Application.CHARSET);
+		byte[] newHash = this.retrieveHash();
+		if (newHash == null) {
+            return null;
+        }
+		this.hash = newHash;
+		return new String(this.hash, Application.CHARSET);
 	}
 	
 	public boolean validate(String password) throws InvalidHashException {
-		frame.getStatusLabel().submit("Confirming password.", 0);
-		refreshPassword();
-		frame.getStatusLabel().setDefaultStatus();
-		return confirm(hash, password);
+		this.frame.getStatusLabel().submit("Confirming password.", 0);
+		this.refreshPassword();
+		this.frame.getStatusLabel().setDefaultStatus();
+		return confirm(this.hash, password);
 	}
 	
 	protected static boolean confirm(byte[] hash, String input) throws InvalidHashException {
-		if (hash == null)
-			throw new InvalidHashException("The password hash is null, it wasn't retrieved.");
+		if (hash == null) {
+            throw new InvalidHashException("The password hash is null, it wasn't retrieved.");
+        }
 		return SHA2.verify(hash, SHA2.hash512Bytes(input));
 	}
 	

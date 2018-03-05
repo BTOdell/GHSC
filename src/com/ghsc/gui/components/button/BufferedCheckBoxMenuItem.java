@@ -4,7 +4,7 @@ public class BufferedCheckBoxMenuItem extends EnhancedCheckBoxMenuItem {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private boolean enableBuffer = false;
+	private boolean enableBuffer;
 
 	public BufferedCheckBoxMenuItem() {
 		super();
@@ -23,19 +23,19 @@ public class BufferedCheckBoxMenuItem extends EnhancedCheckBoxMenuItem {
 	}
 
 	public boolean getBuffer() {
-		return enableBuffer;
+		return this.enableBuffer;
 	}
 	
 	public void setBuffer(boolean enabled) {
-		enableBuffer = enabled;
+        this.enableBuffer = enabled;
 	}
 	
 	public void apply() {
-		setSelected(enableBuffer);
+		this.setSelected(this.enableBuffer);
 	}
 	
 	public void setSelected(boolean enabled, boolean buffer) {
-		setSelected(buffer ? enableBuffer = enabled : enabled);
+		this.setSelected(buffer ? this.enableBuffer = enabled : enabled);
 	}
 	
 }

@@ -32,46 +32,46 @@ public class ChatInput extends JTextArea {
 
 	public ChatInput(final MainFrame frame) {
 		this.frame = frame;
-		init();
+		this.init();
 	}
 	
 	private void init() {
-		
-		setTransferHandler(new TransferHandler());
-		setDropMode(DropMode.INSERT);
-		setEnabled(false);
-		setFont(Fonts.GLOBAL.deriveFont(11));
-		addKeyListener(new KeyAdapter() {
+
+		this.setTransferHandler(new TransferHandler());
+		this.setDropMode(DropMode.INSERT);
+		this.setEnabled(false);
+		this.setFont(Fonts.GLOBAL.deriveFont(11));
+		this.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					if (e.isShiftDown()) {
-						insert("\n", getCaretPosition());
+						ChatInput.this.insert("\n", ChatInput.this.getCaretPosition());
 					} else {
-						sendMessage();
+						ChatInput.this.sendMessage();
 						e.consume();
 					}
 				}
 			}
 		});
-		setDoubleBuffered(true);
-		setColumns(10);
+		this.setDoubleBuffered(true);
+		this.setColumns(10);
 		new PromptHandler(this, "Type something...", Color.GRAY, JLabel.TOP);
-		
-		getDocument().addDocumentListener(new DocumentListener() {
+
+		this.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent arg0) {
-				updateLineCount();
+				this.updateLineCount();
 			}
 			public void insertUpdate(DocumentEvent arg0) {
-				updateLineCount();
+				this.updateLineCount();
 			}
 			public void removeUpdate(DocumentEvent arg0) {
-				updateLineCount();
+				this.updateLineCount();
 			}
 			private void updateLineCount() {
-                int lineCount = getLineCount();
+                int lineCount = ChatInput.this.getLineCount();
                 if (lineCount <= 5) {
-                	setRows(lineCount);
-                	frame.getChatPanel().revalidate();
+					ChatInput.this.setRows(lineCount);
+                    ChatInput.this.frame.getChatPanel().revalidate();
                 }
             }
 		});

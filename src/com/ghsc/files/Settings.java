@@ -11,7 +11,7 @@ import com.ghsc.util.Tag;
  */
 public class Settings extends FileStorage {
 	
-	private static Settings settingsInstance = null;
+	private static Settings settingsInstance;
 	
 	public static Settings getSettings() {
 		if (settingsInstance == null) {

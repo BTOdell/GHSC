@@ -6,7 +6,7 @@ package com.ghsc.files;
  */
 public class Profile extends FileStorage {
 	
-	private static Profile profileInstance = null;
+	private static Profile profileInstance;
 	
 	public static Profile getProfile() {
 		if (profileInstance == null) {

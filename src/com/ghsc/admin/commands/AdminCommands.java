@@ -29,24 +29,25 @@ public class AdminCommands {
 	
 	public AdminCommands(AdminControl control) {
 		this.control = control;
-		init();
+		this.init();
 	}
 	
 	private void init() {
 		AdminCommand command;
 		
-		command = new FlashCommand(control);
-		commands.put(command.getTag(), command);
+		command = new FlashCommand(this.control);
+		this.commands.put(command.getTag(), command);
 		
-		command = new KickCommand(control);
-		commands.put(command.getTag(), command);
+		command = new KickCommand(this.control);
+		this.commands.put(command.getTag(), command);
 		
 	}
 	
 	public final AdminCommand get(String name) {
-		if (name == null)
-			return null;
-		return commands.get(name);
+		if (name == null) {
+            return null;
+        }
+		return this.commands.get(name);
 	}
 	
 }

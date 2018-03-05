@@ -10,7 +10,7 @@ package com.ghsc.util;
 public class FixedArrayQueue<E> {
 
 	private final Object[] data;
-	private int count = 0;
+	private int count;
 	
 	/**
 	 * Creates a new FixedArrayQueue with the given maximum size.
@@ -19,9 +19,10 @@ public class FixedArrayQueue<E> {
 	 * @throws IllegalArgumentException if max is less than or equal to 0.
 	 */
 	public FixedArrayQueue(final int max) {
-		if (max <= 0) 
-			throw new IllegalArgumentException("Max: can't be less than or equal to 0.");
-		data = new Object[max];
+		if (max <= 0) {
+            throw new IllegalArgumentException("Max: can't be less than or equal to 0.");
+        }
+		this.data = new Object[max];
 	}
 	
 	/**
@@ -31,15 +32,16 @@ public class FixedArrayQueue<E> {
 	 * @return if the queue is full, the element at the head will be removed and returned, otherwise null.
 	 */
 	public E add(final E element) {
-		return insert(getCount(), element);
+		return this.insert(this.getCount(), element);
 	}
 	
 	/**
 	 * Clears the entire queue.
 	 */
 	public void clear() {
-		while (count > 0)
-			data[--count] = null;
+		while (this.count > 0) {
+			this.data[--this.count] = null;
+        }
 	}
 	
 	/**
@@ -51,16 +53,17 @@ public class FixedArrayQueue<E> {
 	 */
 	@SuppressWarnings("unchecked")
 	public E get(int index) {
-		if (index < 0 || index >= getCount())
-			throw new IndexOutOfBoundsException("The index given (" + index + ") was out of bounds: [0 to " + (getCount() - 1) + "]");
-		return (E) data[index];
+		if (index < 0 || index >= this.getCount()) {
+            throw new IndexOutOfBoundsException("The index given (" + index + ") was out of bounds: [0 to " + (this.getCount() - 1) + "]");
+        }
+		return (E) this.data[index];
 	}
 	
 	/**
 	 * @return how many elements are currently in this queue.
 	 */
 	public int getCount() {
-		return count;
+		return this.count;
 	}
 	
 	/**
@@ -68,7 +71,7 @@ public class FixedArrayQueue<E> {
 	 * @return <tt>true</tt> if the queue is full, <tt>false</tt> if it's not.
 	 */
 	public boolean isFull() {
-		return getCount() >= size();
+		return this.getCount() >= this.size();
 	}
 	
 	/**
@@ -81,17 +84,19 @@ public class FixedArrayQueue<E> {
 	 */
 	public E insert(int index, final E element) {
 		E temp = null;
-		if (isFull()) {
-			temp = remove(0, index);
+		if (this.isFull()) {
+			temp = this.remove(0, index);
 			index--;
 		} else {
-			int i = count;
-			while (i > index)
-				data[i] = data[--i];
-			if (count < size())
-				count++;
+			int i = this.count;
+			while (i > index) {
+				this.data[i] = this.data[--i];
+            }
+			if (this.count < this.size()) {
+				this.count++;
+            }
 		}
-		data[index] = element;
+		this.data[index] = element;
 		return temp;
 	}
 	
@@ -104,8 +109,8 @@ public class FixedArrayQueue<E> {
 	 * @return the previous element at the given index, or null if none existed.
 	 */
 	public E set(final int index, final E element) {
-		final E temp = get(index);
-		data[index] = element;
+		final E temp = this.get(index);
+		this.data[index] = element;
 		return temp;
 	}
 	
@@ -114,7 +119,7 @@ public class FixedArrayQueue<E> {
 	 * @return the removed element.
 	 */
 	public E remove() {
-		return remove(0);
+		return this.remove(0);
 	}
 	
 	/**
@@ -124,19 +129,20 @@ public class FixedArrayQueue<E> {
 	 * @return the removed element.
 	 */
 	public E remove(int index) {
-		return remove(index, getCount() - 1);
+		return this.remove(index, this.getCount() - 1);
 	}
 	
 	private E remove(int index, final int shiftIndex) {
-		final E temp = get(index);
-		data[index] = null;
-		int max = Math.min(shiftIndex, getCount() - 1);
+		final E temp = this.get(index);
+		this.data[index] = null;
+		int max = Math.min(shiftIndex, this.getCount() - 1);
 		while (index < max) {
-			data[index] = data[++index];
-			data[index] = null;
+			this.data[index] = this.data[++index];
+			this.data[index] = null;
 		}
-		if (count > 0)
-			count--;
+		if (this.count > 0) {
+			this.count--;
+        }
 		return temp;
 	}
 	
@@ -147,16 +153,16 @@ public class FixedArrayQueue<E> {
 	 * @return an instance that's equal to the given element.
 	 */
 	public E remove(E element) {
-		for (int i = 0; i < size(); i++) {
-			final E temp = get(i);
+		for (int i = 0; i < this.size(); i++) {
+			final E temp = this.get(i);
 			if (element == null) {
 				if (temp == null) {
-					remove(i);
+					this.remove(i);
 					return temp;
 				}
 			} else {
 				if (element.equals(temp)) {
-					remove(i);
+					this.remove(i);
 					return temp;
 				}
 			}
@@ -168,15 +174,15 @@ public class FixedArrayQueue<E> {
 	 * @return the maximum size of this fixed queue.
 	 */
 	public int size() {
-		return data.length;
+		return this.data.length;
 	}
 	
 	@Override
 	public String toString() {
 		final StringBuilder build = new StringBuilder().append("[");
-		for (int i = 0; i < getCount(); i++) {
-			build.append(data[i].toString());
-			if (i + 1 < getCount()) {
+		for (int i = 0; i < this.getCount(); i++) {
+			build.append(this.data[i].toString());
+			if (i + 1 < this.getCount()) {
 				build.append(",");
 			}
 		}

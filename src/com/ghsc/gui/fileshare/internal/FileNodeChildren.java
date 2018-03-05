@@ -17,7 +17,7 @@ public abstract class FileNodeChildren<E extends FileNode> extends ArrayList<E> 
 	}
 	
 	public E getParent() {
-		return parent;
+		return this.parent;
 	}
 	
 }

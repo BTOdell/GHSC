@@ -17,9 +17,9 @@ import com.ghsc.util.Utilities;
 public class LocalPackage extends FilePackage {
 	
 	private final String privateKey;
-	private LocalFileNode[] roots = null;
-	private String password = null;
-	private byte[] passwordHash = null;
+	private LocalFileNode[] roots;
+	private String password;
+	private byte[] passwordHash;
 	
 	/**
 	 * Creates a new package.
@@ -27,7 +27,7 @@ public class LocalPackage extends FilePackage {
 	public LocalPackage(final String name, final String description, final Calendar creationDate, final Visibility visibility, final String password, final LocalFileNode[] nodes) {
 		super(name, description, creationDate, visibility);
 		this.privateKey = FileShare.generatePrivateKey();
-		setPassword(password);
+		this.setPassword(password);
 		this.roots = nodes;
 	}
 	
@@ -42,7 +42,7 @@ public class LocalPackage extends FilePackage {
 			this.uuid = null;
 		}
 		this.privateKey = privateKey;
-		setPassword(password);
+		this.setPassword(password);
 		this.active = active;
 	}
 	
@@ -52,20 +52,20 @@ public class LocalPackage extends FilePackage {
 	}
 	
 	public LocalFileNode getFile(String relativePath) {
-		return LocalFileNode.findFile(relativePath, Arrays.asList(roots));
+		return LocalFileNode.findFile(relativePath, Arrays.asList(this.roots));
 	}
 	
 	public String getPrivateKey() {
-		return privateKey;
+		return this.privateKey;
 	}
 	
 	@Override
 	public boolean isPasswordProtected() {
-		return passwordHash != null;
+		return this.passwordHash != null;
 	}
 	
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
 	
 	public void setPassword(String password) {
@@ -74,13 +74,11 @@ public class LocalPackage extends FilePackage {
 	}
 	
 	public boolean verifyPassword(String password) {
-		if (!isPasswordProtected())
-			return true;
-		return SHA2.verify(passwordHash, SHA2.hash512Bytes(password));
+		return !this.isPasswordProtected() || SHA2.verify(this.passwordHash, SHA2.hash512Bytes(password));
 	}
 	
 	public LocalFileNode[] getRoots() {
-		return roots;
+		return this.roots;
 	}
 	
 	public void setRoots(final LocalFileNode... roots) {
@@ -89,35 +87,38 @@ public class LocalPackage extends FilePackage {
 	
 	@Override
 	public long getFileCount() {
-		if (fileCount == null) {
+		if (this.fileCount == null) {
 			long temp = 0;
-			for (final LocalFileNode node : getRoots())
-				temp += node.getFileCount();
-			fileCount = temp;
+			for (final LocalFileNode node : this.getRoots()) {
+                temp += node.getFileCount();
+            }
+			this.fileCount = temp;
 		}
-		return fileCount;
+		return this.fileCount;
 	}
 
 	@Override
 	public long getDirectoryCount() {
-		if (directoryCount == null) {
+		if (this.directoryCount == null) {
 			long temp = 0;
-			for (final LocalFileNode node : getRoots())
-				temp += node.getDirectoryCount();
-			directoryCount = temp;
+			for (final LocalFileNode node : this.getRoots()) {
+                temp += node.getDirectoryCount();
+            }
+			this.directoryCount = temp;
 		}
-		return directoryCount;
+		return this.directoryCount;
 	}
 	
 	@Override
 	public long getSize() {
-		if (size == null) {
+		if (this.size == null) {
 			long temp = 0;
-			for (final LocalFileNode node : getRoots())
-				temp += node.getSize();
-			size = temp;
+			for (final LocalFileNode node : this.getRoots()) {
+                temp += node.getSize();
+            }
+			this.size = temp;
 		}
-		return size;
+		return this.size;
 	}
 	
 	/**
@@ -126,7 +127,7 @@ public class LocalPackage extends FilePackage {
 	 */
 	@Override
 	public UUID getUUID() {
-		if (uuid == null) {
+		if (this.uuid == null) {
 			/*
 			final StringBuilder sb = new StringBuilder();
 			sb.append(Application.getLocalAddress().getHostAddress());
@@ -136,9 +137,9 @@ public class LocalPackage extends FilePackage {
 			}
 			uuid = UUID.nameUUIDFromBytes(sb.toString().getBytes(Application.CHARSET));
 			*/
-			uuid = UUID.randomUUID();
+			this.uuid = UUID.randomUUID();
 		}
-		return uuid;
+		return this.uuid;
 	}
 	
 	/*
@@ -152,30 +153,31 @@ public class LocalPackage extends FilePackage {
 	public String toRemoteMeta() {
 		final LinkedList<Object> ll = new LinkedList<Object>();
 		ll.add(ATT_NAME);
-		ll.add(name);
-		if (description != null) {
+		ll.add(this.name);
+		if (this.description != null) {
 			ll.add(ATT_DESCRIPTION);
-			ll.add(description);
+			ll.add(this.description);
 		}
 		ll.add(ATT_CREATIONDATE);
-		ll.add(getCreationDateString());
+		ll.add(this.getCreationDateString());
 		ll.add(ATT_DOWNLOADCOUNT);
-		ll.add(getDownloadCount());
-		if (active) {
+		ll.add(this.getDownloadCount());
+		if (this.active) {
 			ll.add(ATT_ACTIVE);
 			ll.add(Utilities.resolveToBoolean(true));
 		}
-		if (password != null) {
+		if (this.password != null) {
 			ll.add(ATT_PASSWORDPROTECTED);
 			ll.add(Utilities.resolveToBoolean(true));
 		}
 		ll.add(ATT_VISIBILITY);
-		ll.add(getVisibility());
+		ll.add(this.getVisibility());
 		ll.add(ATT_UUID);
-		ll.add(getUUID());
+		ll.add(this.getUUID());
 		StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
-		for (final LocalFileNode root : roots)
-			build.append(root.toRemoteMeta());
+		for (final LocalFileNode root : this.roots) {
+            build.append(root.toRemoteMeta());
+        }
 		build.append("</").append(FileNodeChildren.TAGNAME).append(">");
 		build.append("</").append(TAGNAME).append(">");
 		return build.toString();
@@ -193,32 +195,33 @@ public class LocalPackage extends FilePackage {
 	public String toSaveMeta() {
 		final LinkedList<Object> ll = new LinkedList<Object>();
 		ll.add(ATT_NAME);
-		ll.add(name);
-		if (description != null) {
+		ll.add(this.name);
+		if (this.description != null) {
 			ll.add(ATT_DESCRIPTION);
-			ll.add(description);
+			ll.add(this.description);
 		}
 		ll.add(ATT_CREATIONDATE);
-		ll.add(getCreationDateString());
+		ll.add(this.getCreationDateString());
 		ll.add(ATT_DOWNLOADCOUNT);
-		ll.add(getDownloadCount());
-		if (active) {
+		ll.add(this.getDownloadCount());
+		if (this.active) {
 			ll.add(ATT_ACTIVE);
 			ll.add(Utilities.resolveToBoolean(true));
 		}
 		ll.add(ATT_PRIVATEKEY);
-		ll.add(privateKey);
-		if (password != null) {
+		ll.add(this.privateKey);
+		if (this.password != null) {
 			ll.add(ATT_PASSWORDPROTECTED);
-			ll.add(password);
+			ll.add(this.password);
 		}
 		ll.add(ATT_VISIBILITY);
-		ll.add(getVisibility());
+		ll.add(this.getVisibility());
 		ll.add(ATT_UUID);
-		ll.add(getUUID());
+		ll.add(this.getUUID());
 		StringBuilder build = new StringBuilder().append(Tag.construct(TAGNAME, ll.toArray()).getEncodedString());
-		for (final LocalFileNode root : roots)
-			build.append(root.toSaveMeta());
+		for (final LocalFileNode root : this.roots) {
+            build.append(root.toSaveMeta());
+        }
 		build.append("</").append(FileNodeChildren.TAGNAME).append(">");
 		build.append("</").append(TAGNAME).append(">");
 		return build.toString();
@@ -226,13 +229,15 @@ public class LocalPackage extends FilePackage {
 	
 	public static LocalPackage parseSaveMeta(String meta) {
 		final Tag pTag = Tag.parse(meta);
-		if (pTag == null)
-			return null;
+		if (pTag == null) {
+            return null;
+        }
 		String name = null, uuid = null, vA = null, cD = null;
 		if ((!pTag.getName().equals(TAGNAME)) || (name = pTag.getAttribute(ATT_NAME)) == null || 
 			(uuid = pTag.getAttribute(ATT_UUID)) == null || (vA = pTag.getAttribute(ATT_VISIBILITY)) == null ||
-			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null)
-			return null;
+			(cD = pTag.getAttribute(ATT_CREATIONDATE)) == null) {
+            return null;
+        }
 		final LocalPackage lp = new LocalPackage(name, pTag.getAttribute(ATT_DESCRIPTION), cD, new Visibility(vA), uuid, 
 				pTag.getAttribute(ATT_PRIVATEKEY), pTag.getAttribute(ATT_PASSWORDPROTECTED), pTag.getAttribute(ATT_ACTIVE) != null);
 		lp.setDownloadCount(Long.parseLong(pTag.getAttribute(ATT_DOWNLOADCOUNT)));
@@ -249,7 +254,9 @@ public class LocalPackage extends FilePackage {
 				peek = tagStack.peek();
 				if (peek != null) {
 					peek.receive(popT);
-				} else break;
+				} else {
+                    break;
+                }
 			} else {
 				final Tag newTag = new Tag(content).parseBasic();
 				if (newTag != null) {

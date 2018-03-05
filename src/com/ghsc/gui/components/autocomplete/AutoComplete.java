@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
@@ -34,7 +35,7 @@ public final class AutoComplete {
 	
 	private static final Object errorFeedbackAction = new TextAction("provide-error-feedback") {
 		public void actionPerformed(ActionEvent e) {
-			UIManager.getLookAndFeel().provideErrorFeedback(getTextComponent(e));
+			UIManager.getLookAndFeel().provideErrorFeedback(this.getTextComponent(e));
 		}
 	};
 	
@@ -194,14 +195,14 @@ public final class AutoComplete {
 	private static void installMap(javax.swing.InputMap componentMap, boolean strict) {
 		InputMap map = new AutoComplete.InputMap();
 		if (strict) {
-			map.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_BACK_SPACE, 0), DefaultEditorKit.selectionBackwardAction);
+			map.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), DefaultEditorKit.selectionBackwardAction);
 			// ignore VK_DELETE and CTRL+VK_X and beep instead when strict matching
-			map.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DELETE, 0), errorFeedbackAction);
-			map.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_DOWN_MASK), errorFeedbackAction);
+			map.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), errorFeedbackAction);
+			map.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK), errorFeedbackAction);
 		} else {
 			// VK_BACKSPACE will move the selection to the left if the selected item is in the list
 			// it will delete the previous character otherwise
-			map.put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_BACK_SPACE, 0), "nonstrict-backspace");
+			map.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "nonstrict-backspace");
 			// leave VK_DELETE and CTRL+VK_X as is
 		}
 		map.setParent(componentMap.getParent());
@@ -229,10 +230,10 @@ public final class AutoComplete {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (adapter.listContainsSelectedItem()) {
-				selectionBackward.actionPerformed(e);
+			if (this.adapter.listContainsSelectedItem()) {
+                this.selectionBackward.actionPerformed(e);
 			} else {
-				backspace.actionPerformed(e);
+                this.backspace.actionPerformed(e);
 			}
 		}
 	}
@@ -250,7 +251,7 @@ public final class AutoComplete {
 
 		@Override
 		public void focusGained(FocusEvent e) {
-			adapter.markAll();
+            this.adapter.markAll();
 		}
 	}
 
@@ -268,13 +269,13 @@ public final class AutoComplete {
 				return;
 			}
 			// don't popup if the combobox isn't visible anyway
-			if (comboBox.isDisplayable() && !comboBox.isPopupVisible()) {
+			if (this.comboBox.isDisplayable() && !this.comboBox.isPopupVisible()) {
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_SHIFT: case KeyEvent.VK_CONTROL: case KeyEvent.VK_ALT:
 					case KeyEvent.VK_ENTER: case KeyEvent.VK_ESCAPE:
 						break;
 					default:
-						comboBox.setPopupVisible(true);
+                        this.comboBox.setPopupVisible(true);
 				}
 			}
 		}
@@ -290,19 +291,19 @@ public final class AutoComplete {
 		@Override
 		public void propertyChange(PropertyChangeEvent evt) {
 			if ("editor".equals(evt.getPropertyName())) {
-				handleEditor(evt);
+				this.handleEditor(evt);
 			} else if ("enabled".equals(evt.getPropertyName())) {
-				handleEnabled(evt);
+				this.handleEnabled(evt);
 			}
 		}
 
 		private void handleEnabled(PropertyChangeEvent evt) {
 			if (Boolean.TRUE.equals(evt.getNewValue())) {
-				comboBox.setEditable(true);
+                this.comboBox.setEditable(true);
 			} else {
-				JTextComponent textComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
+				JTextComponent textComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
 				boolean strictMatching = ((ACDocument) textComponent.getDocument()).isStrictMatching();
-				comboBox.setEditable(!strictMatching);
+                this.comboBox.setEditable(!strictMatching);
 			}
 		}
 
@@ -323,13 +324,13 @@ public final class AutoComplete {
 					}
 				}
 			}
-			JTextComponent editorComponent = (JTextComponent) comboBox.getEditor().getEditorComponent();
-			ACAdapter adapter = new ComboBoxAdapter(comboBox);
+			JTextComponent editorComponent = (JTextComponent) this.comboBox.getEditor().getEditorComponent();
+			ACAdapter adapter = new ComboBoxAdapter(this.comboBox);
 			ACDocument document = createACDocument(adapter, strictMatching, acEditor.converter, editorComponent.getDocument());
 			enable(editorComponent, document, adapter);
-			editorComponent.addKeyListener(new AutoComplete.KeyAdapter(comboBox));
+			editorComponent.addKeyListener(new AutoComplete.KeyAdapter(this.comboBox));
 			// set before adding the listener for the editor
-			comboBox.setEditor(new ACComboBoxEditor(comboBox.getEditor(), document.getConverter()));
+            this.comboBox.setEditor(new ACComboBoxEditor(this.comboBox.getEditor(), document.getConverter()));
 		}
 	}
 
@@ -349,7 +350,7 @@ public final class AutoComplete {
 			// to the insert in JTextComponent.setText
 			doc.strictMatching = true;
 			try {
-				delegate.actionPerformed(e);
+                this.delegate.actionPerformed(e);
 			} finally {
 				doc.strictMatching = false;
 			}
@@ -357,32 +358,32 @@ public final class AutoComplete {
 		
 		@Override
 		public void addPropertyChangeListener(java.beans.PropertyChangeListener listener) {
-			delegate.addPropertyChangeListener(listener);
+            this.delegate.addPropertyChangeListener(listener);
 		}
 		
 		@Override
 		public void removePropertyChangeListener(java.beans.PropertyChangeListener listener) {
-			delegate.removePropertyChangeListener(listener);
+            this.delegate.removePropertyChangeListener(listener);
 		}
 		
 		@Override
 		public Object getValue(String key) {
-			return delegate.getValue(key);
+			return this.delegate.getValue(key);
 		}
 		
 		@Override
 		public void putValue(String key, Object value) {
-			delegate.putValue(key, value);
+            this.delegate.putValue(key, value);
 		}
 		
 		@Override
 		public boolean isEnabled() {
-			return delegate.isEnabled();
+			return this.delegate.isEnabled();
 		}
 
 		@Override
 		public void setEnabled(boolean b) {
-			delegate.setEnabled(b);
+            this.delegate.setEnabled(b);
 		}
 	}
 	

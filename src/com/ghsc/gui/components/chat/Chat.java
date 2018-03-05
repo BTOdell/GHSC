@@ -17,7 +17,7 @@ public abstract class Chat {
 	protected ChatElementList elements;
 	protected JScrollPane scrollPane;
 	
-	private ChatElement lastElement = null;
+	private ChatElement lastElement;
 	
 	/**
 	 * Initializes a new Chat with a container and name.
@@ -27,8 +27,8 @@ public abstract class Chat {
 	public Chat(ChatContainer container, String name) {
 		this.container = container;
 		this.name = name;
-		
-		init();
+
+		this.init();
 	}
 	
 	/**
@@ -37,13 +37,13 @@ public abstract class Chat {
 	protected abstract void init();
 	
 	protected void setSelection(ChatElement element) {
-		if (lastElement != null) {
-			lastElement.setBackground(null);
+		if (this.lastElement != null) {
+			this.lastElement.setBackground(null);
 		}
 		if (element != null) {
 			element.setBackground(Colors.CELLRENDER_BACKGROUND);
 		}
-		lastElement = element;
+		this.lastElement = element;
 	}
 	
 	/**
@@ -52,49 +52,50 @@ public abstract class Chat {
 	public void scrollBottom() {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				JScrollBar v = scrollPane.getVerticalScrollBar();
-				if (v != null)
-					v.setValue(v.getMaximum());
+				JScrollBar v = Chat.this.scrollPane.getVerticalScrollBar();
+				if (v != null) {
+                    v.setValue(v.getMaximum());
+                }
 			}
 		});
 	}
 	
 	public void repaint() {
-		elements.repaint();
+		this.elements.repaint();
 	}
 	
 	/**
 	 * @return the container of this Chat.
 	 */
 	public final ChatContainer getContainer() {
-		return container;
+		return this.container;
 	}
 	
 	/**
 	 * @return the name of this channel.
 	 */
 	public final String getName() {
-		return name;
+		return this.name;
 	}
 	
 	/**
 	 * @return the JPanel displaying this Chat.
 	 */
 	public final JPanel getPanel() {
-		return panel;
+		return this.panel;
 	}
 	
 	/**
 	 * @return the ChatElementList of this channel.
 	 */
 	public final ChatElementList getElements() {
-		return elements;
+		return this.elements;
 	}
 	
 	/**
 	 * @return the scrollpane containing ChatElementList.
 	 */
 	public final JScrollPane getScrollPane() {
-		return scrollPane;
+		return this.scrollPane;
 	}
 }
