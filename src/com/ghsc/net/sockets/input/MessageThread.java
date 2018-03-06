@@ -69,18 +69,16 @@ public class MessageThread {
 	 * @param tag The data to send through the socket.
 	 */
 	public synchronized void send(final Tag tag) {
-		if (this.io != null) {
-			try {
-				final OutputStream out = this.io.getOutputStream();
-				final byte[] encrypted = this.decoder.getEncryption().encrypt(tag.getEncodedString());
-				out.write(("<" + encrypted.length + ">").getBytes(UTF8));
-				out.write(encrypted);
-				out.flush();
-			} catch (final SocketException se) {
-				System.out.println("Socket write error.");
-			} catch (final IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			final OutputStream out = this.io.getOutputStream();
+			final byte[] encrypted = this.decoder.getEncryption().encrypt(tag.getEncodedString());
+			out.write(("<" + encrypted.length + ">").getBytes(UTF8));
+			out.write(encrypted);
+			out.flush();
+		} catch (final SocketException se) {
+			System.out.println("Socket write error.");
+		} catch (final IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

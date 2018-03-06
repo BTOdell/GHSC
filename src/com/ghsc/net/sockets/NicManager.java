@@ -37,7 +37,7 @@ public class NicManager {
 				System.err.println(e + ":  " + e.getMessage());
 			}
 			if (isUp) {
-				printNetworkInterface(xface);
+				//printNetworkInterface(xface);
 				for (final InterfaceAddress interfaceAddress : xface.getInterfaceAddresses()) {
 					final InetAddress inetAddress = interfaceAddress.getAddress();
 					if ((inetAddress instanceof Inet4Address) &&
@@ -77,7 +77,7 @@ public class NicManager {
 		return null;
 	}
 	
-	public static void printNetworkInterface(final NetworkInterface networkInterface) {
+	private static void printNetworkInterface(final NetworkInterface networkInterface) {
 		final boolean isUp;
 		final boolean supportsMulticast;
 		try {

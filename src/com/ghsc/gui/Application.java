@@ -2,14 +2,13 @@ package com.ghsc.gui;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 
 import com.ghsc.admin.AdminControl;
 import com.ghsc.common.Debug;
@@ -276,7 +275,7 @@ public class Application implements ComplexIdentifiable {
 	/**
 	 * Initialize the contents of the application.
 	 */
-	public void initialize() throws Exception {
+	public void initialize() throws InvocationTargetException, InterruptedException {
 		/*
 		 * Add this shutdown hook, so that correct de-initialization will take place even if we call System.exit(int).
 		 */
@@ -308,27 +307,20 @@ public class Application implements ComplexIdentifiable {
 			}
             System.gc();
         }));
-		
-		this.socketManager = new SocketManager();
-		
-		boolean duplicateInstance = false;
-		if (!this.socketManager.instanceCheck()) {
-			duplicateInstance = true;
-			if (JOptionPane.showConfirmDialog(this.frame, this.PROGRAM_NAME + " is already running.  Would you like to launch a new instance?", "Application notice", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
-				System.exit(0);
-			}
-		}
-		try {
-			this.socketManager.initControllers();
-		} catch (final IOException e1) {
-			e1.printStackTrace();
-			JOptionPane.showMessageDialog(this.frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
-			System.exit(0);
-		}
 
-		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        try {
+            this.socketManager = new SocketManager();
+        } catch (final IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this.frame, "Unable to initialize network interface.", "Network error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+        }
 
-		// userid
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored) {}
+
+        // userid
 		Profile.getProfile().addHook(() -> {
             final UUID id = this.getID();
             return id != null ? new Node(Tag.construct("userID"), id) : null;
@@ -425,11 +417,9 @@ public class Application implements ComplexIdentifiable {
 
 		this.frame.toggleInput(true);
 		this.frame.setStatus("Finalizing startup...", 1000);
-		
-		if (!duplicateInstance) {
-			Profile.getProfile().setSavable(true);
-			Settings.getSettings().setSavable(true);
-		}
+
+        Profile.getProfile().setSavable(true);
+        Settings.getSettings().setSavable(true);
 	}
 	
 	/**

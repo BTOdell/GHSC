@@ -64,8 +64,7 @@ public class MulticastSocketController implements ISocketController {
 	private final MulticastSocket sendSocket;
 	
 	private final int localUserPort;
-	private volatile boolean isConnecting;
-	
+
 	private final Thread receiveWorker;
 	private final Thread sendWorker;
 	
@@ -113,17 +112,14 @@ public class MulticastSocketController implements ISocketController {
 				this.receiveSocket.receive(pack);
 				final int length = pack.getLength();
 				final byte[] buffer = Arrays.copyOf(buf, length);
-				// new Thread(new Runnable() {
-				// public void run() {
 				final byte[] data = AES.DEFAULT.decrypt(buffer, 0, length);
 				final MessageEvent parsedMessageEvent = MessageEvent.parse(new String(data, Application.CHARSET));
 				if (parsedMessageEvent != null) {
 					//System.out.println(parsedMessageEvent);
 					this.multicastMessageReceived(parsedMessageEvent);
 				} else {
-					System.err.println("Unable to parse multicast message!");
-				}
-				// }}).start();
+                    System.err.println("Unable to parse multicast message!");
+                }
 				pack.setLength(buf.length);
 			}
 		} catch (final IOException e) {
@@ -132,11 +128,8 @@ public class MulticastSocketController implements ISocketController {
 	}
 	
 	private void multicastMessageReceived(final MessageEvent message) {
-		if (message == null) {
-			return;
-		}
-		if (Debug.NORMAL.compareTo(Application.DEBUG) < 0) {
-			System.out.println(message);
+		if (Debug.ALL.compareTo(Application.DEBUG) <= 0) {
+			System.out.println("All Multicast: " + message);
 		}
 		// Make sure we don't connect to ourselves and
 		// only connect to someone who has a smaller UUID than we do
@@ -152,8 +145,10 @@ public class MulticastSocketController implements ISocketController {
 		if (remoteUUID.compareTo(localUUID) >= 0) {
 			return;
 		}
-		System.out.println(message);
-		// Get remove address info
+		if (Debug.MAJOR.compareTo(Application.DEBUG) <= 0) {
+			System.out.println("Multicast: " + message);
+		}
+		// Get remote address info
 		final String remoteIP = message.getAttribute(ATT_IP);
 		final String remotePortString = message.getAttribute(ATT_PORT);
 		if ((remoteIP == null) || (remotePortString == null)) {
@@ -167,47 +162,49 @@ public class MulticastSocketController implements ISocketController {
 		final UserContainer users = application.getMainFrame().getUsers();
 		try {
 			final InetSocketAddress remoteAddress = new InetSocketAddress(InetAddress.getByName(remoteIP), remotePort);
-			if (!users.addMulticaster(remoteAddress)) {
-				return;
+			if (!users.containsUserPending(remoteAddress) && users.addMulticaster(remoteAddress)) {
+			    try {
+                    if (Debug.NORMAL.compareTo(Application.DEBUG) <= 0) {
+                        System.out.println("Received " + remoteAddress.getAddress().getHostAddress() + " from MULTICASTER " + remotePort);
+                    }
+
+                    application.getMainFrame().setStatus("Connecting to " + message.getAttribute(ATT_USERNAME), 0);
+
+                    final Socket socket = new Socket();
+                    socket.connect(remoteAddress, CONNECT_DELAY);
+                    application.getMainFrame().setStatus("Connected to " + message.getAttribute(ATT_USERNAME), 1000);
+                    final User user = new User(users, socket);
+                    if (users.addUserPending(remoteAddress, user)) {
+                        if (Debug.NORMAL.compareTo(Application.DEBUG) <= 0) {
+                            System.out.println("Completed OUTGOING socket connection.  User is pending.");
+                            System.out.println("Connected to " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + " - " + message.getAttribute(ATT_USERNAME));
+                        }
+
+                        user.sendIntro(); // send identifying user info.
+                        user.start(); // starts up the receive thread.
+                        user.setFriend(users.isFriend(user)); // updates various user list status...
+                        user.setIgnored(users.isIgnored(user));
+                        users.getMainFrame().getChatContainer().refreshUser(user);
+                        users.refresh();
+                    } else {
+                        if (Debug.NORMAL.compareTo(Application.DEBUG) <= 0) {
+                            System.err.println("Unable to add " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + ".  User is already known.");
+                        }
+                        socket.close();
+                    }
+                } finally {
+			        users.removeMulticaster(remoteAddress);
+                }
 			}
-			// Note: this isn't thread reliable, but will work because of the 500 ms delay.
-			if (this.isConnecting) {
-				return;
-			}
-			this.isConnecting = true;
-			System.out.println("Received " + remoteAddress.getAddress().getHostAddress() + " from MULTICASTER " + remotePort);
-			
-			application.getMainFrame().setStatus("Connecting to " + message.getAttribute(ATT_USERNAME), 0);
-			
-			final Socket socket = new Socket();
-			socket.connect(remoteAddress, CONNECT_DELAY);
-			final User user = new User(users, socket);
-			if (!users.addUser(remoteAddress, user)) {
-				System.err.println("Unable to add " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + ".  User is already known.");
-				socket.close();
-			} else {
-				System.out.println("Completed OUTGOING socket connection.  User is pending.");
-				System.out.println("Connected to " + remoteAddress.getAddress().getHostAddress() + "@" + remoteAddress.getPort() + " - " + message.getAttribute(ATT_USERNAME));
-				application.getMainFrame().setStatus("Connected to " + message.getAttribute(ATT_USERNAME), 1000);
-				
-				user.sendIntro(); // send identifying user info.
-				user.start(); // starts up the receive thread.
-				user.setFriend(users.isFriend(user)); // updates various user list status...
-				user.setIgnored(users.isIgnored(user));
-				users.getMainFrame().getChatContainer().refreshUser(user);
-				users.refresh();
-				users.removeMulticaster(remoteAddress); // no longer need to block multicasters.
-			}
-			
 		} catch (final IOException e) {
-			if (e instanceof SocketTimeoutException) {
-				System.out.println("Socket timed out trying to connect to " + remoteIP + "@" + remotePort + ". Maybe next time?");
-			} else {
-				System.out.println("Unable to connect to " + remoteIP + "@" + remotePort + ". Maybe next time?");
-			}
+            if (Debug.MINOR.compareTo(Application.DEBUG) <= 0) {
+                if (e instanceof SocketTimeoutException) {
+                    System.err.println("Socket timed out trying to connect to " + remoteIP + "@" + remotePort + ". Maybe next time?");
+                } else {
+                    System.err.println("Unable to connect to " + remoteIP + "@" + remotePort + ". Maybe next time?");
+                }
+            }
 			application.getMainFrame().setStatus("Failed to connect", 750);
-		} finally {
-			this.isConnecting = false;
 		}
 	}
 	

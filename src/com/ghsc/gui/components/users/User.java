@@ -1,5 +1,6 @@
 package com.ghsc.gui.components.users;
 
+import com.ghsc.common.Debug;
 import com.ghsc.common.Images;
 import com.ghsc.event.message.MessageEvent;
 import com.ghsc.event.message.MessageEvent.Type;
@@ -97,7 +98,9 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 				return User.this.socket.getOutputStream();
 			}
 		}, msg -> {
-            System.out.println(msg);
+            if (Debug.NORMAL.compareTo(Application.DEBUG) <= 0) {
+                System.out.println("User: " + msg);
+            }
             label:
             switch (msg.getType()) {
                 case IDENTIFY:
@@ -390,9 +393,7 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 	 * @param tag The data to send.
 	 */
 	public void send(final Tag tag) {
-		if (this.messageThread != null) {
-			this.messageThread.send(tag);
-		}
+		this.messageThread.send(tag);
 	}
 	
 	/**
@@ -403,7 +404,6 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 		if (this.socket != null) {
 			try {
 				this.socket.close();
-				System.gc();
 			} catch (final IOException ignored) {}
 		}
 	}

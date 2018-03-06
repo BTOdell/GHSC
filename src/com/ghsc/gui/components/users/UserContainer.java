@@ -173,8 +173,14 @@ public class UserContainer extends JList<User> {
 	 * @return whether this UserContainer contains a User.
 	 */
 	public boolean containsUser(final InetSocketAddress remoteAddress) {
-		return this.users.containsKey(remoteAddress);
+		synchronized (this.users) {
+			return this.containsUserSync(remoteAddress);
+		}
 	}
+
+	private boolean containsUserSync(final InetSocketAddress remoteAddress) {
+	    return this.users.containsKey(remoteAddress);
+    }
 	
 	/**
 	 * Gets a User contained in this UserContainer with the given IP address.
@@ -197,7 +203,7 @@ public class UserContainer extends JList<User> {
 	 */
 	public boolean addUser(final InetSocketAddress remoteAddress, final User user) {
 		synchronized (this.users) {
-			if (this.containsUser(remoteAddress)) {
+			if (this.containsUserSync(remoteAddress)) {
 				return false;
 			}
 			this.users.put(remoteAddress, user);
@@ -373,7 +379,7 @@ public class UserContainer extends JList<User> {
 	 */
 	public boolean addMulticaster(final InetSocketAddress address) {
 		synchronized (this.users) {
-            return !this.containsUser(address) && !this.isMulticaster(address) && this.knownMulticasters.add(address);
+            return !this.containsUserSync(address) && !this.isMulticaster(address) && this.knownMulticasters.add(address);
         }
 	}
 	

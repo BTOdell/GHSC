@@ -13,6 +13,7 @@ import com.ghsc.impl.Filter;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.util.ArrayList;
+import java.util.StringJoiner;
 
 /**
  * Provides a container for Chats and some basic functions for adding and removing Chats from this container.
@@ -191,36 +192,29 @@ public class ChatContainer extends JTabbedPane {
 	 * @return a String of chat names separated by ','.
 	 */
 	public String printChats() {
-		final StringBuilder build = new StringBuilder();
+		final StringJoiner joiner = new StringJoiner(",");
 		synchronized (this.chats) {
-			for (int i = 0; i < this.chats.size(); i++) {
-				build.append(this.chats.get(i).getName());
-				if (i + 1 < this.chats.size()) {
-                    build.append(',');
-                }
-			}
+		    for (final Chat c : this.chats) {
+		        joiner.add(c.getName());
+            }
 		}
-		return build.toString();
+		return joiner.toString();
 	}
 	
 	/**
 	 * @return a String of chat names separated by ','.
 	 */
 	public String printChannels() {
-		final StringBuilder build = new StringBuilder();
+		final StringJoiner joiner = new StringJoiner(",");
 		synchronized (this.chats) {
 			for (final Chat c : this.chats) {
 				if (c == null || !(c instanceof Channel)) {
 					continue;
 				}
-				build.append(c.getName());
-				build.append(',');
+				joiner.add(c.getName());
 			}
 		}
-		if (build.length() > 0) {
-            build.deleteCharAt(build.length() - 1);
-        }
-		return build.toString();
+		return joiner.toString();
 	}
 	
 }
