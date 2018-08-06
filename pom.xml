@@ -17,41 +17,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+
     <build>
-        <finalName>${project.name}-${project.version}</finalName>
-        <directory>${project.basedir}/bin</directory>
-        <sourceDirectory>${project.basedir}/src</sourceDirectory>
-        <testSourceDirectory>${project.basedir}/test</testSourceDirectory>
-        <outputDirectory>${project.basedir}/bin/classes</outputDirectory>
-        <testOutputDirectory>${project.basedir}/bin/test-classes</testOutputDirectory>
-        <resources>
-            <resource>
-                <directory>${project.basedir}/resources</directory>
-            </resource>
-        </resources>
-        <!--
-        <testResources>
-            <testResource>
-                <directory>${project.basedir}/test-resources</directory>
-            </testResource>
-        </testResources>
-        -->
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
-                    <outputDirectory>${project.basedir}/out</outputDirectory>
+                    <finalName>${project.name}-${project.version}</finalName>
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifest>
