@@ -29,7 +29,7 @@
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                         <manifest>
-                            <mainClass>com.ghsc.Boot</mainClass>
+                            <mainClass>ghsc.Boot</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Built-By/>
