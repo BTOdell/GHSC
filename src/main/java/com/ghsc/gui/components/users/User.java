@@ -169,12 +169,6 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
                         // TODO: channel will be null if message should be sent to PM
                     }
                     break;
-                case ADMIN:
-                    final Tag me = Application.getInstance().getAdminControl().process(this, msg);
-                    if (me != null) {
-                        this.send(me);
-                    }
-                    break;
                 case FILE_SHARE:
                     final FileShare fs = Application.getInstance().getFileShare();
                     if (fs != null) {
@@ -408,25 +402,6 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 		}
 	}
 	
-	public String getTooltip() {
-		final StringBuilder build = new StringBuilder().append("<html>").append("Nick: ").append(this.getPreferredName()).append("<br>");
-		final String[] channels;
-		synchronized (this.channelLock) {
-			channels = this.channels.toArray(new String[this.channels.size()]);
-		}
-		final int perLine = 5;
-		for (int i = 0; i < channels.length; i++) {
-			build.append(channels[i]);
-			if (i < channels.length - 1) {
-				build.append(", ");
-			}
-			if (i % perLine == perLine - 1) {
-				build.append("<br>");
-			}
-		}
-		return build.append("</html>").toString();
-	}
-	
 	@Override
 	public String toString() {
 		final InetSocketAddress remoteAddress = this.getRemoteSocketAddress();
@@ -435,7 +410,7 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 	
 	@Override
 	public boolean equals(final Object o) {
-		return o != null && o instanceof Identifiable && (this == o || this.getID().equals(((Identifiable) o).getID()));
+		return o instanceof Identifiable && (this == o || this.getID().equals(((Identifiable) o).getID()));
 	}
 	
 	@Override

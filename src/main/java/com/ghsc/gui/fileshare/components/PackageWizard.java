@@ -114,7 +114,7 @@ public class PackageWizard extends JDialog {
         if (tps != null) {
             for (final TreePath tp : tps) {
                 final Object o = tp.getLastPathComponent();
-                if (o != null && o instanceof LocalFileNode) {
+                if (o instanceof LocalFileNode) {
                     final LocalFileNode node = (LocalFileNode) o;
                     this.fileTreeModel.removeNodeFromParent(node);
                 }
@@ -402,7 +402,7 @@ public class PackageWizard extends JDialog {
                                                 return new String[0];
                                             }
                                             return new String[]{str, str.startsWith("#") ?
-                                                    str.substring(1, str.length()) : "#" + str};
+                                                    str.substring(1) : "#" + str};
                                         }
                                     }, false);
                             break;
@@ -447,7 +447,7 @@ public class PackageWizard extends JDialog {
 								if (index < 0) {
                                     break;
                                 }
-								final String[] vD = { s.substring(0, index), s.substring(index + 1, s.length()) };
+								final String[] vD = { s.substring(0, index), s.substring(index + 1) };
 								final UUID uuid = UUID.fromString(vD[1]);
 								final User user = Application.getInstance().getMainFrame().getUsers().findUser(uuid);
 								if (user != null) {
@@ -475,7 +475,7 @@ public class PackageWizard extends JDialog {
 										}
 										@Override
 										public boolean equals(final Object o) {
-                                            return o != null && o instanceof Identifiable && (this == o || this.getID().equals(((Identifiable) o).getID()));
+                                            return o instanceof Identifiable && (this == o || this.getID().equals(((Identifiable) o).getID()));
                                         }
 									};
                                     this.visibilityUserData.add(i);

@@ -57,6 +57,7 @@ public class Version implements Comparable<Version> {
 				return null;
 			}
 		}
+		//noinspection ManualArrayToCollectionCopy
 		for (int i = 1; i < split.length; i++) {
 			v.flags.add(split[i]);
 		}

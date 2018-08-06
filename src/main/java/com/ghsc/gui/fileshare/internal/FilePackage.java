@@ -286,10 +286,10 @@ public abstract class FilePackage {
 						for (final String d : dataStr) {
 							final int dI = d.indexOf('|');
 							if (dI >= 0) {
-								uuids.add(d.substring(dI + 1, d.length()));
+								uuids.add(d.substring(dI + 1));
 							}
 						}
-						return Utilities.contains(Application.getInstance().getID().toString(), uuids.toArray(new String[uuids.size()]));
+						return Utilities.contains(Application.getInstance().getID().toString(), uuids.toArray(new String[0]));
 					case PRIVATE:
 						// TODO: Not done yet.
 						break;
@@ -327,7 +327,7 @@ public abstract class FilePackage {
                     final int vIndex = rawStr.indexOf(':');
                     if (vIndex >= 0) {
                         typeString = rawStr.substring(0, vIndex);
-                        dataString = rawStr.substring(vIndex + 1, rawStr.length());
+                        dataString = rawStr.substring(vIndex + 1);
                     } else {
                         typeString = rawStr;
                         dataString = null;

@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.*;
 
-import com.ghsc.admin.AdminControl;
 import com.ghsc.common.Debug;
 import com.ghsc.event.EventProvider;
 import com.ghsc.event.IEventProvider;
@@ -61,7 +60,6 @@ public class Application implements ComplexIdentifiable {
 	private FrameTitleManager titleManager;
 	private PopupManager popupManager;
 	private TrayManager tray;
-	private AdminControl adminControl;
 	private FileShare fileShare;
 	private InputWizard nickDialog;
 
@@ -245,13 +243,6 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	/**
-	 * @return the administrator control system of this application.
-	 */
-	public AdminControl getAdminControl() {
-		return this.adminControl;
-	}
-	
-	/**
 	 * @return the file transfer handler of this application.
 	 */
 	public FileShare getFileShare() {
@@ -358,7 +349,6 @@ public class Application implements ComplexIdentifiable {
 				}
 			}
 		};
-		this.adminControl = new AdminControl();
 		this.fileShare = new FileShare();
 		Thread.yield();
 		

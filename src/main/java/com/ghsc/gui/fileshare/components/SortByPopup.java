@@ -235,7 +235,7 @@ public class SortByPopup extends JPopupMenu {
 			final String sortByData = sortByNode.getData();
 			if (sortByData != null) {
 				final String[] sortBys = sortByData.split(Pattern.quote(","));
-				final SortByPanel[] panels = this.nonActivePanels.toArray(new SortByPanel[this.nonActivePanels.size()]);
+				final SortByPanel[] panels = this.nonActivePanels.toArray(new SortByPanel[0]);
 				for (final String title : sortBys) {
 					for (final SortByPanel p : panels) {
 						if (title.equals(p.getTitle())) {

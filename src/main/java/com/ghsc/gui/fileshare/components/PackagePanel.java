@@ -54,7 +54,7 @@ public class PackagePanel extends JPanel {
 		super();
 		//this.frame = frame;
 		this.pack = pack;
-		if (pack != null && pack instanceof LocalPackage) {
+		if (pack instanceof LocalPackage) {
 			Application.getInstance().getNickEventProvider().subscribe((final String username) -> this.sync());
 		}
 

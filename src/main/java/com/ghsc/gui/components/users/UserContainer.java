@@ -22,7 +22,6 @@ import javax.swing.JList;
 
 import com.ghsc.common.Colors;
 import com.ghsc.common.Fonts;
-import com.ghsc.gui.Application;
 import com.ghsc.gui.MainFrame;
 import com.ghsc.gui.components.chat.Chat;
 import com.ghsc.gui.components.chat.channels.Channel;
@@ -316,9 +315,7 @@ public class UserContainer extends JList<User> {
 	public void removeFriend(final User user) {
 		final UUID id = user.getID();
 		synchronized (this.friends) {
-			if (this.friends.contains(id)) {
-				this.friends.remove(id);
-			}
+			this.friends.remove(id);
 		}
 	}
 	
@@ -351,9 +348,7 @@ public class UserContainer extends JList<User> {
 	public void removeIgnored(final User user) {
 		final UUID id = user.getID();
 		synchronized (this.ignored) {
-			if (this.ignored.contains(id)) {
-				this.ignored.remove(id);
-			}
+			this.ignored.remove(id);
 		}
 	}
 	
@@ -410,7 +405,7 @@ public class UserContainer extends JList<User> {
 	 */
 	public User[] getUsers() {
 		final Collection<User> vals = this.users.values();
-		return vals.toArray(new User[vals.size()]);
+		return vals.toArray(new User[0]);
 	}
 	
 	/**
@@ -500,7 +495,6 @@ public class UserContainer extends JList<User> {
 				label.setPreferredSize(null);
 				label.setHorizontalAlignment(JLabel.LEADING);
 				label.setFont(this.userFont);
-				label.setToolTipText(Application.getInstance().getAdminControl().isAdmin() ? user.getTooltip() : null);
 				label.setBackground(selected ? Colors.CELLRENDER_BACKGROUND : null);
 				label.setText(o.toString());
 				return label;
@@ -532,14 +526,14 @@ public class UserContainer extends JList<User> {
 		}
 		
 		public Transferable createTransferable(final JComponent c) {
-			if (c != null && c instanceof UserContainer) {
+			if (c instanceof UserContainer) {
 				return new StringSelection(((UserContainer) c).getSelectedValue().getPreferredName());
 			}
 			return null;
 		}
 		
 		public void exportDone(final JComponent c, final Transferable t, final int action) {
-			if (c != null && c instanceof UserContainer) {
+			if (c instanceof UserContainer) {
 				((UserContainer) c).clearSelection();
 			}
 		}

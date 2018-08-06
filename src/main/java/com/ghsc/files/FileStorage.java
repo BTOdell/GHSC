@@ -401,7 +401,7 @@ public abstract class FileStorage {
 						}
 					}
 				}
-				return searched != null ? searched.toArray(new Node[searched.size()]) : new Node[0];
+				return searched != null ? searched.toArray(new Node[0]) : new Node[0];
 			}
 			return null;
 		}

@@ -45,11 +45,6 @@ public class MessageEvent extends Tag {
 		 */
 		MESSAGE("m"),
 		/**
-		 * a r="t|f" co="..." cu="..." etc etc data
-		 * admin response="true|false" command="..." custom="..." etc etc data
-		 */
-		ADMIN ("a"),
-		/**
 		 * f t="n|e|r"
 		 * fileshare type="new|edit|remove"
 		 */

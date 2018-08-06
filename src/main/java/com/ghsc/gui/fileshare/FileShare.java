@@ -67,7 +67,7 @@ public class FileShare {
 	 * Initializes a new File transfer handling object.
 	 */
 	public FileShare() {
-		this.packages = Collections.synchronizedMap(new HashMap<String, FilePackage>());
+		this.packages = Collections.synchronizedMap(new HashMap<>());
 		final Application application = Application.getInstance();
 		try {
 			SwingUtilities.invokeAndWait(() -> this.frame = new FileShareFrame(application.getMainFrame(), this));
@@ -90,7 +90,7 @@ public class FileShare {
                         }
                     }
                 }
-                final Node localPackagesNode = new Node(Tag.construct("localpackages"), localPackageNodes.toArray(new Node[localPackageNodes.size()]));
+                final Node localPackagesNode = new Node(Tag.construct("localpackages"), localPackageNodes.toArray(new Node[0]));
                 fs.submit(localPackagesNode);
             }
 
@@ -117,7 +117,7 @@ public class FileShare {
                     }
 					lps.add(lp);
 				}
-				this.addPackages(lps.toArray(new LocalPackage[lps.size()]));
+				this.addPackages(lps.toArray(new LocalPackage[0]));
 				System.out.println("Loaded all packages in: " + (System.currentTimeMillis() - start) + " milliseconds.");
 				application.getMainFrame().setStatus("Loading file packages.", 500);
 			}
@@ -388,7 +388,7 @@ public class FileShare {
                         case TYPE_UUID:
                             SocketWorker.this.uuid = msg.getAttribute(ATT_UUID);
                             final FilePackage tempPackage = FileShare.this.packages.get(SocketWorker.this.uuid);
-                            final boolean lpValid = tempPackage != null && tempPackage instanceof LocalPackage;
+                            final boolean lpValid = tempPackage instanceof LocalPackage;
                             if (lpValid) {
                                 SocketWorker.this.lPackage = (LocalPackage) tempPackage;
                                 final Application application = Application.getInstance();
@@ -425,7 +425,7 @@ public class FileShare {
                                                 boolean found = false;
                                                 for (final String str : vDataSplit) {
                                                     final int index = str.indexOf('|');
-                                                    if (index >= 0 && userIDString.equals(str.substring(index + 1, str.length()))) {
+                                                    if (index >= 0 && userIDString.equals(str.substring(index + 1))) {
                                                         found = true;
                                                         break;
                                                     }

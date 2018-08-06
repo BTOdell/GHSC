@@ -155,7 +155,7 @@ public class ChatContainer extends JTabbedPane {
 				}
 			}
 		}
-		return chats.toArray(new Chat[chats.size()]);
+		return chats.toArray(new Chat[0]);
 	}
 	
 	public String[] getAllAsStrings() {
@@ -171,7 +171,7 @@ public class ChatContainer extends JTabbedPane {
 				}
 			}
 		}
-		return chats.toArray(new String[chats.size()]);
+		return chats.toArray(new String[0]);
 	}
 	
 	public void refreshUser(final User u) {
@@ -208,7 +208,7 @@ public class ChatContainer extends JTabbedPane {
 		final StringJoiner joiner = new StringJoiner(",");
 		synchronized (this.chats) {
 			for (final Chat c : this.chats) {
-				if (c == null || !(c instanceof Channel)) {
+				if (!(c instanceof Channel)) {
 					continue;
 				}
 				joiner.add(c.getName());

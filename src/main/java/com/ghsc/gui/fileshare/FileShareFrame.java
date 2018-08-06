@@ -191,7 +191,7 @@ public class FileShareFrame extends JDialog {
                         final Collection<FilePackage> packages = this.fileShare.packages.values();
                         synchronized (this.fileShare.packages) {
                             for (final FilePackage pack : packages) {
-                                if (pack == null || !(pack instanceof RemotePackage)) {
+                                if (!(pack instanceof RemotePackage)) {
                                     continue;
                                 }
                                 final RemotePackage rp = (RemotePackage) pack;

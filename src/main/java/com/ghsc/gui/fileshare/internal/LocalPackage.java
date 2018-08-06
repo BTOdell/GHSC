@@ -262,7 +262,7 @@ public class LocalPackage extends FilePackage {
 				return null;
 			}
 		}
-		final LocalFileNode[] nodes = lChildren.toArray(new LocalFileNode[lChildren.size()]);
+		final LocalFileNode[] nodes = lChildren.toArray(new LocalFileNode[0]);
         parsedLocalPackage.setRoots(nodes);
 		return parsedLocalPackage;
 	}

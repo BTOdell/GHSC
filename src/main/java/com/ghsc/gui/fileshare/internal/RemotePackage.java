@@ -150,7 +150,7 @@ public class RemotePackage extends FilePackage {
 				return null;
 			}
 		}
-		final RemoteFileNode[] nodes = rChildren.toArray(new RemoteFileNode[rChildren.size()]);
+		final RemoteFileNode[] nodes = rChildren.toArray(new RemoteFileNode[0]);
 		parsedRemotePackage.setRoots(nodes);
 		return parsedRemotePackage;
 	}

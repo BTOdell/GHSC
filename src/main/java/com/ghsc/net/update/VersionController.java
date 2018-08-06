@@ -71,7 +71,7 @@ public class VersionController {
 	 * @return a sorted array of all the Versions currently loaded.
 	 */
 	private Version[] getAll() {
-		final Version[] va = this.versions.toArray(new Version[this.versions.size()]);
+		final Version[] va = this.versions.toArray(new Version[0]);
 		Arrays.sort(va);
 		return va;
 	}

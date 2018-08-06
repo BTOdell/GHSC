@@ -15,7 +15,7 @@ public class SelectedButtonGroup {
 
 	private final ItemListener itemListener = ie -> {
 		Object src = ie.getSource();
-		if (src == null || !(src instanceof AbstractButton)) {
+		if (!(src instanceof AbstractButton)) {
 			return;
 		}
 		final AbstractButton ab = (AbstractButton) src;
@@ -59,7 +59,7 @@ public class SelectedButtonGroup {
                 temp.add(ab);
             }
 		}
-		return temp.toArray(new AbstractButton[temp.size()]);
+		return temp.toArray(new AbstractButton[0]);
 	}
 	
 	public boolean remove(final AbstractButton button) {

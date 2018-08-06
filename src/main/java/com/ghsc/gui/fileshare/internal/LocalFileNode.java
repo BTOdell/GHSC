@@ -182,7 +182,7 @@ public class LocalFileNode extends FileNode {
 	 * Example: \pictures\2012\image.png
 	 */
 	static LocalFileNode findFile(String relativePath, final List<LocalFileNode> nodes) {
-		relativePath = relativePath.substring(1, relativePath.length());
+		relativePath = relativePath.substring(1);
 		final int index = relativePath.indexOf(File.separatorChar);
 		final String nodeName = relativePath.substring(0, index >= 0 ? index : relativePath.length());
 		final String newRelativePath = relativePath.substring(index);

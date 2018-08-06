@@ -74,7 +74,7 @@ public class AES {
 	
 	@Override
 	public boolean equals(final Object o) {
-		return o != null && o instanceof AES && SHA2.verify(((AES) o).key, this.key);
+		return o instanceof AES && SHA2.verify(((AES) o).key, this.key);
 	}
 	
 	public static byte[] getRandomBytes(final int length) {

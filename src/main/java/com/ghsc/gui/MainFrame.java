@@ -1,8 +1,5 @@
 package com.ghsc.gui;
 
-import com.ghsc.admin.commands.AdminCommand;
-import com.ghsc.admin.commands.flash.FlashCommand;
-import com.ghsc.admin.commands.kick.KickCommand;
 import com.ghsc.common.Colors;
 import com.ghsc.common.Debug;
 import com.ghsc.common.Fonts;
@@ -27,7 +24,6 @@ import com.ghsc.gui.fileshare.FileShare;
 import com.ghsc.gui.tray.TrayManager;
 import com.ghsc.util.Tag;
 import com.ghsc.util.TimeStamp;
-import com.ghsc.util.Utilities;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -61,7 +57,7 @@ public class MainFrame extends JFrame {
                 String currChat = chat.getName();
                 if (chat instanceof Channel) {
                     Channel chan = (Channel) chat;
-                    if (!Application.getInstance().getAdminControl().isAdmin() && chan.getUserCount() > 0) {
+                    if (chan.getUserCount() > 0) {
                         switch (this.spamControl.filter(trimmedText, currChat)) {
                             case 1:
                                 //JOptionPane.showMessageDialog(MainFrame.this, "GHSC has detected you spamming " + currChannel + ".\nIf you continue, you will be temporarily banned from the channel.", "Spam warning!", JOptionPane.WARNING_MESSAGE);
@@ -117,7 +113,6 @@ public class MainFrame extends JFrame {
 	private JToolBar userToolBar;
 	private JScrollPane chatTextInputScroll;
 	private JButton joinChannelButton;
-	private JToggleButton adminButton;
 	private JButton settingsButton;
 	private JButton fileTransferButton;
 	
@@ -321,25 +316,6 @@ public class MainFrame extends JFrame {
                         ii.setFont(Fonts.GLOBAL);
                         menu.add(ii);
 
-                        if (application.getAdminControl().isAdmin()) {
-                            menu.addSeparator();
-
-                            final JMenu adminMenu = menu.createMenu("Admin");
-                            {
-                                // TODO: make this dynamic!
-                                final JMenuItem kI = menu.createItem("Kick", e -> u.send(AdminCommand.composeCommand(KickCommand.TAG, KickCommand.ATT_CHANNEL, this.chatContainer.getSelectedChat().getName())));
-                                kI.setFont(Fonts.GLOBAL);
-                                adminMenu.add(kI);
-
-                                final boolean flashStatus = Utilities.resolveToBoolean(u.getCommandState(FlashCommand.TAG));
-                                final JMenuItem flI = menu.createItem(flashStatus ? "Disable flashing" : "Enable flashing", e -> u.send(AdminCommand.composeCommand(FlashCommand.TAG, FlashCommand.ATT_ENABLE, Utilities.resolveToString(!flashStatus))));
-                                flI.setFont(Fonts.GLOBAL);
-                                adminMenu.add(flI);
-                            }
-                            adminMenu.setFont(Fonts.GLOBAL);
-                            menu.add(adminMenu);
-                        }
-
                         menu.addSeparator();
 
                         final JMenuItem ci = menu.createItem("Cancel", e -> menu.setVisible(false));
@@ -454,7 +430,6 @@ public class MainFrame extends JFrame {
 			this.userToolBar.add(Box.createHorizontalGlue());
 			this.userToolBar.add(this.getJoinButton());
 			this.userToolBar.add(this.getFileTransferButton());
-			this.userToolBar.add(this.getAdminButton());
 			this.userToolBar.add(this.getSettingsButton());
 			this.userToolBar.add(Box.createHorizontalGlue());
 		}
@@ -529,42 +504,6 @@ public class MainFrame extends JFrame {
 			this.fileTransferButton.setFocusable(false);
 		}
 		return this.fileTransferButton;
-	}
-	
-	public JToggleButton getAdminButton() {
-		if (this.adminButton == null) {
-			this.adminButton = new JToggleButton();
-			this.adminButton.setHorizontalTextPosition(SwingConstants.CENTER);
-			this.adminButton.setIconTextGap(0);
-			this.adminButton.setIcon(new ImageIcon(Images.KEY));
-			this.adminButton.addActionListener(unused -> {
-                final Application application = Application.getInstance();
-                if (application.getAdminControl().isLoginVisible()) {
-					this.adminButton.setSelected(!this.adminButton.isSelected());
-                    return;
-                }
-                if (!this.adminButton.isSelected()) { // logout
-                    if (JOptionPane.showConfirmDialog(this, "Are you sure you want to logout of admin controls?", "Logout?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION) {
-                        application.getAdminControl().setAdmin(false);
-						this.adminButton.setToolTipText("Login as admin");
-                    } else {
-						this.adminButton.setSelected(true);
-                    }
-                } else { // login
-                    if (application.getAdminControl().isReady()) {
-                        application.getAdminControl().showLogin();
-                    } else {
-						this.adminButton.setSelected(false);
-                        JOptionPane.showMessageDialog(application.getMainFrame(), "Due to network complications, passwords entered can't be validated.", "Admin control is currently unavailable.", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
-			this.adminButton.setFont(Fonts.GLOBAL);
-			this.adminButton.setToolTipText("Login as admin");
-			this.adminButton.setDoubleBuffered(true);
-			this.adminButton.setFocusable(false);
-		}
-		return this.adminButton;
 	}
 	
 	public JButton getSettingsButton() {

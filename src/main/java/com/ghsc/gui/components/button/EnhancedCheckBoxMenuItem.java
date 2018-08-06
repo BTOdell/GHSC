@@ -71,7 +71,7 @@ public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 		super.doClick(pressTime);
 		if (path.length > 0) {
 			final MenuElement source = path[0];
-			if (source != null && source instanceof JPopupMenu) {
+			if (source instanceof JPopupMenu) {
 				final JPopupMenu jpm = (JPopupMenu) source;
 				jpm.setVisible(true);
 			}
