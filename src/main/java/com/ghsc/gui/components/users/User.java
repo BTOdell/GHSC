@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -66,11 +65,6 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 	
 	private final Socket socket;
 	private final MessageThread messageThread;
-	
-	/**
-	 * Admin command states HashMap of (TAG, STATE)
-	 */
-	private final HashMap<String, Object> commandStates = new HashMap<>();
 	
 	private String hostname;
 	private String nick;
@@ -368,18 +362,6 @@ public class User implements ComplexIdentifiable, Transferable, Comparable<User>
 			}
 		}
 		this.container.refresh();
-	}
-	
-	/*
-	 * Admin commands methods
-	 */
-	
-	public Object getCommandState(final String tag) {
-		return this.commandStates.get(tag);
-	}
-	
-	public Object setCommandState(final String tag, final Object state) {
-		return this.commandStates.put(tag, state);
 	}
 	
 	/**
