@@ -92,13 +92,13 @@ public abstract class FileNode implements MutableTreeNode, EndTaggable {
 	 */
 	
 	@Override
-	public Enumeration<Object> children() {
-		return new Enumeration<Object>() {
+	public Enumeration<? extends TreeNode> children() {
+		return new Enumeration<TreeNode>() {
 			int index;
 			public boolean hasMoreElements() {
 				return FileNode.this.children != null && this.index < FileNode.this.children.size();
 			}
-			public Object nextElement() {
+			public TreeNode nextElement() {
 				return FileNode.this.children.get(this.index++);
 			}
 		};
