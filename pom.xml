@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>einheit</groupId>
     <artifactId>ghsc</artifactId>
-    <version>0.4.0-alpha</version>
+    <version>0.4.0-dev</version>
     <packaging>jar</packaging>
 
     <name>GHSC</name>
-    <url>https://bitbucket.org/btodell/ghsc</url>
+    <url>https://github.com/BTOdell/GHSC</url>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
