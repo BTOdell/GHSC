@@ -16,7 +16,6 @@ import ghsc.util.TimeStamp;
 
 /**
  * Provides visual access to view messages from any other users broadcasting on that channel.
- * @author Odell
  */
 public class Channel extends Chat {
 	

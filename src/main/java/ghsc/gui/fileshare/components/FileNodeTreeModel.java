@@ -15,8 +15,7 @@ import ghsc.gui.fileshare.internal.FileNode;
 import ghsc.gui.fileshare.internal.FileNodeChildren;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A tree model to display file nodes for file sharing.
  */
 public class FileNodeTreeModel<N extends FileNode> implements TreeModel {
 	

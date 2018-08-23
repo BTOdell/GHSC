@@ -11,7 +11,6 @@ import ghsc.gui.Application;
 
 /**
  * Controls the tray icon and all things that have to do with it.
- * @author Odell
  */
 public class TrayManager {
 	

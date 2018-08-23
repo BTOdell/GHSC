@@ -9,7 +9,6 @@ import javax.swing.event.ChangeListener;
 
 /**
  * An extension of JCheckBoxMenuItem that doesn't close the menu when selected.
- * @author Odell
  */
 public class EnhancedCheckBoxMenuItem extends JCheckBoxMenuItem {
 	

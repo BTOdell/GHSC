@@ -5,13 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import ghsc.gui.Application;
 import ghsc.gui.components.chat.Chat;
 import ghsc.gui.components.chat.channels.Channel;
 import ghsc.gui.fileshare.components.PackagePanel;
-import ghsc.impl.Filter;
 import ghsc.util.Utilities;
 
 /**
@@ -174,7 +174,7 @@ public abstract class FilePackage {
 		return c;
 	}
 
-	public static class Visibility implements Filter<FilePackage> {
+	public static class Visibility implements Predicate<FilePackage> {
 
 		public enum Type {
 			PUBLIC("pu"), // visible to all users
@@ -255,7 +255,7 @@ public abstract class FilePackage {
 		}
 
 		@Override
-		public boolean accept(final FilePackage p) {
+		public boolean test(final FilePackage p) {
 			if (p instanceof LocalPackage || this.type == Type.PUBLIC || p.isActive()) { // handles public packages
 				return true;
 			}

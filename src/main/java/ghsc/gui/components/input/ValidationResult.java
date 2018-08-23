@@ -2,7 +2,6 @@ package ghsc.gui.components.input;
 
 /**
  * Creates a wrapper which allows a validator to return both a boolean result as well as a string tooltip.
- * @author Odell
  */
 public class ValidationResult<V,R> {
 	

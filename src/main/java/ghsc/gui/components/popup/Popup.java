@@ -8,7 +8,6 @@ import javax.swing.JPopupMenu;
 
 /**
  * An extension to a JPopupMenu, providing easier addition of items.
- * @author Odell
  */
 public class Popup extends JPopupMenu {
 	

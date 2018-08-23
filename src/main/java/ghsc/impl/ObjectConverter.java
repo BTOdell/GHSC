@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * TODO
  */
-public abstract class ObjectConverter<E> implements IObjectConverter<E> {
+public abstract class ObjectConverter<E> implements Function<E, String> {
 	
 	private final E obj;
 	
@@ -35,20 +35,20 @@ public abstract class ObjectConverter<E> implements IObjectConverter<E> {
 	
 	@Override
 	public String toString() {
-		return this.convert(this.obj);
+		return this.apply(this.obj);
 	}
 	
 	@SafeVarargs
-	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, final E... data) {
+	public static <E> List<ObjectConverter<E>> wrap(final Function<E, String> converter, final E... data) {
 		return wrap(converter, Arrays.asList(data));
 	}
 	
-	public static <E> List<ObjectConverter<E>> wrap(final IObjectConverter<E> converter, final Collection<E> elements) {
+	public static <E> List<ObjectConverter<E>> wrap(final Function<E, String> converter, final Collection<E> elements) {
 		final ArrayList<ObjectConverter<E>> collection = new ArrayList<>(elements.size());
 		for (final E element : elements) {
 			collection.add(new ObjectConverter<E>(element) {
-				public String convert(final E obj) {
-					return converter.convert(obj);
+				public String apply(final E obj) {
+					return converter.apply(obj);
 				}
 			});
 		}

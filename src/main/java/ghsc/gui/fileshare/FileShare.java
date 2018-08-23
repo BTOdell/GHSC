@@ -13,11 +13,10 @@ import ghsc.gui.fileshare.internal.FilePackage;
 import ghsc.gui.fileshare.internal.FilePackage.Visibility.Type;
 import ghsc.gui.fileshare.internal.LocalFileNode;
 import ghsc.gui.fileshare.internal.LocalPackage;
-import ghsc.impl.Filter;
 import ghsc.net.encryption.AES;
 import ghsc.net.sockets.filetransfer.FileTransferListener;
 import ghsc.net.sockets.input.MessageThread;
-import ghsc.util.SnapAdapter;
+import ghsc.gui.components.util.SnapAdapter;
 import ghsc.util.Tag;
 import ghsc.util.Utilities;
 
@@ -29,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -264,17 +264,17 @@ public class FileShare {
 	
 	/**
 	 * Closes all SocketWorkers that qualify the given filter.
-	 * @param filter the filter to qualify SocketWorkers.
-	 * @return whether or not all the SocketWorkers which qualified closed without problems.
+	 * @param predicate The predicate to qualify SocketWorkers.
+	 * @return Whether or not all the SocketWorkers which qualified closed without problems.
 	 */
-	public boolean closeAll(final Filter<SocketWorker> filter) {
+	public boolean closeAll(final Predicate<SocketWorker> predicate) {
 		if (this.socketWorkers.size() <= 0) {
             return true;
         }
 		boolean success = true;
 		synchronized (this.socketWorkers) {
             for (final SocketWorker sw : this.socketWorkers) {
-                if (sw != null && filter.accept(sw)) {
+                if (sw != null && predicate.test(sw)) {
                     success &= sw.close();
                 }
             }

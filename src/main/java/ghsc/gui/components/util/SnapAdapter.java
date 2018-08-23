@@ -1,4 +1,4 @@
-package ghsc.util;
+package ghsc.gui.components.util;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -8,8 +8,8 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.Line2D;
 
-import ghsc.util.SnapAdapter.Side.Align;
-import ghsc.util.SnapAdapter.Side.Type;
+import ghsc.gui.components.util.SnapAdapter.Side.Align;
+import ghsc.gui.components.util.SnapAdapter.Side.Type;
 
 public class SnapAdapter extends ComponentAdapter {
 		

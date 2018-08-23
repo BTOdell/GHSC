@@ -7,9 +7,9 @@ import ghsc.gui.fileshare.components.*;
 import ghsc.gui.fileshare.internal.FilePackage;
 import ghsc.gui.fileshare.internal.FilePackage.Visibility;
 import ghsc.gui.fileshare.internal.RemotePackage;
-import ghsc.util.SnapAdapter;
-import ghsc.util.SnapAdapter.Magnet;
-import ghsc.util.SnapAdapter.Side;
+import ghsc.gui.components.util.SnapAdapter;
+import ghsc.gui.components.util.SnapAdapter.Magnet;
+import ghsc.gui.components.util.SnapAdapter.Side;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;

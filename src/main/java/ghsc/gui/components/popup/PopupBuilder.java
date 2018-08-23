@@ -4,7 +4,6 @@ import java.awt.Component;
 
 /**
  * Used to provide dynamic instructions to populate a Popup menu.
- * @author Odell
  */
 public interface PopupBuilder {
 	/**

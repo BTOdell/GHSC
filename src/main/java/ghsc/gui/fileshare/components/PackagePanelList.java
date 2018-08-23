@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.function.Function;
 
 import javax.swing.JPanel;
 
@@ -18,23 +19,21 @@ import ghsc.common.Debug;
 import ghsc.gui.Application;
 import ghsc.gui.fileshare.FileShareFrame;
 import ghsc.gui.fileshare.internal.FilePackage;
-import ghsc.impl.ObjectProcessor;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A panel that displays all available packages on the network.
  */
 public class PackagePanelList extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
 
 	private final FileShareFrame container;
-	private final ObjectProcessor<Object, LinkedList<FilePackage>> packageProvider;
+	private final Function<Object, LinkedList<FilePackage>> packageProvider;
 	
 	private final ArrayList<PackagePanel> panels = new ArrayList<>();
 	private Comparator<PackagePanel> comparator;
 	
-	public PackagePanelList(final FileShareFrame container, final ObjectProcessor<Object, LinkedList<FilePackage>> packageProvider) {
+	public PackagePanelList(final FileShareFrame container, final Function<Object, LinkedList<FilePackage>> packageProvider) {
 		super();
 		this.container = container;
 		this.packageProvider = packageProvider;
@@ -58,7 +57,7 @@ public class PackagePanelList extends JPanel {
 	 * Warning: Expensive operation.
 	 */
 	public void syncProvider() {
-		final LinkedList<FilePackage> packages = this.packageProvider.process(null);
+		final LinkedList<FilePackage> packages = this.packageProvider.apply(null);
 		synchronized (this.panels) {
 			final LinkedList<PackagePanel> panelsCopy = new LinkedList<>(this.panels);
 			final Iterator<FilePackage> it = packages.iterator();

@@ -12,7 +12,6 @@ import ghsc.gui.fileshare.FileShareFrame;
 import ghsc.gui.fileshare.internal.FilePackage.Visibility;
 import ghsc.gui.fileshare.internal.LocalFileNode;
 import ghsc.gui.fileshare.internal.LocalPackage;
-import ghsc.impl.IObjectConverter;
 import ghsc.impl.Identifiable;
 import ghsc.impl.ObjectConverter;
 
@@ -31,6 +30,8 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 /**
@@ -407,7 +408,7 @@ public class PackageWizard extends JDialog {
                                     }, false);
                             break;
                         case USER:
-                            final IObjectConverter<Identifiable> converter = obj -> {
+                            final Function<Identifiable, String> converter = obj -> {
                                 if (obj == null) {
                                     return null;
                                 }
@@ -421,7 +422,7 @@ public class PackageWizard extends JDialog {
                                             this.visibilityUserData = ObjectConverter.unwrap(event);
                                         }
                                         this.visibilityDialog = null;
-                                    }, i -> i, null, true);
+                                    }, UnaryOperator.identity(), null, true);
                             break;
                         default:
                             break;

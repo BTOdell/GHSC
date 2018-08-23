@@ -10,7 +10,6 @@ import javax.swing.text.JTextComponent;
 
 /**
  * Handles prompts for text components that specify what the text component is for.
- * @author Odell
  */
 public class PromptHandler implements FocusListener {
 	

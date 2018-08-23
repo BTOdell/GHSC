@@ -10,7 +10,6 @@ import java.net.SocketException;
 
 /**
  * The task of FileTransferListener is to listen for any incoming TCP file transfer connections and accept them.
- * @author Odell
  */
 public class FileTransferListener implements ISocketController {
 	

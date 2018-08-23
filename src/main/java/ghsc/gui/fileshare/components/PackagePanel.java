@@ -20,8 +20,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A panel that displays the information about a package.
  */
 public class PackagePanel extends JPanel {
 	

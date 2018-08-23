@@ -4,7 +4,6 @@ import java.util.UUID;
 
 /**
  * Provides complex identification for all users.
- * @author Odell
  */
 public interface ComplexIdentifiable extends Identifiable {
 

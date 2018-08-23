@@ -11,7 +11,6 @@ import ghsc.gui.components.chat.channels.ChannelElement;
 import ghsc.gui.fileshare.FileShare;
 import ghsc.gui.fileshare.internal.RemotePackage;
 import ghsc.impl.ComplexIdentifiable;
-import ghsc.impl.Filter;
 import ghsc.impl.Identifiable;
 import ghsc.net.sockets.input.MessageThread;
 import ghsc.util.Tag;
@@ -28,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public class User implements ComplexIdentifiable, Transferable, Comparable<User> {
 	
-	public static final Filter<User> ALL = user -> true;
+	public static final Predicate<User> ALL = user -> true;
 	
 	public enum Status {
 		

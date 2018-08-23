@@ -9,7 +9,6 @@ import ghsc.util.TimeStamp;
 
 /**
  * Used to display a message/element in a Channel chat list.
- * @author Odell
  */
 public class ChannelElement extends ChatElement {
 	

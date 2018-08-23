@@ -1,8 +1,7 @@
 package ghsc.gui.components.input;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A listener for when a wizard user interface finishes a produces a result object.
  */
 public interface WizardListener<I> {
 	void wizardFinished(I obj);

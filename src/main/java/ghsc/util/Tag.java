@@ -1,5 +1,8 @@
 package ghsc.util;
 
+import ghsc.gui.Application;
+
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -258,7 +261,7 @@ public class Tag {
 			if (this.attributes == null) {
 				this.attributes = new HashMap<>();
             }
-			this.attributes.put(data0, new Base64Value(Base64.decode(data1), data1));
+			this.attributes.put(data0, new Base64Value(new String(Base64.getDecoder().decode(data1), Application.CHARSET), data1));
 		}
 	}
 	
@@ -297,7 +300,7 @@ public class Tag {
             }
 			final String keyString = key.toString();
 			final String valueString = value.toString();
-			final Base64Value bv = new Base64Value(valueString, Base64.encode(valueString));
+			final Base64Value bv = new Base64Value(valueString, Base64.getEncoder().encodeToString(valueString.getBytes(Application.CHARSET)));
 			att.put(keyString, bv);
 			build.append(' ').append(keyString).append("=\"").append(valueString).append('"');
 			buildE.append(' ').append(keyString).append("=\"").append(bv.getBase64()).append('"');

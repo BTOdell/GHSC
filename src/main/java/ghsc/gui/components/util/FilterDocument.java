@@ -3,22 +3,20 @@ package ghsc.gui.components.util;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
-
-import ghsc.impl.Filter;
+import java.util.function.Predicate;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * TODO
  */
 public class FilterDocument extends DefaultStyledDocument {
 	
 	private static final long serialVersionUID = 1L;
 
-	private final Filter<Character> filter;
+	private final Predicate<Character> predicate;
 	
-	public FilterDocument(final Filter<Character> filter) {
+	public FilterDocument(final Predicate<Character> predicate) {
 		super();
-		this.filter = filter;
+		this.predicate = predicate;
 	}
 	
 	@Override
@@ -27,7 +25,7 @@ public class FilterDocument extends DefaultStyledDocument {
 		int i = 0;
 		while (i < sb.length()) {
 			final char c = sb.charAt(i);
-			if (this.filter != null && !this.filter.accept(c)) {
+			if (this.predicate != null && !this.predicate.test(c)) {
 				sb.deleteCharAt(i);
 				continue;
 			}

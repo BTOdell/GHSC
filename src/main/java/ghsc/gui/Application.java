@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -51,7 +52,7 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	public static Debug DEBUG = Debug.MINOR;
-	public static Charset CHARSET = Charset.forName("UTF-8");
+	public static Charset CHARSET = StandardCharsets.UTF_8;
 	public static Version VERSION = Version.create("0.4.0", "dev");
 	public static File LAST_DIRECTORY;
 	private static final String PROGRAM_NAME = "GHSC";

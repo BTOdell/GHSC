@@ -4,7 +4,6 @@ import ghsc.common.Fonts;
 import ghsc.event.EventListener;
 import ghsc.gui.components.autocomplete.AutoComplete;
 import ghsc.gui.components.autocomplete.ObjectToStringConverter;
-import ghsc.impl.InputVerifier;
 
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
@@ -14,6 +13,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.function.UnaryOperator;
 
 /**
  * TODO
@@ -27,7 +27,7 @@ public class VisibilityDialog<E> extends JDialog {
 	private final Collection<E> available;
     private final Collection<E> contents;
 	private final EventListener<ArrayList<E>> callback;
-	private final InputVerifier<E> inputVerifier;
+	private final UnaryOperator<E> inputVerifier;
 	private final ObjectToStringConverter converter;
 	private final boolean strict;
 
@@ -43,7 +43,7 @@ public class VisibilityDialog<E> extends JDialog {
 	 * Create the dialog.
 	 */
 	public VisibilityDialog(final PackageWizard wizard, final Collection<E> available, final Collection<E> contents,
-                            final EventListener<ArrayList<E>> callback, final InputVerifier<E> inputVerifier,
+                            final EventListener<ArrayList<E>> callback, final UnaryOperator<E> inputVerifier,
                             final ObjectToStringConverter converter, final boolean strict) {
 		super(wizard);
 		this.wizard = wizard;
@@ -206,7 +206,7 @@ public class VisibilityDialog<E> extends JDialog {
                     @SuppressWarnings("unchecked")
 					final E selected = (E) ACComboBox.this.getSelectedItem();
 					System.out.println("Selected: " + selected);
-					final E verified = VisibilityDialog.this.inputVerifier.verify(selected);
+					final E verified = VisibilityDialog.this.inputVerifier.apply(selected);
 					System.out.println("Verified: " + selected);
                     VisibilityDialog.this.getComboModel().removeElement(verified);
                     VisibilityDialog.this.getListModel().addElement(verified);

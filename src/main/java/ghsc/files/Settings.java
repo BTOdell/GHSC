@@ -7,7 +7,6 @@ import ghsc.util.Tag;
 
 /**
  * Provides access to the settings file in the hidden GHSC folder.
- * @author Odell
  */
 public class Settings extends FileStorage {
 	

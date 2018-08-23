@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
@@ -26,7 +27,6 @@ import ghsc.gui.MainFrame;
 import ghsc.gui.components.chat.Chat;
 import ghsc.gui.components.chat.channels.Channel;
 import ghsc.gui.components.users.User.Status;
-import ghsc.impl.Filter;
 import ghsc.util.Tag;
 
 /**
@@ -272,10 +272,10 @@ public class UserContainer extends JList<User> {
 	 * @param tag The data to send to the users.
 	 * @param filter The filter to use to qualify users.
 	 */
-	public void send(final Tag tag, final Filter<User> filter) {
+	public void send(final Tag tag, final Predicate<User> filter) {
 		synchronized (this.users) {
 			for (final User u : this.users.values()) {
-				if (filter.accept(u)) {
+				if (filter.test(u)) {
                     u.send(tag);
                 }
 			}
@@ -452,10 +452,8 @@ public class UserContainer extends JList<User> {
 	}
 	
 	/**
-	 * Used to visually render the list of users.</br>
+	 * Used to visually render the list of users.
 	 * Friends are displayed green, normal users are displayed black and ignored users are displayed red.
-	 * 
-	 * @author Odell
 	 */
 	private class UserCellRenderer extends DefaultListCellRenderer {
 		

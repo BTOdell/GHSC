@@ -5,16 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import ghsc.gui.Application;
 import ghsc.net.encryption.AES;
-import ghsc.util.Base64;
 import ghsc.util.Tag;
 import ghsc.util.Utilities;
 
@@ -309,8 +305,7 @@ public abstract class FileStorage {
 		
 		public Node(final Tag tag, final Node... nodes) {
 			this(tag);
-			this.nodes = new ConcurrentLinkedQueue<>();
-			this.nodes.addAll(Arrays.asList(nodes));
+			this.nodes = new ConcurrentLinkedQueue<>(Arrays.asList(nodes));
 		}
 		
 		public String getData() {
@@ -319,7 +314,9 @@ public abstract class FileStorage {
 		
 		private String getEncodedData() {
 			if (this.data_encoded == null) {
-				this.data_encoded = Base64.encode(this.data);
+				if (this.data != null) {
+					this.data_encoded = Base64.getEncoder().encodeToString(this.data.getBytes(Application.CHARSET));
+				}
 			}
 			return this.data_encoded;
 		}
@@ -340,7 +337,7 @@ public abstract class FileStorage {
 				this.nodes.offer((Node) o);
 			} else {
 				this.data_encoded = o.toString();
-				this.data = Base64.decode(this.data_encoded);
+				this.data = new String(Base64.getDecoder().decode(this.data_encoded), Application.CHARSET);
 			}
 		}
 		

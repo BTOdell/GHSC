@@ -1,8 +1,7 @@
 package ghsc.gui.components.input;
 
 /**
- * Created by Eclipse IDE.
- * @author Odell
+ * A function that validates input to a wizard user interface.
  */
 public interface WizardValidator<I, V, R> {
 	ValidationResult<V, R> validate(I text);

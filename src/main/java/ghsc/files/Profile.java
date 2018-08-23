@@ -2,7 +2,6 @@ package ghsc.files;
 
 /**
  * Provides access to the profile file in the hidden GHSC folder.
- * @author Odell
  */
 public class Profile extends FileStorage {
 	

@@ -2,7 +2,6 @@ package ghsc.net.update;
 
 import com.google.gson.*;
 import ghsc.gui.Application;
-import ghsc.impl.Filter;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -12,6 +11,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Represents a public release on GitHub.
@@ -60,9 +60,9 @@ public class Release implements Comparable<Release> {
     /**
      * Tests all versions between the current version and the given target version.
      * @param targetVersion The latest version.
-     * @param filter The filter to qualify versions.
+     * @param predicate The filter to qualify versions.
      */
-    private boolean test(final Version targetVersion, final Filter<Version> filter) {
+    private boolean test(final Version targetVersion, final Predicate<Version> predicate) {
         if (!this.versions.contains(targetVersion) ||
             !this.versions.contains(Application.VERSION)) {
             return false;
@@ -86,7 +86,7 @@ public class Release implements Comparable<Release> {
                 withinMinMax = true;
             }
             if (withinMinMax) {
-                if (filter.accept(c)) {
+                if (predicate.test(c)) {
                     return true;
                 }
             }
@@ -118,8 +118,8 @@ public class Release implements Comparable<Release> {
     // region Static factory functions
 
     /**
-     * Determines if the given version is a compatible version with the current running version.
-     * @return <tt>true</tt> if the given version is compatible, otherwise <tt>false</tt>.
+     * Determines if the given target version is a compatible version with the current running version.
+     * @return <tt>true</tt> if the given target version is compatible, otherwise <tt>false</tt>.
      */
     public static boolean isCompatible(@Nullable final Release release, final Version targetVersion) {
         return targetVersion.equals(Application.VERSION) ||
@@ -127,8 +127,7 @@ public class Release implements Comparable<Release> {
     }
 
     /**
-     *
-     * @return
+     * Retrieves the latest release version of the internet.
      */
     static Release getLatest() throws IOException {
         // Get latest release information
@@ -136,7 +135,6 @@ public class Release implements Comparable<Release> {
         final JsonObject rootObject = new JsonParser()
             .parse(new InputStreamReader(latestReleaseURL.openStream(), StandardCharsets.UTF_8))
             .getAsJsonObject();
-        final String releaseTagName = rootObject.getAsJsonPrimitive("tag_name").getAsString();
         String versionURLString = null;
         String jarURLString = null;
         for (final JsonElement assetElement : rootObject.getAsJsonArray("assets")) {
@@ -168,8 +166,6 @@ public class Release implements Comparable<Release> {
             versions.add(v);
         }
         versions.sort(null);
-        // Verify last version is version of latest release
-        // TODO
         // Return release object
         return new Release(versions.get(0), versions, jarURLString);
     }

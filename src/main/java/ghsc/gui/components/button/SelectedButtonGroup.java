@@ -9,7 +9,6 @@ import javax.swing.AbstractButton;
 
 /**
  * Will always ensure that a button in this group is selected.
- * @author Odell
  */
 public class SelectedButtonGroup {
 

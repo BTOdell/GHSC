@@ -1,10 +1,11 @@
 package ghsc.gui.fileshare.components;
 
 import ghsc.gui.components.button.BufferedCheckBoxMenuItem;
-import ghsc.impl.Filter;
+
+import java.util.function.Predicate;
 
 @SuppressWarnings("rawtypes")
-public class FilterCheckBoxMenuItem<E extends Filter> extends BufferedCheckBoxMenuItem {
+public class FilterCheckBoxMenuItem<E extends Predicate> extends BufferedCheckBoxMenuItem {
 	
 	private static final long serialVersionUID = 1L;
 

@@ -4,7 +4,6 @@ import ghsc.util.Tag;
 
 /**
  * A container/wrapper for transferring all data between applications.
- * @author Odell
  */
 public class MessageEvent extends Tag {
 	
@@ -12,7 +11,6 @@ public class MessageEvent extends Tag {
 	
 	/**
 	 * Indicates the type of MessageEvent.
-	 * @author Odell
 	 */
 	public enum Type {
 		

@@ -8,12 +8,12 @@ import ghsc.gui.MainFrame;
 import ghsc.gui.components.chat.channels.Channel;
 import ghsc.gui.components.users.User;
 import ghsc.gui.components.users.UserContainer;
-import ghsc.impl.Filter;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import java.util.ArrayList;
 import java.util.StringJoiner;
+import java.util.function.Predicate;
 
 /**
  * Provides a container for Chats and some basic functions for adding and removing Chats from this container.
@@ -146,11 +146,11 @@ public class ChatContainer extends JTabbedPane {
 		return this.getAll(chat -> true);
 	}
 	
-	public Chat[] getAll(final Filter<Chat> filter) {
+	public Chat[] getAll(final Predicate<Chat> filter) {
 		final ArrayList<Chat> chats = new ArrayList<>(this.chats.size());
 		synchronized (this.chats) {
 			for (final Chat chat : this.chats) {
-				if (chat != null && filter.accept(chat)) {
+				if (chat != null && filter.test(chat)) {
 					chats.add(chat);
 				}
 			}
@@ -162,11 +162,11 @@ public class ChatContainer extends JTabbedPane {
 		return this.getAllAsStrings(chat -> true);
 	}
 	
-	public String[] getAllAsStrings(final Filter<Chat> filter) {
+	public String[] getAllAsStrings(final Predicate<Chat> filter) {
 		final ArrayList<String> chats = new ArrayList<>(this.chats.size());
 		synchronized (this.chats) {
 			for (final Chat chat : this.chats) {
-				if (chat != null && filter.accept(chat)) {
+				if (chat != null && filter.test(chat)) {
 					chats.add(chat.getName());
 				}
 			}
