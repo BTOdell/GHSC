@@ -1,33 +1,43 @@
 package ghsc.net.update;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * This is a simple version class which contains a three number versioning system.<br>
- * Version format: { major.minor.revision }<br>
- * The status number corresponds to:<br>
- * 1 - indev
- * 2 - pre-alpha<br>
- * 3 - alpha<br>
- * 4 - beta<br>
- * 5 - preview<br>
- * 0 - release<br>
- * @author Odell
+ * This is a simple version class which contains a three number versioning system.
+ * Version format: { major.minor.revision }
+ * Common statuses:
+ * # dev
+ * # alpha
+ * # beta
+ * # rc (release candidate)
  */
 public class Version implements Comparable<Version> {
-	
-	public static final String COMPATIBLE = "c";
-	public static final String REQUIRED = "r";
-	public static final String FORCED = "f";
+
+	/**
+	 * Indicates that a version breaks compatibility with the previous version.
+	 */
+	static final String COMPATIBLE = "c";
+
+	/**
+	 * Indicates that a version is required (previous version will exit if not updated).
+	 * This should only be used if there is a critical bug that must be patched.
+	 */
+	static final String REQUIRED = "r";
+
+	/**
+	 * Indicates that the previous version should automatically update (without user consent).
+	 * This should only be used in an emergency like a fix to a serious security vulnerability.
+	 */
+	static final String FORCED = "f";
 	
 	private final int[] version = new int[3];
 	private String status;
-	private final ArrayList<String> flags;
+	private final Set<String> flags = new HashSet<>();
 	
-	private Version() {
-		this.flags = new ArrayList<>();
-	}
+	private Version() {}
 	
 	public String getStatus() {
 		return this.status;
@@ -85,7 +95,7 @@ public class Version implements Comparable<Version> {
 		}
 		return sb.toString();
 	}
-	
+
 	/**
 	 * Format: #.#.#
 	 * @return a basic String representation of this version.
@@ -112,15 +122,15 @@ public class Version implements Comparable<Version> {
 		}
 		return 0;
 	}
-	
-	@Override
-	public boolean equals(final Object o) {
-		return o instanceof Version && this.compareTo((Version) o) == 0;
-	}
-	
+
 	@Override
 	public int hashCode() {
-		return (this.version[0] << 2) + (this.version[1] << 1) + this.version[2];
+		return Arrays.hashCode(this.version);
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		return o instanceof Version && Arrays.equals(this.version, ((Version) o).version);
 	}
 	
 }

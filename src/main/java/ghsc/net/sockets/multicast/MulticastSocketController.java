@@ -21,8 +21,11 @@ import ghsc.gui.components.users.User;
 import ghsc.gui.components.users.UserContainer;
 import ghsc.net.encryption.AES;
 import ghsc.net.sockets.ISocketController;
+import ghsc.net.update.Release;
 import ghsc.net.update.Version;
 import ghsc.util.Tag;
+
+import javax.annotation.Nullable;
 
 /**
  * Multicasting allows GHSC to broadcast it's location (as IP) to anyone who's listening on the multicast address</br>
@@ -156,7 +159,7 @@ public class MulticastSocketController implements ISocketController {
 		}
 		final int remotePort = Integer.parseInt(remotePortString);
 		final String versionString = message.getAttribute(ATT_VERSION);
-		if (versionString == null || !application.getVersionController().isCompatible(Version.parse(versionString))) {
+		if (versionString == null || !isCompatible(application, Version.parse(versionString))) {
 			return;
 		}
 		final UserContainer users = application.getMainFrame().getUsers();
@@ -279,6 +282,10 @@ public class MulticastSocketController implements ISocketController {
 		this.running = false;
 		this.receiveSocket.close();
 		this.sendSocket.close();
+	}
+
+	private static boolean isCompatible(final Application application, @Nullable final Version version) {
+		return version != null && Release.isCompatible(application.getVersionController().getKnownLatest(), version);
 	}
 	
 }

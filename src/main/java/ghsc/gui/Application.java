@@ -52,9 +52,9 @@ public class Application implements ComplexIdentifiable {
 	
 	public static Debug DEBUG = Debug.MINOR;
 	public static Charset CHARSET = Charset.forName("UTF-8");
-	public static Version VERSION = Version.create("0.4.0", "Indev");
+	public static Version VERSION = Version.create("0.4.0", "dev");
 	public static File LAST_DIRECTORY;
-	private final String PROGRAM_NAME = "GHSC";
+	private static final String PROGRAM_NAME = "GHSC";
 	
 	private MainFrame frame;
 	private FrameTitleManager titleManager;
@@ -65,8 +65,7 @@ public class Application implements ComplexIdentifiable {
 
 	// Updating
 	private VersionController versionController;
-	private Updater updater;
-	
+
 	// Networking
 	private SocketManager socketManager;
 	public static NicManager NETWORK = new NicManager();
@@ -250,13 +249,6 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	/**
-	 * @return the updater associated with this application.
-	 */
-	public Updater getUpdater() {
-		return this.updater;
-	}
-	
-	/**
 	 * @return the version controller associated with this application.
 	 */
 	public VersionController getVersionController() {
@@ -309,7 +301,7 @@ public class Application implements ComplexIdentifiable {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored) {}
+        } catch (final ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored) {}
 
         // userid
 		Profile.getProfile().addHook(() -> {
@@ -342,7 +334,7 @@ public class Application implements ComplexIdentifiable {
                 e.printStackTrace();
             }
         });
-		this.titleManager = new FrameTitleManager(Application.this.frame, Application.this.PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
+		this.titleManager = new FrameTitleManager(this.frame, PROGRAM_NAME + " v" + Application.VERSION.getDetailed()) {
 			public void onTitleChanged(final String title) {
 				if (Application.this.tray != null) {
 					Application.this.tray.updateTooltip(title);
@@ -354,14 +346,13 @@ public class Application implements ComplexIdentifiable {
 		
 		System.out.println("Current version: " + VERSION);
 		this.frame.setStatus("Checking for updates");
-		this.versionController = new VersionController();
-		System.out.println("Latest version: " + this.versionController.refresh(true));
+		this.versionController = VersionController.createFromLatest();
+		System.out.println("Latest version: " + this.versionController.getKnownLatest());
 		//System.out.println("Compatible: " + versionController.isCompatible(versionController.getLatest()));
-		this.updater = new Updater();
 
 		// for some reason, it freezes inside isJar()...
 		if (Application.isJar()) {
-			this.updater.updateCheck(false, true);
+			Updater.updateCheck(true);
 		}
 
 		this.versionController.start();
@@ -413,23 +404,20 @@ public class Application implements ComplexIdentifiable {
 	}
 	
 	/**
-	 * Restarts the entire application.</br>
+	 * Restarts the entire application.
 	 * This application will only restart if running from a JAR file.
-     * @return Whether the application successfully restarted.
 	 */
-	public static boolean restart() {
+	public static void restart() {
 		try {
 			final String runningPath = currentRunningPath();
 			if (isJar(runningPath)) {
-                Runtime.getRuntime().exec("java -jar \"" + runningPath.trim() + "\"");
+				Runtime.getRuntime().exec("java -jar \"" + runningPath.trim() + "\"");
 				System.exit(0);
-				return true;
 			}
 		} catch (final URISyntaxException | IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Can't restart, not running from jar.");
-		return false;
+			e.printStackTrace();
+		}
+		System.out.println("Can't restart, not running from jar.");
 	}
 	
 	/**
