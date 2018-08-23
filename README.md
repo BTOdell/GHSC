@@ -1,6 +1,8 @@
 # GHSC: Glencoe High School Chat
 > A local area network communications application.
 
+[![Build Status](https://travis-ci.com/BTOdell/GHSC.svg?branch=master)](https://travis-ci.com/BTOdell/GHSC)
+
 ## Overview
 
 **GHSC** is an ever-growing communication program which allows multiple individuals 
